@@ -1,0 +1,8 @@
+services:
+  nginx:
+    image: nginx:1.25.5
+    volumes:
+      - ./nginx:/etc/nginx/templates
+      - ./content:/usr/share/nginx/html
+    ports:
+      - "8080:80"
