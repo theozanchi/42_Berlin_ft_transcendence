@@ -1,0 +1,26 @@
+name: Deploy to OCI
+
+on:
+  push:
+    branches:
+      - main
+      - development
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH key
+      run: echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa && chmod ~/.ssh/id_rsa
+
+    - name: Deploy to production
+      if: github.ref == 'refs/heads/main'
+      run: deploy.sh main $PRODUCTION_INSTANCE_IP
+
+    - name: Deploy to development
+      if: github.ref == 'refs/head/development'
+      run: deploy.sh development $DEVELOPMENT_INSTANCE_IP
+      
