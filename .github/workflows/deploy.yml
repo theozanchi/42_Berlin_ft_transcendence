@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: env
 
     steps:
     - name: Checkout code
@@ -17,19 +16,18 @@ jobs:
     - name: Set up SSH key
       run: |
         mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
       run: |
         chmod +x ./deploy.sh
-        ./deploy.sh main $PRODUCTION_INSTANCE_IP
+        ./deploy.sh main ${{ secrets.PRODUCTION_INSTANCE_IP }}
 
     - name: Deploy to development
       if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./deploy.sh
-        echo "Deploying to development instance at IP $DEVELOPMENT_INSTANCE_IP"
-        ./deploy.sh development $DEVELOPMENT_INSTANCE_IP
+        ./deploy.sh development ${{ secrets.DEVELOPMENT_INSTANCE_IP }}
       
