@@ -26,7 +26,7 @@ jobs:
         ./deploy.sh main $PRODUCTION_INSTANCE_IP
 
     - name: Deploy to development
-      if: github.ref == 'refs/head/development'
+      if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./deploy.sh
         ./deploy.sh development $DEVELOPMENT_INSTANCE_IP
