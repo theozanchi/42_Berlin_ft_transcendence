@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - development
+
+env:
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -13,34 +17,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Print environment variables
-      run: |
-        echo "SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY != '' }}"
-        echo "PRODUCTION_INSTANCE_IP: ${{ secrets.PRODUCTION_INSTANCE_IP }}"
-        echo "DEVELOPMENT_INSTANCE_IP: ${{ secrets.DEVELOPMENT_INSTANCE_IP }}"
-
     - name: Set up SSH key
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        echo "${{ env.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
       shell: bash
-      env:
-        PRODUCTION_INSTANCE_IP: ${{ secrets.PRODUCTION_INSTANCE_IP }}
       run: |
         chmod +x ./deploy.sh
-        ./deploy.sh main $PRODUCTION_INSTANCE_IP
+        ./deploy.sh main ${{ env.PRODUCTION_INSTANCE_IP }}
 
     - name: Deploy to development
       shell: bash
-      env:
-        DEVELOPMENT_INSTANCE_IP: ${{ secrets.DEVELOPMENT_INSTANCE_IP }}
       if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./deploy.sh
-        ./deploy.sh development $DEVELOPMENT_INSTANCE_IP
+        ./deploy.sh development ${{ env.DEVELOPMENT_INSTANCE_IP }}
