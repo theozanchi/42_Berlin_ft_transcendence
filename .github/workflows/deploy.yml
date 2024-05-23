@@ -8,6 +8,8 @@ on:
 
 env:
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  DEVELOPMENT_INSTANCE_IP: ${{ env.DEVELOPMENT_INSTANCE_IP }}
+  PRODUCTION_INSTANCE_IP: ${{ env.PRODUCTION_INSTANCE_IP }}
 
 jobs:
   deploy:
@@ -20,7 +22,7 @@ jobs:
     - name: Set up SSH key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ env.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
     - name: Deploy to production
@@ -28,11 +30,12 @@ jobs:
       shell: bash
       run: |
         chmod +x ./deploy.sh
-        ./deploy.sh main ${{ env.PRODUCTION_INSTANCE_IP }}
+        ./deploy.sh main $PRODUCTION_INSTANCE_IP
 
     - name: Deploy to development
       shell: bash
       if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./deploy.sh
-        ./deploy.sh development ${{ env.DEVELOPMENT_INSTANCE_IP }}
+        echo "$DEVELOPMENT_INSTANCE_IP"
+        ./deploy.sh development $DEVELOPMENT_INSTANCE_IP
