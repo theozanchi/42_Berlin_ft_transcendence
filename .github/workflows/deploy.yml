@@ -6,14 +6,14 @@ on:
       - main
       - development
 
+env:
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  DEVELOPMENT_INSTANCE_IP: "158.101.179.135"
+  PRODUCTION_INSTANCE_IP: "89.168.73.182"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    env:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      DEVELOPMENT_INSTANCE_IP: ${{ env.DEVELOPMENT_INSTANCE_IP }}
-      PRODUCTION_INSTANCE_IP: ${{ env.PRODUCTION_INSTANCE_IP }}
 
     steps:
     - name: Checkout code
