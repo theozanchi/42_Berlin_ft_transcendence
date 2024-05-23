@@ -1,10 +1,10 @@
-<mxfile host="app.diagrams.net" modified="2024-05-23T09:28:06.207Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" etag="j3m1hNvNZc5sZlLYrbo-" version="24.4.6" type="device">
+<mxfile host="app.diagrams.net" modified="2024-05-23T15:25:10.580Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" etag="Bo2myoE-OPo5tqQS7zoN" version="24.4.6" type="github">
   <diagram name="Seite-1" id="zLVV_eKc7MSiDJDmLtzi">
-    <mxGraphModel dx="739" dy="1051" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="100000000" pageHeight="100000000" math="0" shadow="0">
+    <mxGraphModel dx="1129" dy="788" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="100000000" pageHeight="100000000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="zLm2Q9h4xRQoBPKhVe6s-1" value="STORAGE" style="rounded=0;whiteSpace=wrap;html=1;align=left;fontStyle=1;fontSize=36;verticalAlign=top;spacing=24;" vertex="1" parent="1">
+        <mxCell id="zLm2Q9h4xRQoBPKhVe6s-1" value="STORAGE" style="rounded=0;whiteSpace=wrap;html=1;align=left;fontStyle=1;fontSize=36;verticalAlign=top;spacing=24;" parent="1" vertex="1">
           <mxGeometry x="30038" y="21803" width="551" height="284" as="geometry" />
         </mxCell>
         <mxCell id="_RebnMUbpeD7XwFzTjEb-13" value="" style="group" parent="1" vertex="1" connectable="0">
@@ -432,7 +432,7 @@
         <mxCell id="_RebnMUbpeD7XwFzTjEb-159" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.998;entryY=0.058;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="_RebnMUbpeD7XwFzTjEb-55" target="_RebnMUbpeD7XwFzTjEb-31" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="zLm2Q9h4xRQoBPKhVe6s-2" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+        <mxCell id="zLm2Q9h4xRQoBPKhVe6s-2" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
           <mxGeometry x="30061" y="21878" width="60" height="80" as="geometry" />
         </mxCell>
       </root>
