@@ -21,9 +21,13 @@ jobs:
 
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
-      run: deploy.sh main $PRODUCTION_INSTANCE_IP
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh main $PRODUCTION_INSTANCE_IP
 
     - name: Deploy to development
       if: github.ref == 'refs/head/development'
-      run: deploy.sh development $DEVELOPMENT_INSTANCE_IP
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh development $DEVELOPMENT_INSTANCE_IP
       
