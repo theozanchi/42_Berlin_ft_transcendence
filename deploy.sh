@@ -4,7 +4,7 @@
 
 BRANCH=$1
 INSTANCE_IP=$2
-$USER=ubuntu
+USER=ubuntu
 SSH_KEY_PATH=~/.ssh/id_rsa
 REMOTE_DIR=/home/ubuntu/42_Berlin_ft_transcendence
 
