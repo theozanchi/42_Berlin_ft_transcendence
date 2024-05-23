@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 # Deployment script for deploying application to Oracle Cloud Infrastructure
 
 BRANCH=$1
@@ -10,10 +10,12 @@ REMOTE_DIR=/home/ubuntu/42_Berlin_ft_transcendence
 
 # Check that arguments are valid
 if [ -z "$BRANCH" ]; then
+	echo "Branch not specified."
     echo "Usage: ./deploy.sh <branch> <instance_ip>"
     exit 1
 fi
 if [ -z "$INSTANCE_IP" ]; then
+	echo "Instance IP not specified."
     echo "Usage: ./deploy.sh <branch> <instance_ip>"
     exit 1
 fi
