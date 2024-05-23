@@ -8,10 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-    #   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      DEVELOPMENT_INSTANCE_IP: ${{ secrets.DEVELOPMENT_INSTANCE_IP }}
-      PRODUCTION_INSTANCE_IP: ${{ secrets.PRODUCTION_INSTANCE_IP }}
 
     steps:
     - name: Checkout code
@@ -28,11 +24,17 @@ jobs:
 
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
+      shell: bash
+      env:
+        PRODUCTION_INSTANCE_IP: ${{ secrets.PRODUCTION_INSTANCE_IP }}
       run: |
         chmod +x ./deploy.sh
         ./deploy.sh main $PRODUCTION_INSTANCE_IP
 
     - name: Deploy to development
+      shell: bash
+      env:
+        DEVELOPMENT_INSTANCE_IP: ${{ secrets.DEVELOPMENT_INSTANCE_IP }}
       if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./deploy.sh
