@@ -1,10 +1,14 @@
 services:
   nginx:
     image: nginx:1.25.5
+    entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
+    init: true
     volumes:
-      - ./nginx:/etc/nginx/templates
+      - ./nginx:/tmp
       - ./content:/usr/share/nginx/html
     ports:
-      - "${PORT}:80"
+      - "$PORT:80"
+      - "$SPORT:443"
     environment:
       - NODE_ENV=${NODE_ENV}
+      - SERVER_NAME=${SERVER_NAME}
