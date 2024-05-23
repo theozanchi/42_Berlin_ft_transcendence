@@ -8,12 +8,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+    #   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      DEVELOPMENT_INSTANCE_IP: ${{ secrets.DEVELOPMENT_INSTANCE_IP }}
+      PRODUCTION_INSTANCE_IP: ${{ secrets.PRODUCTION_INSTANCE_IP }}
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Set up SSH key
+      shell: bash
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
@@ -23,16 +28,12 @@ jobs:
 
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
-      env:
-        PRODUCTION_INSTANCE_IP: ${{ secrets.PRODUCTION_INSTANCE_IP }}
       run: |
         chmod +x ./deploy.sh
         ./deploy.sh main $PRODUCTION_INSTANCE_IP
 
     - name: Deploy to development
       if: github.ref == 'refs/heads/development'
-      env:
-        PRODUCTION_INSTANCE_IP: ${{ secrets.PRODUCTION_INSTANCE_IP }}
       run: |
         chmod +x ./deploy.sh
         ./deploy.sh development $DEVELOPMENT_INSTANCE_IP
