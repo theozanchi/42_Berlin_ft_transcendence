@@ -29,5 +29,6 @@ jobs:
       if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./deploy.sh
+        echo "Deploying to development instance at IP $DEVELOPMENT_INSTANCE_IP"
         ./deploy.sh development $DEVELOPMENT_INSTANCE_IP
       
