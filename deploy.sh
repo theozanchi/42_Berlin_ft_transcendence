@@ -47,4 +47,4 @@ ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
     docker-compose --env-file $ENV_FILE up --build -d
 EOF
 
-echo "Deployment to $INSTANCE_NAME instance ($INSTANCE_IP) completed."
+echo "Deployment to $INSTANCE_NAME instance completed."
