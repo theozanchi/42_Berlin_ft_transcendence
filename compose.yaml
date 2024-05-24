@@ -6,6 +6,7 @@ services:
     volumes:
       - ./nginx:/tmp
       - ./content:/usr/share/nginx/html
+      - /etc/letsencrypt/live:/etc/nginx/ssl
     ports:
       - "$PORT:80"
       - "$SPORT:443"
