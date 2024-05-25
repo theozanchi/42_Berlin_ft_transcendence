@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+
 # Deployment script for deploying application to Oracle Cloud Infrastructure
 
 BRANCH=$1
