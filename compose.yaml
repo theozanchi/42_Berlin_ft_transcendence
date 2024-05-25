@@ -1,12 +1,13 @@
 services:
   nginx:
+    container_name: nginx
     image: nginx:1.25.5
     entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
     init: true
     volumes:
       - ./nginx:/tmp
       - ./content:/usr/share/nginx/html
-      - /etc/letsencrypt:/etc/letsencrypt
+      - ${CERTS_DIR}:/etc/letsencrypt
     ports:
       - "$PORT:80"
       - "$SPORT:443"
