@@ -26,7 +26,7 @@ jobs:
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan $INSTANCE_IP >> ~/.ssh/known_hosts
+        ssh-keyscan -H $INSTANCE_IP >> ~/.ssh/known_hosts
 
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
