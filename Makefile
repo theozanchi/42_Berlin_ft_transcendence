@@ -12,7 +12,7 @@ PONG			=	🏓
 
 # Targets
 
-all:			certs up
+all:			certs env up
 
 certs:			dir
 				@if [ -z "$$(ls -A $(DIR))" ]; then \
@@ -31,16 +31,20 @@ dir:
 del_certs:
 				@rm $(DIR) -r
 
+env:
+				@chmod +x ./scripts/env.sh
+				@./scripts/env.sh
+
 up:
-				@docker-compose --env-file env/.env.local up --build -d
+				@docker-compose up --build -d
 				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)https://localhost:8443$(RESET)"
 
 down:
-				@docker-compose --env-file env/.env.local down
+				@docker-compose down
 
 restart:		down up
 
 prune:
 				docker system prune -af
 
-.PHONY:			certs dir up down restart prune
+.PHONY:			certs dir del_certs env up down restart prune
