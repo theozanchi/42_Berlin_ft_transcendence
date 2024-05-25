@@ -28,6 +28,7 @@ if [ -z "$SSH_KEY" ]; then
 fi
 
 # Save the key in a file
+mkdir -p ~/.ssh
 echo $SSH_KEY > ~/.ssh/id_rsa
 
 # SSH into the instance and pull latest changes from the specified branch
