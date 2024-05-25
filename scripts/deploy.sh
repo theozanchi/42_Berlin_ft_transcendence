@@ -20,18 +20,6 @@ if [ -z "$INSTANCE_IP" ]; then
     exit 1
 fi
 
-# Assigning the correct env file based on the branch
-if [ "$BRANCH" == "main" ]; then
-	ENV_FILE="env/.env.prod"
-	INSTANCE_NAME="production"
-elif [ "$BRANCH" == "development" ]; then
-	ENV_FILE="env/.env.dev"
-	INSTANCE_NAME="development"
-else
-	echo "Unsupported branch: $BRANCH"
-	exit 1
-fi
-
 # SSH into the instance and pull latest changes from the specified branch
 ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
     cd $REMOTE_DIR
@@ -47,4 +35,4 @@ ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
     docker-compose --env-file $ENV_FILE up --build -d
 EOF
 
-echo "Deployment to $INSTANCE_NAME instance completed."
+echo "Deployment to $BRANCH instance completed."
