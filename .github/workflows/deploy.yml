@@ -14,24 +14,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up SSH key
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
       shell: bash
       run: |
         chmod +x ./scripts/deploy.sh
-        ./scripts/deploy.sh main ${{ vars.PRODUCTION_INSTANCE_IP }}
+        ./scripts/deploy.sh main ${{ vars.PRODUCTION_INSTANCE_IP }} ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Deploy to development
       shell: bash
       if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./scripts/deploy.sh
-        ./scripts/deploy.sh development ${{ vars.DEVELOPMENT_INSTANCE_IP }}
+        ./scripts/deploy.sh development ${{ vars.DEVELOPMENT_INSTANCE_IP }} ${{ secrets.SSH_PRIVATE_KEY }}
