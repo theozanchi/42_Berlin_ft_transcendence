@@ -4,7 +4,7 @@ set -x
 
 BRANCH=$1
 INSTANCE_IP=$2
-SSH_KEY=$3
+SSH_KEY="$3"
 USER=ubuntu
 REMOTE_DIR=/home/ubuntu/42_Berlin_ft_transcendence
 
@@ -29,7 +29,7 @@ fi
 
 # Save the key in a file
 mkdir -p ~/.ssh
-echo $SSH_KEY > ~/.ssh/id_rsa
+echo "$SSH_KEY" > ~/.ssh/id_rsa
 
 # SSH into the instance and pull latest changes from the specified branch
 ssh $USER@$INSTANCE_IP << EOF
