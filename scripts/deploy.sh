@@ -21,8 +21,6 @@ if [ -z "$INSTANCE_IP" ]; then
     exit 1
 fi
 
-cat ~/.ssh/id_rsa
-
 # SSH into the instance and pull latest changes from the specified branch
 ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
     cd $REMOTE_DIR
