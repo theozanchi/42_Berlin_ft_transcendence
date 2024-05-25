@@ -4,7 +4,7 @@ set -x
 
 BRANCH=$1
 INSTANCE_IP=$2
-SSH_KEY="$3"
+SSH_KEY_PATH=~/.ssh/id_rsa
 USER=ubuntu
 REMOTE_DIR=/home/ubuntu/42_Berlin_ft_transcendence
 
@@ -21,18 +21,8 @@ if [ -z "$INSTANCE_IP" ]; then
     exit 1
 fi
 
-if [ -z "$SSH_KEY" ]; then
-	echo "SSH key missing"
-    echo "Usage: ./deploy.sh <branch> <instance_ip> <ssh_key>"
-    exit 1
-fi
-
-# Save the key in a file
-mkdir -p ~/.ssh
-echo "$SSH_KEY" > ~/.ssh/id_rsa
-
 # SSH into the instance and pull latest changes from the specified branch
-ssh $USER@$INSTANCE_IP << EOF
+ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
     cd $REMOTE_DIR
     git fetch origin $BRANCH
     git checkout $BRANCH
@@ -40,7 +30,7 @@ ssh $USER@$INSTANCE_IP << EOF
 EOF
 
 # Restarting the application
-ssh $USER@$INSTANCE_IP << EOF
+ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
     cd $REMOTE_DIR
     docker-compose down
     docker-compose up --build -d
