@@ -5,7 +5,6 @@ services:
     entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
     volumes:
       - ./nginx:/tmp
-      - ./content:/usr/share/nginx/html
       - ${CERTS_DIR}:/etc/letsencrypt
     ports:
       - "$PORT:80"
