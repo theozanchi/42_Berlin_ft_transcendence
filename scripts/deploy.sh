@@ -22,7 +22,7 @@ if [ -z "$INSTANCE_IP" ]; then
 fi
 
 # SSH into the instance and pull latest changes from the specified branch
-ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
+ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no $USER@$INSTANCE_IP << EOF
     cd $REMOTE_DIR
     git fetch origin $BRANCH
     git checkout $BRANCH
@@ -30,7 +30,7 @@ ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
 EOF
 
 # Restarting the application
-ssh -i $SSH_KEY_PATH $USER@$INSTANCE_IP << EOF
+ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no $USER@$INSTANCE_IP << EOF
     cd $REMOTE_DIR
     docker-compose down
     docker-compose up --build -d
