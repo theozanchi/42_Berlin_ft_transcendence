@@ -6,4 +6,3 @@ mkdir -p /etc/nginx/templates
 mv /tmp/nginx.conf.tmp /etc/nginx/nginx.conf
 
 nginx -g 'daemon off;'
-
