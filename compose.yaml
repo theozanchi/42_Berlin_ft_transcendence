@@ -1,9 +1,8 @@
 services:
   nginx:
     container_name: nginx
-    image: nginx:1.25.5
+    image: nginx:latest
     entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
-    init: true
     volumes:
       - ./nginx:/tmp
       - ./content:/usr/share/nginx/html
@@ -14,3 +13,9 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
+
+  frontend:
+    container_name: frontend
+    image: nginx:latest
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
