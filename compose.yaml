@@ -6,7 +6,7 @@ services:
     volumes:
       - ./nginx:/tmp
       - ./content:/usr/share/nginx/html
-      - /etc/letsencrypt:/etc/letsencrypt
+      - ${CERTS_DIR}:/etc/letsencrypt
     ports:
       - "$PORT:80"
       - "$SPORT:443"
