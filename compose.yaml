@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   nginx:
     container_name: nginx
@@ -18,3 +20,37 @@ services:
     image: nginx:latest
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
+
+  db:
+    image: postgres:latest
+    container_name: db
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  # game_config:
+  #   container_name: game_config
+  #   build:
+  #     context: ./backend/game_config
+  #   volumes:
+  #     - ./backend/game_config:/code
+  #   ports:
+  #     - "8001:8000"
+
+  game_logic:
+    container_name: game_logic
+    build: ./backend/game_logic_service
+    volumes:
+      - ./backend/game_logic_service:/code
+    ports:
+      - "8002:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - db
+
