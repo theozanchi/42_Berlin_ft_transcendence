@@ -19,11 +19,11 @@ jobs:
       shell: bash
       run: |
         chmod +x ./scripts/deploy.sh
-        ./scripts/deploy.sh main ${{ vars.PRODUCTION_INSTANCE_IP }} ${{ secrets.SSH_PRIVATE_KEY }}
+        ./scripts/deploy.sh main ${{ vars.PRODUCTION_INSTANCE_IP }} "${{ secrets.SSH_PRIVATE_KEY }}"
 
     - name: Deploy to development
       shell: bash
       if: github.ref == 'refs/heads/development'
       run: |
         chmod +x ./scripts/deploy.sh
-        ./scripts/deploy.sh development ${{ vars.DEVELOPMENT_INSTANCE_IP }} ${{ secrets.SSH_PRIVATE_KEY }}
+        ./scripts/deploy.sh development ${{ vars.DEVELOPMENT_INSTANCE_IP }} "${{ secrets.SSH_PRIVATE_KEY }}"
