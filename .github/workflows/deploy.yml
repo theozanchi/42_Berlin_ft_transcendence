@@ -26,12 +26,12 @@ jobs:
       if: github.ref == 'refs/heads/main'
       shell: bash
       run: |
-        chmod +x ./deploy.sh
-        ./deploy.sh main ${{ vars.PRODUCTION_INSTANCE_IP }}
+        chmod +x ./scripts/deploy.sh
+        ./scripts/deploy.sh main ${{ vars.PRODUCTION_INSTANCE_IP }}
 
     - name: Deploy to development
       shell: bash
       if: github.ref == 'refs/heads/development'
       run: |
-        chmod +x ./deploy.sh
-        ./deploy.sh development ${{ vars.DEVELOPMENT_INSTANCE_IP }}
+        chmod +x ./scripts/deploy.sh
+        ./scripts/deploy.sh development ${{ vars.DEVELOPMENT_INSTANCE_IP }}
