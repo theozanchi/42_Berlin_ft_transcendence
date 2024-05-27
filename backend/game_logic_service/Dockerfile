@@ -7,4 +7,4 @@ COPY requirements.txt /code/
 RUN pip install -r requirements.txt
 COPY . /code/
 RUN pip install djangorestframework
-CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "game_logic.wsgi:application"]
+CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8002", "game_logic.wsgi:application"]

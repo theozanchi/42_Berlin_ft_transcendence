@@ -40,8 +40,7 @@ services:
     volumes:
      - ./backend/game_config_service:/code
     ports:
-      - "8001:8000"
-    command: gunicorn game_config.wsgi:application --bind 0.0.0.0:8000
+      - "8001:8001"
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
@@ -55,8 +54,7 @@ services:
     volumes:
       - ./backend/game_logic_service:/code
     ports:
-      - "8002:8000"
-    command: gunicorn game_logic.wsgi:application --bind 0.0.0.0:8000
+      - "8002:8002"
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
