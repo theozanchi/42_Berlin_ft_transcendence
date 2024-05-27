@@ -1,4 +1,4 @@
-function loadPongGame() {
+/* function loadPongGame() {
     const canvas = document.getElementById('pongCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -145,3 +145,104 @@ function loadPongGame() {
 
 // Initialize the game when the script is loaded
 loadPongGame();
+ */
+
+import './css/style.css'
+// frontend/assets/pong.js
+import * as THREE from 'three';
+
+let scene, camera, renderer, ball, playerRacket, opponentRacket;
+let ballSpeed = new THREE.Vector3(0.05, 0.05, 0.05);
+
+function init() {
+    // Create the scene
+    scene = new THREE.Scene();
+
+    // Set up the camera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 5;
+
+    // Set up the renderer
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('game-container').appendChild(renderer.domElement);
+
+    // Create the ball
+    let ballGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+    let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    ball = new THREE.Mesh(ballGeometry, ballMaterial);
+    scene.add(ball);
+
+    // Create the player racket
+    let racketGeometry = new THREE.BoxGeometry(0.5, 0.05, 0.5);
+    let playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    playerRacket = new THREE.Mesh(racketGeometry, playerMaterial);
+    playerRacket.position.y = -1.5;
+    scene.add(playerRacket);
+
+    // Create the opponent racket
+    let opponentMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    opponentRacket = new THREE.Mesh(racketGeometry, opponentMaterial);
+    opponentRacket.position.y = 1.5;
+    scene.add(opponentRacket);
+
+    // Add a hemisphere to represent the boundaries
+    let sphereGeometry = new THREE.SphereGeometry(3, 32, 32, 0, Math.PI);
+    let wireframe = new THREE.WireframeGeometry(sphereGeometry);
+    let line = new THREE.LineSegments(wireframe);
+    line.material.depthTest = false;
+    line.material.opacity = 0.25;
+    line.material.transparent = true;
+    scene.add(line);
+
+    // Add player controls
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+            playerRacket.position.x -= 0.1;
+        }
+        if (event.key === 'ArrowRight') {
+            playerRacket.position.x += 0.1;
+        }
+    });
+    
+    animate();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Ball movement
+    ball.position.add(ballSpeed);
+
+    // Ball collision with sphere boundary
+    let ballDistance = ball.position.length();
+    if (ballDistance > 3) {
+        ballSpeed.negate();
+    }
+
+    // Ball collision with rackets
+    if (ball.position.y < -1.45 && ball.position.distanceTo(playerRacket.position) < 0.5) {
+        ballSpeed.y = -ballSpeed.y;
+    }
+    if (ball.position.y > 1.45 && ball.position.distanceTo(opponentRacket.position) < 0.5) {
+        ballSpeed.y = -ballSpeed.y;
+    }
+
+    // Check scoring
+    if (ball.position.y < -3) {
+        console.log('Opponent scores!');
+        resetBall();
+    } else if (ball.position.y > 3) {
+        console.log('Player scores!');
+        resetBall();
+    }
+
+    renderer.render(scene, camera);
+}
+
+function resetBall() {
+    ball.position.set(0, 0, 0);
+    ballSpeed.set(0.05, 0.05, 0.05);
+}
+
+window.onload = init;
