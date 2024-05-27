@@ -14,6 +14,9 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
+    depends_on:
+      - game_config
+      - game_logic
 
   frontend:
     container_name: frontend
