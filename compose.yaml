@@ -1,14 +1,21 @@
 services:
   nginx:
-    image: nginx:1.25.5
+    container_name: nginx
+    image: nginx:latest
     entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
-    init: true
     volumes:
       - ./nginx:/tmp
       - ./content:/usr/share/nginx/html
+      - ${CERTS_DIR}:/etc/letsencrypt
     ports:
       - "$PORT:80"
       - "$SPORT:443"
     environment:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
+
+  frontend:
+    container_name: frontend
+    image: nginx:latest
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
