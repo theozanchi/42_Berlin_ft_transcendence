@@ -33,10 +33,6 @@ services:
       - ./data:/var/lib/postgresql/data
     networks:
       - pong_network
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
 
   game_config:
     image: game_config_service
