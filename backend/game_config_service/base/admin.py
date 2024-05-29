@@ -2,6 +2,6 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import GameConfig
+from .models import Game
 
-admin.site.register(GameConfig)
+admin.site.register(Game)
