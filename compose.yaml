@@ -6,11 +6,12 @@ services:
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
+      - ./static:/usr/share/nginx/html/static
     networks:
       - pong_network
     ports:
-      - "$PORT:80"
-      - "$SPORT:443"
+      - "${PORT}:80"
+      - "${SPORT}:443"
     environment:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
@@ -33,6 +34,10 @@ services:
       - ./data/db:/var/lib/postgresql/data
     networks:
       - pong_network
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   game_config:
     image: game_config_service
@@ -42,8 +47,12 @@ services:
      - ./backend/game_config_service:/code
     networks:
       - pong_network
-    ports:
-      - "8001:8001"
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - "8001"
     depends_on:
       - db
 
@@ -55,8 +64,12 @@ services:
       - ./backend/game_logic_service:/code
     networks:
       - pong_network
-    ports:
-      - "8002:8002"
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - "8002"
     depends_on:
       - db
 
@@ -66,10 +79,15 @@ services:
     build: ./backend/authentication_service
     volumes:
       - ./backend/authentication_service:/code
+      - ./static:/code/static
     networks:
       - pong_network
-    ports:
-      - "8003:8003"
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose: 
+      - "8003"
     depends_on:
       - db
 
