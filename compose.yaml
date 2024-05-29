@@ -79,7 +79,7 @@ services:
     build: ./backend/authentication_service
     volumes:
       - ./backend/authentication_service:/code
-      - ./static:/code/static
+      - ./static:/usr/share/static
     networks:
       - pong_network
     environment:
