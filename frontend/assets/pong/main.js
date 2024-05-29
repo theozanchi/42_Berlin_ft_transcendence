@@ -41,25 +41,44 @@ function init() {
     cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
 
+
+    // Create and position colored dots
+    const dotRadius = 0.05;
+    const dotPositions = [
+        { color: 0xff0000, position: new THREE.Vector3(0, 0, cubeSize / 2 + dotRadius) }, // Front face: red
+        { color: 0x00ff00, position: new THREE.Vector3(0, 0, -(cubeSize / 2 + dotRadius)) }, // Back face: green
+        { color: 0x0000ff, position: new THREE.Vector3(-(cubeSize / 2 + dotRadius), 0, 0) }, // Left face: blue
+        { color: 0xffff00, position: new THREE.Vector3(cubeSize / 2 + dotRadius, 0, 0) }, // Right face: yellow
+        { color: 0xff00ff, position: new THREE.Vector3(0, cubeSize / 2 + dotRadius, 0) }, // Top face: magenta
+        { color: 0x00ffff, position: new THREE.Vector3(0, -(cubeSize / 2 + dotRadius), 0) } // Bottom face: cyan
+    ];
+
+    dotPositions.forEach(dot => {
+        const dotGeometry = new THREE.SphereGeometry(dotRadius, 16, 16);
+        const dotMaterial = new THREE.MeshBasicMaterial({ color: dot.color });
+        const dotMesh = new THREE.Mesh(dotGeometry, dotMaterial);
+        dotMesh.position.copy(dot.position);
+        scene.add(dotMesh);
+    });
     // Create player
     let playerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
     let playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     player = new THREE.Mesh(playerGeometry, playerMaterial);
     player.material.transparent = true;
     setPlayerTransparency(0.25);
-    player.position.set(0, 0, cubeSize / 2 + playerSize.z / 2); // Initial position on the front face
+    player.position.set(0, 0, cubeSize / 2 + playerSize.z); // Initial position on the front face
     scene.add(player); // Add player to the scene, not the cube
 
     // Create AI player
     let aiPlayerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
     let aiPlayerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     aiPlayer = new THREE.Mesh(aiPlayerGeometry, aiPlayerMaterial);
-    aiPlayer.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 2)); // Initial position on the back face
+    aiPlayer.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6)); // Initial position on the back face
     scene.add(aiPlayer); // Add AI player to the scene, not the cube
 
     // Create ball
     let ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
-    let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     ball = new THREE.Mesh(ballGeometry, ballMaterial);
     cube.add(ball);
 
@@ -155,6 +174,8 @@ function onKeyDown(event) {
     }
 }
 
+
+
 function switchFace(direction) {
     const faceRotations = {
         0: { left: 2, right: 3, up: 4, down: 5 },
@@ -168,35 +189,22 @@ function switchFace(direction) {
     const newFace = faceRotations[currentFace][direction];
     currentFace = newFace;
 
-    let targetRotationX = rotationX;
-    let targetRotationY = rotationY;
-
-    switch (direction) {
-        case 'up':
-            targetRotationX -= Math.PI / 2;
-            break;
-        case 'down':
-            targetRotationX += Math.PI / 2;
-            break;
-        case 'left':
-            targetRotationY -= Math.PI / 2;
-            break;
-        case 'right':
-            targetRotationY += Math.PI / 2;
-            break;
-    }
+    const targetPosition = getCameraPositionForFace(newFace);
+    const targetRotationX = Math.atan2(targetPosition.y - camera.position.y, targetPosition.z - camera.position.z);
+    const targetRotationY = Math.atan2(targetPosition.x - camera.position.x, targetPosition.z - camera.position.z);
 
     new TWEEN.Tween(camera.position)
-        .to(getCameraPositionForFace(newFace), 500) // duration of transition in ms
+        .to(targetPosition, 500) // duration of transition in ms
         .easing(TWEEN.Easing.Quadratic.Out)
         .onStart(() => {
-            ballUpdateEnabled = true; // Enable ball updates
+            ballUpdateEnabled = true; // Disable ball updates during the transition
         })
         .onUpdate(() => {
             camera.lookAt(cube.position);
+            updatePlayerPositionForFace(newFace);
         })
         .onComplete(() => {
-            ballUpdateEnabled = true; // Re-enable ball updates
+            ballUpdateEnabled = true; // Re-enable ball updates after the transition
             updatePlayerPositionForFace(newFace);
         })
         .start();
@@ -207,41 +215,13 @@ function switchFace(direction) {
         .onUpdate((obj) => {
             rotationX = obj.rotationX;
             rotationY = obj.rotationY;
-
-            // Update player position based on the new face's rotation
+        })
+        .onComplete(() => {
             updatePlayerPositionForFace(currentFace);
         })
         .start();
 }
 
-function updatePlayerPositionForFace(face) {
-    switch (face) {
-        case 0: // Front
-            player.position.set(0, 0, cubeSize / 2 + playerSize.z / 2);
-            player.rotation.set(0, 0, 0);
-            break;
-        case 1: // Back
-            player.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 2));
-            player.rotation.set(0, Math.PI, 0);
-            break;
-        case 2: // Left
-            player.position.set(-(cubeSize / 2 + playerSize.z / 2), 0, 0);
-            player.rotation.set(0, -Math.PI / 2, 0);
-            break;
-        case 3: // Right
-            player.position.set(cubeSize / 2 + playerSize.z / 2, 0, 0);
-            player.rotation.set(0, Math.PI / 2, 0);
-            break;
-        case 4: // Top
-            player.position.set(0, cubeSize / 2 + playerSize.z / 2, 0);
-            player.rotation.set(-Math.PI / 2, 0, 0);
-            break;
-        case 5: // Bottom
-            player.position.set(0, -(cubeSize / 2 + playerSize.z / 2), 0);
-            player.rotation.set(Math.PI / 2, 0, 0);
-            break;
-    }
-}
 
 function getCameraPositionForFace(face) {
     const distance = cubeSize * 1.5;
@@ -255,23 +235,75 @@ function getCameraPositionForFace(face) {
     }
 }
 
+function updatePlayerPositionForFace(face) {
+    switch (face) {
+        case 0: // Front
+            player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6);
+            player.rotation.set(0, 0, 0);
+            break;
+        case 1: // Back
+            player.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
+            player.rotation.set(0, Math.PI, 0);
+            break;
+        case 2: // Left
+            player.position.set(-(cubeSize / 2 + playerSize.z / 6), 0, 0);
+            player.rotation.set(0, -Math.PI / 2, 0);
+            break;
+        case 3: // Right
+            player.position.set(cubeSize / 2 + playerSize.z / 6, 0, 0);
+            player.rotation.set(0, Math.PI / 2, 0);
+            break;
+        case 4: // Top
+            player.position.set(0, cubeSize / 2 + playerSize.z / 6, 0);
+            player.rotation.set(-Math.PI / 2, 0, 0);
+            break;
+        case 5: // Bottom
+            player.position.set(0, -(cubeSize / 2 + playerSize.z / 6), 0);
+            player.rotation.set(Math.PI / 2, 0, 0);
+            break;
+    }
+}
+
+
 function updateCollisionMarker() {
     const halfCubeSize = cubeSize / 2;
-    let intersectionPoint;
+    const ballPosition = ball.position.clone();
+    const ballVelocity = ballSpeed.clone();
 
-    if (ballSpeed.x !== 0) {
-        let t = (ballSpeed.x > 0 ? halfCubeSize - ball.position.x : -halfCubeSize - ball.position.x) / ballSpeed.x;
-        intersectionPoint = ball.position.clone().add(ballSpeed.clone().multiplyScalar(t));
-    } else if (ballSpeed.y !== 0) {
-        let t = (ballSpeed.y > 0 ? halfCubeSize - ball.position.y : -halfCubeSize - ball.position.y) / ballSpeed.y;
-        intersectionPoint = ball.position.clone().add(ballSpeed.clone().multiplyScalar(t));
-    } else if (ballSpeed.z !== 0) {
-        let t = (ballSpeed.z > 0 ? halfCubeSize - ball.position.z : -halfCubeSize - ball.position.z) / ballSpeed.z;
-        intersectionPoint = ball.position.clone().add(ballSpeed.clone().multiplyScalar(t));
+    let minT = Infinity;
+    let intersectionPoint = null;
+
+    // Check intersections with each cube face
+    const checkFace = (axis, direction, limit) => {
+        if (ballVelocity[axis] !== 0) {
+            const t = (limit - ballPosition[axis]) / ballVelocity[axis];
+            if (t > 0 && t < minT) {
+                const point = ballPosition.clone().add(ballVelocity.clone().multiplyScalar(t));
+                if (
+                    point.x >= -halfCubeSize && point.x <= halfCubeSize &&
+                    point.y >= -halfCubeSize && point.y <= halfCubeSize &&
+                    point.z >= -halfCubeSize && point.z <= halfCubeSize
+                ) {
+                    minT = t;
+                    intersectionPoint = point;
+                }
+            }
+        }
+    };
+
+    // Check all 6 faces
+    checkFace('x', 1, halfCubeSize); // Right face
+    checkFace('x', -1, -halfCubeSize); // Left face
+    checkFace('y', 1, halfCubeSize); // Top face
+    checkFace('y', -1, -halfCubeSize); // Bottom face
+    checkFace('z', 1, halfCubeSize); // Front face
+    checkFace('z', -1, -halfCubeSize); // Back face
+
+    if (intersectionPoint) {
+        collisionMarker.position.copy(intersectionPoint);
     }
-
-    collisionMarker.position.copy(intersectionPoint);
 }
+
 
 function movePlayer(player, deltaX, deltaY) {
     // Get the camera's right and up vectors
@@ -318,9 +350,9 @@ function movePlayer(player, deltaX, deltaY) {
 
 function resetBall() {
     ballSpeed = new THREE.Vector3(
-        (Math.random() - 0.5) * 0.02,
-        (Math.random() - 0.5) * 0.02,
-        (Math.random() - 0.5) * 0.02
+        (Math.random() - 0.5) * 0.03,
+        (Math.random() - 0.5) * 0.03,
+        (Math.random() - 0.5) * 0.03
     );
 
     ball.position.set(
@@ -339,19 +371,36 @@ function updateBall() {
 
     if (ball.position.x <= -halfCubeSize || ball.position.x >= halfCubeSize) {
         ballSpeed.x = -ballSpeed.x;
+        wallHits++;
     }
     if (ball.position.y <= -halfCubeSize || ball.position.y >= halfCubeSize) {
         ballSpeed.y = -ballSpeed.y;
+        wallHits++;
     }
     if (ball.position.z <= -halfCubeSize || ball.position.z >= halfCubeSize) {
         ballSpeed.z = -ballSpeed.z;
+        wallHits++;
     }
+
+    // Score handling
+    if (wallHits >= 2) {
+        if (playerTurn) {
+            playerScore++;
+        } else {
+            aiScore++;
+        }
+        wallHits = 0;
+        updateScore();
+        resetBall();
+    }
+
     // Update the collision marker position
     updateCollisionMarker();
 
     // Check for collisions
     checkCollision();
 }
+
 
 function animate() {
     requestAnimationFrame(animate);
@@ -374,15 +423,28 @@ function checkCollision() {
     const aiBox = new THREE.Box3().setFromObject(aiPlayer);
     const ballBox = new THREE.Box3().setFromObject(ball);
 
-    if (playerBox.intersectsBox(ballBox)) {
-        ballSpeed.z = -Math.abs(ballSpeed.z);
+    // Define front collision bounds for players
+    const playerFront = playerBox.min.z;
+    const aiFront = aiBox.max.z;
+
+    if (playerBox.intersectsBox(ballBox) && ball.position.z >= playerFront) {
+        ballSpeed.z = Math.abs(ballSpeed.z); // Ensure ball moves away from the player
+        playerTurn = false;
+        wallHits = 0;
+        console.log("hit PL");
     }
-    if (aiBox.intersectsBox(ballBox)) {
-        ballSpeed.z = Math.abs(ballSpeed.z);
+    if (aiBox.intersectsBox(ballBox) && ball.position.z <= aiFront) {
+        ballSpeed.z = -Math.abs(ballSpeed.z); // Ensure ball moves away from the AI player
+        playerTurn = true;
+        wallHits = 0;
+        console.log("hit AI");
     }
 }
 
+
 function updateAI() {
+    if (playerTurn) return;
+
     // Move AI player towards the collision marker
     const targetPosition = collisionMarker.position.clone();
     aiPlayer.position.lerp(targetPosition, 0.05);
@@ -408,6 +470,7 @@ function updateAI() {
             break;
     }
 }
+
 
 init();
 
