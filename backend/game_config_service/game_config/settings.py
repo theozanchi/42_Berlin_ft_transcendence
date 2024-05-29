@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'base',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'game_config.wsgi.application'
+ASGI_APPLICATION = 'game_config.asgi.application'
 
 
 # Database
