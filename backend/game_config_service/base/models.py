@@ -70,6 +70,7 @@ class Game(models.Model):
 class Player(models.Model):
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, unique=True)
+    wins = models.IntegerField()
     # socket = models.CharField(max_length=255, null=True, blank=True)  # Socket for remote player
     # username = models.CharField(max_length=255, null=True, blank=True)  # Username for logged in user
 
@@ -88,9 +89,9 @@ class Player(models.Model):
         return self.username if self.username else self.alias
 
 class Round(models.Model):
-    game = models.ForeignKey(Game, related_name='rounds', on_delete=models.CASCADE)
-    player1 = models.ForeignKey(Player, related_name='rounds', on_delete=models.CASCADE)
-    player2 = models.ForeignKey(Player, related_name='rounds', on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    player1 = models.ForeignKey(Player, related_name='rounds_p1', on_delete=models.CASCADE)
+    player2 = models.ForeignKey(Player, related_name='rounds_p2', on_delete=models.CASCADE)
     winner = models.ForeignKey(Player, related_name='rounds_won', null=True, blank=True, on_delete=models.SET_NULL)
 
 

@@ -5,9 +5,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /code
 
 COPY requirements.txt /code/
-RUN pip install -r requirements.txt \
-    pip install djangorestframework \
-    pip install channels
+RUN pip install -r requirements.txt
 
 # Collect static files
 RUN echo "Collect static files" \
