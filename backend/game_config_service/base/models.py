@@ -9,15 +9,9 @@ import requests
 class Game(models.Model):
     mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
 
-    @classmethod
-    def create(cls, mode):
-        return cls.objects.create(game_mode=mode)
-
     def clean(self):
         if not self.mode:
             raise ValidationError('No valid game mode detected')
-        if self.players.count() < 2:
-            raise ValidationError('A game must have at least 2 players.')
 
     def save(self, *args, **kwargs):
         self.clean()  # Validate before saving
@@ -31,8 +25,12 @@ class Game(models.Model):
             self.players.add(player)
 
     def create_rounds(self):
-        self.rounds.clear()
+        rounds = Round.objects.filter(game=self)
+        rounds.delete()
 
+        if self.players.count() < 2:
+            raise ValidationError('A game must have at least 2 players.')
+        
         round_number = 1
         players_list = list(self.players.all())
 
@@ -47,7 +45,7 @@ class Game(models.Model):
         """
         Initialize each round by making an internal API call to the game_logic service.
         """
-        for round in self.rounds.all():
+        for round in self.rounds():
             response = requests.post('http://game_logic_service/api/start_game/', json={
                 'player1': round.player1.alias,
                 'player2': round.player2.alias
@@ -69,8 +67,7 @@ class Game(models.Model):
 
 class Player(models.Model):
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
-    alias = models.CharField(max_length=25, unique=True)
-    wins = models.IntegerField()
+    alias = models.CharField(max_length=25)
     # socket = models.CharField(max_length=255, null=True, blank=True)  # Socket for remote player
     # username = models.CharField(max_length=255, null=True, blank=True)  # Username for logged in user
 

@@ -7,7 +7,7 @@ from base.models import Game
 @api_view(['POST'])
 def postGame(request):
     # Access form data using request.data
-    game = Game.objects.create(game_mode=request.data.get('game-mode'))
+    game = Game.objects.create(mode=request.data.get('game-mode'))
     # Create players for the game
     game.add_players_to_game(request.data)
     # Generate rounds for the game
