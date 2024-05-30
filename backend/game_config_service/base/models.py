@@ -38,9 +38,7 @@ class Game(models.Model):
         # Generate all possible matchups for league play
         for player1, player2 in combinations(players_list, 2):
             round = Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
-
-        self.save(commit=False)
-
+            round_number += 1
 
     def __str__(self):
         return f"Game {self.pk} - {self.get_game_mode_display()} - {self.players.count()} players"
@@ -89,7 +87,6 @@ class Round(models.Model):
 
             players = self.game.players.all()
             self.winner = next((player for player in players if player.alias == game_data.get('winner')), None)
-            self.save(commit=False)
             
         else:
             print(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
