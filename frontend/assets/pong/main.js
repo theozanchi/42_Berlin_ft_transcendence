@@ -190,37 +190,37 @@ function switchFace(direction) {
     currentFace = newFace;
 
     const targetPosition = getCameraPositionForFace(newFace);
-    const targetRotationX = Math.atan2(targetPosition.y - camera.position.y, targetPosition.z - camera.position.z);
-    const targetRotationY = Math.atan2(targetPosition.x - camera.position.x, targetPosition.z - camera.position.z);
+    const targetLookAt = cube.position.clone(); // Look at the cube's center
 
-    new TWEEN.Tween(camera.position)
-        .to(targetPosition, 500) // duration of transition in ms
+    // Calculate the target quaternion
+    const targetQuaternion = new THREE.Quaternion();
+    const targetDirection = targetLookAt.clone().sub(targetPosition).normalize();
+    const upVector = new THREE.Vector3(0, 1, 0); // Keep the world up vector as Y-axis
+    const targetMatrix = new THREE.Matrix4().lookAt(targetPosition, targetLookAt, upVector);
+    targetQuaternion.setFromRotationMatrix(targetMatrix);
+
+    const initialPosition = camera.position.clone();
+    const initialQuaternion = camera.quaternion.clone();
+
+    new TWEEN.Tween({ t: 0 })
+        .to({ t: 1 }, 500) // Duration of transition in ms
         .easing(TWEEN.Easing.Quadratic.Out)
         .onStart(() => {
             ballUpdateEnabled = true; // Disable ball updates during the transition
         })
-        .onUpdate(() => {
-            camera.lookAt(cube.position);
-            updatePlayerPositionForFace(newFace);
+        .onUpdate((obj) => {
+            updatePlayerPositionForFace(currentFace);
+            const t = obj.t;
+            camera.position.lerpVectors(initialPosition, targetPosition, t);
+            camera.quaternion.slerpQuaternions(initialQuaternion, targetQuaternion, t);
         })
         .onComplete(() => {
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
-            updatePlayerPositionForFace(newFace);
-        })
-        .start();
-
-    new TWEEN.Tween({ rotationX: rotationX, rotationY: rotationY })
-        .to({ rotationX: targetRotationX, rotationY: targetRotationY }, 500)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .onUpdate((obj) => {
-            rotationX = obj.rotationX;
-            rotationY = obj.rotationY;
-        })
-        .onComplete(() => {
-            updatePlayerPositionForFace(currentFace);
+            updatePlayerPositionForFace(currentFace); // Final update to player position
         })
         .start();
 }
+
 
 
 function getCameraPositionForFace(face) {
