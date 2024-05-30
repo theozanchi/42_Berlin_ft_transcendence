@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base', '0003_alter_player_alias'),
+        ('base', '0003_alter_player_guest_name'),
     ]
 
     operations = [

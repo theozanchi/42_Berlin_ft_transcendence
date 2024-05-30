@@ -15,7 +15,8 @@ services:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
-      - game_config
+      - game_manager
+      - game_lobby
       - game_logic
 
   frontend:
@@ -34,11 +35,25 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
-  game_config:
-    container_name: game_config
-    build: ./backend/game_config_service
+  game_manager:
+    container_name: game_manager
+    build: ./backend/game_manager_service
     volumes:
-     - ./backend/game_config_service:/code
+     - ./backend/game_manager_service:/code
+    ports:
+      - "8001:8001"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - db
+
+  game_lobby:
+    container_name: game_lobby
+    build: ./backend/game_lobby_service
+    volumes:
+     - ./backend/game_lobby_service:/code
     ports:
       - "8001:8001"
     environment:

@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 from itertools import combinations
 import requests
 
@@ -23,7 +23,7 @@ class Game(models.Model):
         player_keys = [key for key in data.keys() if key.startswith('player-')]
 
         for key in player_keys:
-            player = Player.objects.create(game=self, alias=data.get(key))
+            player = Player.objects.create(game=self, guest_name=data.get(key))
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -45,16 +45,19 @@ class Game(models.Model):
 
 class Player(models.Model):
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
-    alias = models.CharField(max_length=25)
-    # socket = models.CharField(max_length=255, null=True, blank=True)  # Socket for remote player
-    # user = models.ForeignKey(User)  # Username for logged in user
-    
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    guest_name = models.CharField(max_length=255, null=True, blank=True)
+    #lobby = models.ForeignKey(Lobby, related_name='players', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.alias
+        if self.user:
+            return self.user.username
+        return self.guest_name
+
+    def save(self, *args, **kwargs):
+        if not self.user and not self.guest_name:
+            raise ValueError("Player must have either a user or a guest name.")
+        super().save(*args, **kwargs)
     
 class Round(models.Model):
     game = models.ForeignKey(Game, related_name='rounds', on_delete=models.CASCADE)
@@ -78,15 +81,15 @@ class Round(models.Model):
         self.clean()
 
         response = requests.post('http://game_logic_service/api/start_game/', json={
-            'player1': self.player1.alias,
-            'player2': self.player2.alias
+            'player1': self.player1.guest_name,
+            'player2': self.player2.guest_name
         })
 
         if response.status_code == 200:
             game_data = response.json()
 
             players = self.game.players.all()
-            self.winner = next((player for player in players if player.alias == game_data.get('winner')), None)
+            self.winner = next((player for player in players if player.guest_name == game_data.get('winner')), None)
             
         else:
             print(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")

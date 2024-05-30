@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterField(
             model_name='player',
-            name='alias',
+            name='guest_name',
             field=models.CharField(max_length=25),
         ),
     ]

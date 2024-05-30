@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             name='Player',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('alias', models.CharField(max_length=25, unique=True)),
+                ('guest_name', models.CharField(max_length=25, unique=True)),
                 ('wins', models.IntegerField()),
                 ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='players', to='base.game')),
             ],
