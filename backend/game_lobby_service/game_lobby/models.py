@@ -5,6 +5,7 @@ from itertools import combinations
 import requests
 from django.contrib.auth.models import User, AbstractUser
 import uuid
+from .consumers import LobbyConsumer
 
 #class User(AbstractUser):
 #    hosted_lobbies = models.ManyToManyField('Lobby', related_name='host', blank=True)
@@ -12,8 +13,9 @@ import uuid
 
 class Lobby(models.Model):
     lobby_id = models.CharField(max_length=15, primary_key=True, default=str(uuid.uuid4), unique=True, editable=False)
-    host = models.ForeignKey(User, related_name='hosted_lobbies', on_delete=models.CASCADE)
-    max_players = models.IntegerField(default=24)  # Adjust as needed
+    #host = models.ForeignKey(User, related_name='hosted_lobbies', on_delete=models.CASCADE)
+    host = models.CharField(max_length=15)
+    max_players = models.IntegerField(default=24)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -28,6 +30,7 @@ class Player(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
     guest_name = models.CharField(max_length=255, null=True, blank=True)
     lobby = models.ForeignKey(Lobby, related_name='players', on_delete=models.CASCADE)
+    ws_id = models.CharField(max_length=100, blank=True, null=True)
 
     @property
     def display_name(self):

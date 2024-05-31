@@ -5,16 +5,26 @@ from rest_framework import status
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from base.models import Lobby, Player
+from game_lobby.models import Lobby, Player
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+###
+
+from django.views.generic.base import TemplateView
+
+class LobbyView(TemplateView):
+    template_name = 'game_lobby/lobby.html'
+
+###
 @api_view(['POST'])
-@login_required
+#@login_required
 def create_lobby(request):
-    if request.method == 'POST' and request.user.is_authenticated:
-        lobby = Lobby.objects.create(host=request.user)
-        return JsonResponse({'lobby_id': lobby.lobby_id}, status=200)
+  #  if request.user.is_authenticated:
+  #      lobby = Lobby.objects.create(host=request.user)
+  #      return JsonResponse({'lobby_id': lobby.lobby_id}, status=200)
+    lobby = Lobby.objects.create(host=request.guest_name)
+    return JsonResponse({'lobby_id': lobby.lobby_id}, status=200)
 
 def generate_unique_guest_name(lobby, guest_name):
     existing_names = set(player.guest_name for player in lobby.players.all() if player.guest_name)
@@ -30,7 +40,7 @@ def generate_unique_guest_name(lobby, guest_name):
 
     return f"{base_name}#{counter}"
 
-
+@api_view(['POST'])
 def join_lobby(request, lobby_id):
     try:
         lobby = Lobby.objects.get(lobby_id=lobby_id)
@@ -40,16 +50,16 @@ def join_lobby(request, lobby_id):
     if lobby.is_full():
         return JsonResponse({'error': 'Lobby is full'}, status=400)
     
-    if request.user.is_authenticated:
-        player = Player.objects.create(user=request.user, lobby=lobby)
-    else:
-        guest_name = request.POST.get('guest_name')
-        if not guest_name:
+    if not request.user.is_authenticated:
+        user = None
+        if not request.get('guest_name'):
             return JsonResponse({'error': 'Guest name is required'}, status=400)
         # Check if guest's name is already used in this lobby
-        unique_guest_name = generate_unique_guest_name(lobby, guest_name)
-        # Create player instance for guest
-        player = Player.objects.create(guest_name=unique_guest_name, lobby=lobby)
+        guest_name = generate_unique_guest_name(lobby, request.get('guest_name'))
+    else:
+        user = request.user
+        guest_name = None
+    player = Player.objects.create(user=user, guest_name=guest_name, lobby=lobby, ws_id=request.ws_id)
     
     # Notify lobby group of new player
     channel_layer = get_channel_layer()
