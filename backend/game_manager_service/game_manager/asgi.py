@@ -1,5 +1,5 @@
 """
-ASGI config for game_config project.
+ASGI config for game_manager project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -12,7 +12,7 @@ import os
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'game_config.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'game_manager.settings')
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

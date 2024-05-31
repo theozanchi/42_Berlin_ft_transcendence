@@ -2,8 +2,8 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
-from base import Game
-from serialize import serialize_game_data
+from base.models import Game
+from .serialize import serialize_game_data
 
 @api_view(['POST'])
 def create_game(request):
