@@ -9,18 +9,22 @@ let previousMouseX = 0;
 let previousMouseY = 0;
 let ballUpdateEnabled = true;
 
-let scene, camera, renderer, cube, player, aiPlayer, ball, collisionMarker;
-let ballSpeed;
+let scene, camera, renderer, cube, player, aiPlayer, ball, collisionMarker, aimingLine;
+let ballSpeed = new THREE.Vector3();
 const ballRadius = 0.05; // Radius of the ball
-const playerSize = { x: 0.39, y: 0.25, z: 0.05 }; // Size of the player
+const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 const cubeSize = 2; // Size of the cube
-let playerTurn = false; // Player starts
+let playerTurn = true; // Player starts
 let playerScore = 0;
 let aiScore = 0;
 let wallHits = 0;
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
 let rotationX = 0;
 let rotationY = 0;
+let pivot; 
+let isTransitioning = false;
+let ballIsHeld = true;
+let aimingAngle = 0;
 
 function init() {
     // Create the scene
@@ -40,7 +44,11 @@ function init() {
     let material = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
     cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
-
+    // Create a pivot point at the cube's center
+    pivot = new THREE.Object3D();
+    cube.add(pivot);
+    pivot.add(camera);
+    camera.position.set(0, 0, cubeSize * 1.5);
 
     // Create and position colored dots
     const dotRadius = 0.05;
@@ -66,7 +74,7 @@ function init() {
     player = new THREE.Mesh(playerGeometry, playerMaterial);
     player.material.transparent = true;
     setPlayerTransparency(0.25);
-    player.position.set(0, 0, cubeSize / 2 + playerSize.z); // Initial position on the front face
+    player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6); // Initial position on the front face
     scene.add(player); // Add player to the scene, not the cube
 
     // Create AI player
@@ -75,12 +83,18 @@ function init() {
     aiPlayer = new THREE.Mesh(aiPlayerGeometry, aiPlayerMaterial);
     aiPlayer.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6)); // Initial position on the back face
     scene.add(aiPlayer); // Add AI player to the scene, not the cube
-
+    aiPlayer.currentFace = 1;
     // Create ball
     let ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
     let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     ball = new THREE.Mesh(ballGeometry, ballMaterial);
     cube.add(ball);
+
+    // Create aiming line
+    const aimingLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    const aimingLineGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+    aimingLine = new THREE.Line(aimingLineGeometry, aimingLineMaterial);
+    scene.add(aimingLine);
 
     // Create collision marker
     const collisionMarkerGeometry = new THREE.SphereGeometry(0.05, 16, 16); // Smaller marker
@@ -171,59 +185,96 @@ function onKeyDown(event) {
         case 'ArrowRight':
             movePlayer(player, 0.1, 0);
             break;
+        case ' ': // Space key
+        if (ballIsHeld) {
+            playerTurn = false;
+            ballIsHeld = false; // Release the ball
+            resetBall(); // Reset the ball to a random position
+        }
+        break;
     }
 }
 
 
 
 function switchFace(direction) {
-    const faceRotations = {
-        0: { left: 2, right: 3, up: 4, down: 5 },
-        1: { left: 3, right: 2, up: 4, down: 5 },
-        2: { left: 1, right: 0, up: 4, down: 5 },
-        3: { left: 0, right: 1, up: 4, down: 5 },
-        4: { left: 2, right: 3, up: 1, down: 0 },
-        5: { left: 2, right: 3, up: 0, down: 1 }
-    };
 
-    const newFace = faceRotations[currentFace][direction];
-    currentFace = newFace;
+    if (isTransitioning) return; // Check if a transition is in progress
+    isTransitioning = true; 
 
-    const targetPosition = getCameraPositionForFace(newFace);
-    const targetLookAt = cube.position.clone(); // Look at the cube's center
+    const angle = Math.PI / 2; // 90 degrees
 
-    // Calculate the target quaternion
-    const targetQuaternion = new THREE.Quaternion();
-    const targetDirection = targetLookAt.clone().sub(targetPosition).normalize();
-    const upVector = new THREE.Vector3(0, 1, 0); // Keep the world up vector as Y-axis
-    const targetMatrix = new THREE.Matrix4().lookAt(targetPosition, targetLookAt, upVector);
-    targetQuaternion.setFromRotationMatrix(targetMatrix);
+    let axis = new THREE.Vector3();
+    switch (direction) {
+        case 'up':
+            axis.set(-1, 0, 0);
+            break;
+        case 'down':
+            axis.set(1, 0, 0);
+            break;
+        case 'left':
+            axis.set(0, -1, 0);
+            break;
+        case 'right':
+            axis.set(0, 1, 0);
+            break;
+    }
 
-    const initialPosition = camera.position.clone();
-    const initialQuaternion = camera.quaternion.clone();
+    const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+    const initialRotation = pivot.quaternion.clone();
+    const targetRotation = initialRotation.clone().multiply(quaternion);
 
-    new TWEEN.Tween({ t: 0 })
-        .to({ t: 1 }, 500) // Duration of transition in ms
+    updateCurrentFaceWithTargetRotation(targetRotation);
+
+    new TWEEN.Tween(pivot.quaternion)
+        .to({ x: targetRotation.x, y: targetRotation.y, z: targetRotation.z, w: targetRotation.w }, 300)
         .easing(TWEEN.Easing.Quadratic.Out)
         .onStart(() => {
+            
+            updatePlayerPositionForFace(currentFace)
             ballUpdateEnabled = true; // Disable ball updates during the transition
         })
-        .onUpdate((obj) => {
-            updatePlayerPositionForFace(currentFace);
-            const t = obj.t;
-            camera.position.lerpVectors(initialPosition, targetPosition, t);
-            camera.quaternion.slerpQuaternions(initialQuaternion, targetQuaternion, t);
-        })
         .onComplete(() => {
+            isTransitioning = false;
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
-            updatePlayerPositionForFace(currentFace); // Final update to player position
         })
         .start();
+        
 }
 
+function updateCurrentFaceWithTargetRotation(targetRotation) {
+    // Define the reference vector representing the front direction
+    const referenceVector = new THREE.Vector3(0, 0, 1);
 
+    // Apply the target rotation to the reference vector
+    const rotatedVector = referenceVector.clone().applyQuaternion(targetRotation);
 
-function getCameraPositionForFace(face) {
+    // Define face vectors for comparison
+    const faceVectors = [
+        new THREE.Vector3(0, 0, 1), // Front face
+        new THREE.Vector3(0, 0, -1), // Back face
+        new THREE.Vector3(-1, 0, 0), // Left face
+        new THREE.Vector3(1, 0, 0), // Right face
+        new THREE.Vector3(0, 1, 0), // Top face
+        new THREE.Vector3(0, -1, 0) // Bottom face
+    ];
+
+    // Determine the face that the rotated vector is closest to
+    let maxDot = -Infinity;
+    let newCurrentFace = 0;
+
+    faceVectors.forEach((faceVector, index) => {
+        const dot = rotatedVector.dot(faceVector);
+        if (dot > maxDot) {
+            maxDot = dot;
+            newCurrentFace = index;
+        }
+    });
+
+    currentFace = newCurrentFace;
+}
+
+/* function getCameraPositionForFace(face) {
     const distance = cubeSize * 1.5;
     switch (face) {
         case 0: return new THREE.Vector3(0, 0, distance);
@@ -234,7 +285,7 @@ function getCameraPositionForFace(face) {
         case 5: return new THREE.Vector3(0, -distance, 0);
     }
 }
-
+ */
 function updatePlayerPositionForFace(face) {
     switch (face) {
         case 0: // Front
@@ -304,92 +355,142 @@ function updateCollisionMarker() {
     }
 }
 
-
 function movePlayer(player, deltaX, deltaY) {
-    // Get the camera's right and up vectors
-    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
-
-    // Scale the movement vectors based on delta values
-    right.multiplyScalar(deltaX);
-    up.multiplyScalar(deltaY);
-
-    // Combine the vectors to get the movement vector in the camera's local space
-    const movement = right.clone().add(up);
-
-    // Constrain player within the current face
     const halfSize = cubeSize / 2 - playerSize.z / 2;
 
+    // Create a movement vector based on the mouse or key input
+    let movement = new THREE.Vector3(deltaX, deltaY, 0);
+
+    // Get the camera's rotation in world space
+    let cameraRotation = new THREE.Quaternion();
+    camera.getWorldQuaternion(cameraRotation);
+
+    // Create a local to world matrix based on the camera's rotation
+    let localToWorld = new THREE.Matrix4().makeRotationFromQuaternion(cameraRotation);
+
+    // Transform the movement vector from local space to world space
+    movement.applyMatrix4(localToWorld);
+
+    // Constrain the movement to the plane of the current face
     switch (currentFace) {
         case 0: // Front
         case 1: // Back
-            player.position.x += movement.x;
-            player.position.y += movement.y;
+            movement.z = 0;
+            break;
+        case 2: // Left
+        case 3: // Right
+            movement.x = 0;
+            break;
+        case 4: // Top
+        case 5: // Bottom
+            movement.y = 0;
+            break;
+    }
+
+    // Apply the movement vector to the player's position
+    player.position.add(movement);
+
+    // Constrain player within the current face
+    switch (currentFace) {
+        case 0: // Front
+        case 1: // Back
             player.position.x = Math.max(-halfSize, Math.min(halfSize, player.position.x));
             player.position.y = Math.max(-halfSize, Math.min(halfSize, player.position.y));
             break;
         case 2: // Left
         case 3: // Right
-            player.position.y += movement.y;
-            player.position.z += movement.z; // Apply movement along the z-axis
-            player.position.y = Math.max(-halfSize, Math.min(halfSize, player.position.y));
             player.position.z = Math.max(-halfSize, Math.min(halfSize, player.position.z));
+            player.position.y = Math.max(-halfSize, Math.min(halfSize, player.position.y));
             break;
         case 4: // Top
         case 5: // Bottom
-            player.position.z += movement.z;
-            player.position.x += movement.x;
-            player.position.z = Math.max(-halfSize, Math.min(halfSize, player.position.z));
             player.position.x = Math.max(-halfSize, Math.min(halfSize, player.position.x));
+            player.position.z = Math.max(-halfSize, Math.min(halfSize, player.position.z));
             break;
     }
 }
 
+const aimingSpeed = 0.05;
 
-
+function updateAimingLine() {
+    if (ballIsHeld) {
+        aimingAngle -= aimingSpeed; // Update the aiming angle continuously
+        
+        // Calculate the direction of the aiming line based on the updated angle
+        const direction = new THREE.Vector3(Math.sin(aimingAngle), 0, Math.cos(aimingAngle)).normalize();
+        
+        // Calculate the position of the aiming line's endpoint
+        const endPoint = ball.position.clone().add(direction.clone().multiplyScalar(0.5));
+        
+        // Ensure the endpoint stays within the current face's bounds
+        const halfSize = cubeSize / 2;
+        endPoint.clampScalar(-halfSize, halfSize);
+        
+        // Set the endpoint of the aiming line
+        aimingLine.geometry.setFromPoints([ball.position, endPoint]);
+    }
+}
 
 function resetBall() {
-    ballSpeed = new THREE.Vector3(
-        (Math.random() - 0.5) * 0.03,
-        (Math.random() - 0.5) * 0.03,
-        (Math.random() - 0.5) * 0.03
-    );
+    if (ballIsHeld) {
+        // Place the ball at the player's position
 
-    ball.position.set(
-        (Math.random() - 0.5) * cubeSize,
-        (Math.random() - 0.5) * cubeSize,
-        (Math.random() - 0.5) * cubeSize
-    );
+        ball.position.copy(player.position);
+        updateAimingLine();
+    } else {
+        const direction = new THREE.Vector3(Math.sin(aimingAngle), Math.cos(aimingAngle), 0).normalize();
+
+        // Define the initial velocity magnitude (you can adjust this as needed)
+        const initialVelocityMagnitude = 0.03;
+
+        // Apply the initial velocity to the ball in the direction the player is facing
+        ballSpeed = direction.clone().multiplyScalar(initialVelocityMagnitude);
+
+        // Set the ball's position slightly in front of the player to avoid immediate collision
+        const offsetDistance = 0.1; // Adjust as needed
+        const ballStartPosition = player.position.clone().add(direction.clone().multiplyScalar(offsetDistance));
+        ball.position.copy(ballStartPosition);
+    }
 }
+
 
 function updateBall() {
     if (!ballUpdateEnabled) return;
-
+    if (ballIsHeld) {
+        // Place the ball at the player's position
+        ball.position.copy(player.position);
+        return;
+    }
+    
     ball.position.add(ballSpeed);
-
+    
     const halfCubeSize = cubeSize / 2 - ballRadius;
-
+    
     if (ball.position.x <= -halfCubeSize || ball.position.x >= halfCubeSize) {
         ballSpeed.x = -ballSpeed.x;
+        console.log("wall hit");
         wallHits++;
     }
     if (ball.position.y <= -halfCubeSize || ball.position.y >= halfCubeSize) {
         ballSpeed.y = -ballSpeed.y;
+        console.log("wall hit");
         wallHits++;
     }
     if (ball.position.z <= -halfCubeSize || ball.position.z >= halfCubeSize) {
         ballSpeed.z = -ballSpeed.z;
+        console.log("wall hit");
         wallHits++;
     }
-
+    console.log(wallHits);
     // Score handling
     if (wallHits >= 2) {
-        if (playerTurn) {
+        if (!playerTurn) {
             playerScore++;
         } else {
             aiScore++;
         }
         wallHits = 0;
+        ballIsHeld = true;
         updateScore();
         resetBall();
     }
@@ -427,18 +528,53 @@ function checkCollision() {
     const playerFront = playerBox.min.z;
     const aiFront = aiBox.max.z;
 
-    if (playerBox.intersectsBox(ballBox) && ball.position.z >= playerFront) {
+    if (playerTurn && playerBox.intersectsBox(ballBox) && ball.position.z >= playerFront) {
         ballSpeed.z = Math.abs(ballSpeed.z); // Ensure ball moves away from the player
         playerTurn = false;
         wallHits = 0;
         console.log("hit PL");
     }
-    if (aiBox.intersectsBox(ballBox) && ball.position.z <= aiFront) {
+    else if (!playerTurn && aiBox.intersectsBox(ballBox) && ball.position.z <= aiFront) {
         ballSpeed.z = -Math.abs(ballSpeed.z); // Ensure ball moves away from the AI player
         playerTurn = true;
         wallHits = 0;
         console.log("hit AI");
     }
+}
+
+const cubeGraph = {
+    0: [2, 3, 4, 5], // Front face is connected to Left, Right, Top, Bottom
+    1: [2, 3, 4, 5], // Back face
+    2: [0, 1, 4, 5], // Left face
+    3: [0, 1, 4, 5], // Right face
+    4: [0, 1, 2, 3], // Top face
+    5: [0, 1, 2, 3]  // Bottom face
+};
+
+function bfsShortestPath(graph, start, target) {
+    let queue = [[start]];
+    let visited = new Set();
+    visited.add(start);
+
+    while (queue.length > 0) {
+        let path = queue.shift();
+        let node = path[path.length - 1];
+
+        if (node === target) {
+            return path;
+        }
+
+        for (let neighbor of graph[node]) {
+            if (!visited.has(neighbor)) {
+                visited.add(neighbor);
+                let newPath = path.slice();
+                newPath.push(neighbor);
+                queue.push(newPath);
+            }
+        }
+    }
+
+    return null;
 }
 
 
@@ -470,7 +606,6 @@ function updateAI() {
             break;
     }
 }
-
 
 init();
 
