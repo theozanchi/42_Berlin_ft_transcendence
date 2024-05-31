@@ -8,13 +8,13 @@ from django.http import JsonResponse
 from base.models import Lobby, Player
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-import uuid
 
+@api_view(['POST'])
 @login_required
 def create_lobby(request):
     if request.method == 'POST' and request.user.is_authenticated:
         lobby = Lobby.objects.create(host=request.user)
-        return JsonResponse({'lobby_id': lobby.lobby_id})
+        return JsonResponse({'lobby_id': lobby.lobby_id}, status=200)
 
 def generate_unique_guest_name(lobby, guest_name):
     existing_names = set(player.guest_name for player in lobby.players.all() if player.guest_name)
