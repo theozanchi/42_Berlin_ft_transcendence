@@ -1,6 +1,6 @@
 #!/bin/sh
 
-python manage.py makemigrations base
+python manage.py makemigrations manager
 python manage.py migrate
 
 # Start the Gunicorn server
