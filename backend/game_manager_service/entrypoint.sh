@@ -1,9 +1,6 @@
 #!/bin/sh
 
-echo "Make migrations"
-python manage.py makemigrations
-
-echo "Apply database migrations"
+python manage.py makemigrations base
 python manage.py migrate
 
 # Start the Gunicorn server

@@ -35,25 +35,17 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6380:6379"
+
   game_manager:
     container_name: game_manager
     build: ./backend/game_manager_service
     volumes:
      - ./backend/game_manager_service:/code
-    ports:
-      - "8001:8001"
-    environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    depends_on:
-      - db
-
-  game_lobby:
-    container_name: game_lobby
-    build: ./backend/game_lobby_service
-    volumes:
-     - ./backend/game_lobby_service:/code
     ports:
       - "8001:8001"
     environment:
@@ -76,4 +68,19 @@ services:
       - POSTGRES_PASSWORD=postgres
     depends_on:
       - db
+
+  game_lobby:
+    container_name: game_lobby
+    build: ./backend/game_lobby_service
+    volumes:
+     - ./backend/game_lobby_service:/code
+    ports:
+      - "8003:8003"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - db
+      - redis
 

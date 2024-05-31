@@ -6,15 +6,14 @@ import requests
 from django.contrib.auth.models import User, AbstractUser
 import uuid
 
-class User(AbstractUser):
-    # Add custom fields here, if needed
-    pass
+#class User(AbstractUser):
+#    hosted_lobbies = models.ManyToManyField('Lobby', related_name='host', blank=True)
+#    joined_lobbies = models.ManyToManyField('Lobby', related_name='players', blank=True)
 
 class Lobby(models.Model):
-    lobby_id = models.CharField(primary_key=True, default=uuid.uuid4, unique=True, editable=False)
+    lobby_id = models.CharField(max_length=15, primary_key=True, default=str(uuid.uuid4), unique=True, editable=False)
     host = models.ForeignKey(User, related_name='hosted_lobbies', on_delete=models.CASCADE)
     max_players = models.IntegerField(default=24)  # Adjust as needed
-    players = models.ManyToManyField(User, related_name='joined_lobbies')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
