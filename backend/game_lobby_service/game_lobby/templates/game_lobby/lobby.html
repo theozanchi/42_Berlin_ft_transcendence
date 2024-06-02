@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Lobby</title>
+    {% load static %}
 </head>
 <body>
     <h1>WebSocket Lobby</h1>
@@ -15,6 +16,6 @@
     <input type="text" id="lobbyId">
     <button onclick="joinLobby()">Join Lobby</button>
 
-    <script src="app.js"></script>
+    <script src="{% static 'game_lobby/app.js' %}"></script>
 </body>
 </html>
