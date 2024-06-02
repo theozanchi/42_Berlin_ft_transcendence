@@ -1,18 +1,13 @@
 from django.urls import path
 from . import views
-from game_lobby import settings
+from game_lobby_service import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', views.create_lobby),
-    path('lobby/', views.LobbyView.as_view(), name='lobby'),
-]
+    path('', views.LobbyView.as_view(), name='lobby'),
+    path('create', views.create_lobby),
+    path('join', views.join_lobby),
+] 
 
-# Serve static files during development
 if settings.DEBUG:
-    from django.conf.urls.static import static
-    from django.conf import settings
-    from django.views.static import serve as static_serve
-    
-    urlpatterns += [
-        path('static/<path:path>', static_serve),
-    ]
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
