@@ -106,7 +106,7 @@ function init() {
 
     // Add event listeners for movement and face change
     document.addEventListener('keydown', onKeyDown);
-
+    document.addEventListener('keyup', onKeyUp);
     // Request pointer lock when the canvas is clicked
     renderer.domElement.addEventListener('click', () => {
         renderer.domElement.requestPointerLock();
@@ -158,8 +158,23 @@ function onMouseMove(event) {
 function setPlayerTransparency(value) {
     player.material.opacity = value;
 }
+let keysPressed = {
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false,
+    w: false,
+    s: false,
+    a: false,
+    d: false
+  };
+
 
 function onKeyDown(event) {
+
+    if (keysPressed.hasOwnProperty(event.key)) {
+        keysPressed[event.key] = true;
+      }
     switch (event.key) {
         case 'w':
             switchFace('up');
@@ -173,18 +188,6 @@ function onKeyDown(event) {
         case 'd':
             switchFace('right');
             break;
-        case 'ArrowUp':
-            movePlayer(player, 0, 0.1);
-            break;
-        case 'ArrowDown':
-            movePlayer(player, 0, -0.1);
-            break;
-        case 'ArrowLeft':
-            movePlayer(player, -0.1, 0);
-            break;
-        case 'ArrowRight':
-            movePlayer(player, 0.1, 0);
-            break;
         case ' ': // Space key
         if (ballIsHeld) {
             playerTurn = false;
@@ -193,6 +196,13 @@ function onKeyDown(event) {
         }
         break;
     }
+}
+function onKeyUp(event) {
+
+    if (keysPressed.hasOwnProperty(event.key)) {
+        keysPressed[event.key] = false;
+      }
+
 }
 
 
@@ -558,11 +568,36 @@ function updateBall() {
     updateCollisionMarker();
 }
 
+let keyMoveSpeed = 0.05;
+
+function gameLoop() {
+    let deltaX = 0;
+    let deltaY = 0;
+  
+    if (keysPressed.ArrowUp) {
+      deltaY += keyMoveSpeed;
+    }
+    if (keysPressed.ArrowDown) {
+      deltaY -= keyMoveSpeed;
+    }
+    if (keysPressed.ArrowLeft) {
+      deltaX -= keyMoveSpeed;
+    }
+    if (keysPressed.ArrowRight) {
+      deltaX += keyMoveSpeed;
+    }
+  
+    movePlayer(player, deltaX, deltaY);
+  
+}
+  
+
 function animate() {
     requestAnimationFrame(animate);
 
     TWEEN.update();
     updateAimingLine();
+    gameLoop();
     updateBall();
     updateAI();
 
