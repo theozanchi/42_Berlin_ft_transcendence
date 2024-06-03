@@ -12,9 +12,9 @@ from .consumers import LobbyConsumer
 #    joined_lobbies = models.ManyToManyField('Lobby', related_name='players', blank=True)
 
 class Lobby(models.Model):
-    lobby_id = models.CharField(max_length=15, primary_key=True, default=str(uuid.uuid4), unique=True, editable=False)
+    lobby_id = models.CharField(max_length=15, primary_key=True, default=str(uuid.uuid4())[:10], unique=True, editable=False)
     #host = models.ForeignKey(User, related_name='hosted_lobbies', on_delete=models.CASCADE)
-    host = models.CharField(max_length=15)
+    host = models.CharField(max_length=25)
     max_players = models.IntegerField(default=24)
 
     created_at = models.DateTimeField(auto_now_add=True)

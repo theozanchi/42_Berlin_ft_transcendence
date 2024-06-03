@@ -1,3 +1,6 @@
+TESTING CREATE/ GAME LOBBY URL WITH CURL
+curl -k -b cookies.txt -d '{"guest_name": "test"}' -H "Content-Type: application/json" -H "X-CSRFToken: $csrf_token" https://localhost:8443/game-lobby/create
+
 MICROSERVICE ARCHITECTURE
     Gateway Service:
         Acts as the entry point for clients.
