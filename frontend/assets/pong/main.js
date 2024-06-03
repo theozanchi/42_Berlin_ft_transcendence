@@ -91,7 +91,7 @@ function init() {
     cube.add(ball);
 
     // Create aiming line
-    const aimingLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    const aimingLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 ,transparent: true, opacity: 0});
     const aimingLineGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
     aimingLine = new THREE.Line(aimingLineGeometry, aimingLineMaterial);
     scene.add(aimingLine);
@@ -410,38 +410,90 @@ function movePlayer(player, deltaX, deltaY) {
     }
 }
 
-const aimingSpeed = 0.05;
+let aimingSpeed = 0.03;
+
+const minAimingAngle = -Math.PI / 4; // -45 degrees
+const maxAimingAngle = Math.PI / 4;  // 45 degrees
 
 function updateAimingLine() {
     if (ballIsHeld) {
-        aimingAngle -= aimingSpeed; // Update the aiming angle continuously
-        
-        // Calculate the direction of the aiming line based on the updated angle
-        const direction = new THREE.Vector3(Math.sin(aimingAngle), 0, Math.cos(aimingAngle)).normalize();
-        
+        // Update aiming angle
+        aimingLine.material.opacity = 1;
+        aimingAngle += aimingSpeed;
+    
+        if (aimingAngle > maxAimingAngle || aimingAngle < minAimingAngle) {
+            aimingSpeed = -aimingSpeed; // Reverse direction
+            aimingAngle += aimingSpeed; // Correct overshoot
+        }
+
+        let aimingDirection = new THREE.Vector3();
+        switch (currentFace) {
+            case 0: // Front
+                aimingDirection.set(Math.sin(aimingAngle), 0, -Math.cos(aimingAngle)); // Point inside
+                break;
+            case 1: // Back
+                aimingDirection.set(Math.sin(aimingAngle), 0, Math.cos(aimingAngle)); // Point inside
+                break;
+            case 2: // Left
+                aimingDirection.set(Math.cos(aimingAngle), 0, Math.sin(aimingAngle)); // Point inside
+                break;
+            case 3: // Right
+                aimingDirection.set(-Math.cos(aimingAngle), 0, Math.sin(aimingAngle)); // Point inside
+                break;
+            case 4: // Top
+                aimingDirection.set(Math.sin(aimingAngle), -Math.cos(aimingAngle), 0); // Point inside
+                break;
+            case 5: // Bottom
+                aimingDirection.set(Math.sin(aimingAngle), Math.cos(aimingAngle), 0); // Point inside
+                break;
+        }
+
+        aimingDirection.normalize();
+
         // Calculate the position of the aiming line's endpoint
-        const endPoint = ball.position.clone().add(direction.clone().multiplyScalar(0.5));
-        
-        // Ensure the endpoint stays within the current face's bounds
-        const halfSize = cubeSize / 2;
-        endPoint.clampScalar(-halfSize, halfSize);
-        
+        const endPoint = ball.position.clone().add(aimingDirection.clone().multiplyScalar(0.5));
+
+
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
     }
+    else
+    aimingLine.material.opacity = 0;
 }
 
 function resetBall() {
     if (ballIsHeld) {
         // Place the ball at the player's position
-
         ball.position.copy(player.position);
         updateAimingLine();
     } else {
-        const direction = new THREE.Vector3(Math.sin(aimingAngle), Math.cos(aimingAngle), 0).normalize();
+        // Calculate the direction based on the current face and aiming angle
+        let direction = new THREE.Vector3();
+        switch (currentFace) {
+            case 0: // Front
+                direction.set(Math.sin(aimingAngle), 0, -Math.cos(aimingAngle));
+                break;
+            case 1: // Back
+                direction.set(Math.sin(aimingAngle), 0, Math.cos(aimingAngle));
+                break;
+            case 2: // Left
+                direction.set(-Math.cos(aimingAngle), 0, Math.sin(aimingAngle));
+                break;
+            case 3: // Right
+                direction.set(Math.cos(aimingAngle), 0, Math.sin(aimingAngle));
+                break;
+            case 4: // Top
+                direction.set(Math.sin(aimingAngle), -Math.cos(aimingAngle), 0);
+                break;
+            case 5: // Bottom
+                direction.set(Math.sin(aimingAngle), Math.cos(aimingAngle), 0);
+                break;
+        }
+
+        direction.normalize();
 
         // Define the initial velocity magnitude (you can adjust this as needed)
-        const initialVelocityMagnitude = 0.03;
+        const initialVelocityMagnitude = 0.02;
 
         // Apply the initial velocity to the ball in the direction the player is facing
         ballSpeed = direction.clone().multiplyScalar(initialVelocityMagnitude);
@@ -461,27 +513,34 @@ function updateBall() {
         ball.position.copy(player.position);
         return;
     }
-    
-    ball.position.add(ballSpeed);
-    
+
+    // Calculate the next position of the ball
+    const nextPosition = ball.position.clone().add(ballSpeed);
+
+    // Check for collisions with players
+    if (checkCollision()) {
+    } else {
+        ball.position.copy(nextPosition); // Update ball position normally
+    }
+
     const halfCubeSize = cubeSize / 2 - ballRadius;
-    
+
     if (ball.position.x <= -halfCubeSize || ball.position.x >= halfCubeSize) {
         ballSpeed.x = -ballSpeed.x;
-        console.log("wall hit");
         wallHits++;
+        console.log(wallHits);
     }
     if (ball.position.y <= -halfCubeSize || ball.position.y >= halfCubeSize) {
         ballSpeed.y = -ballSpeed.y;
-        console.log("wall hit");
         wallHits++;
+        console.log(wallHits);
     }
     if (ball.position.z <= -halfCubeSize || ball.position.z >= halfCubeSize) {
         ballSpeed.z = -ballSpeed.z;
-        console.log("wall hit");
         wallHits++;
+        console.log(wallHits);
     }
-    console.log(wallHits);
+
     // Score handling
     if (wallHits >= 2) {
         if (!playerTurn) {
@@ -497,17 +556,13 @@ function updateBall() {
 
     // Update the collision marker position
     updateCollisionMarker();
-
-    // Check for collisions
-    checkCollision();
 }
-
 
 function animate() {
     requestAnimationFrame(animate);
 
     TWEEN.update();
-
+    updateAimingLine();
     updateBall();
     updateAI();
 
@@ -520,27 +575,74 @@ function updateScore() {
 }
 
 function checkCollision() {
+    if (ballSpeed.length() === 0) {
+        return false;
+    }
+
+    const ballPosition = ball.getWorldPosition(new THREE.Vector3());
+    const nextPosition = ballPosition.clone().add(ballSpeed);
+
+    // Create a bounding box that encompasses the ball's start and end points
+    const ballBox = new THREE.Box3().setFromCenterAndSize(
+        ballPosition.clone().add(nextPosition).multiplyScalar(0.5),
+        new THREE.Vector3(ballRadius * 2, ballRadius * 2, ballRadius * 2).add(ballSpeed.clone().set(Math.abs(ballSpeed.x), Math.abs(ballSpeed.y), Math.abs(ballSpeed.z)))
+    );
+
     const playerBox = new THREE.Box3().setFromObject(player);
-    const aiBox = new THREE.Box3().setFromObject(aiPlayer);
-    const ballBox = new THREE.Box3().setFromObject(ball);
+    const aiPlayerBox = new THREE.Box3().setFromObject(aiPlayer);
 
-    // Define front collision bounds for players
-    const playerFront = playerBox.min.z;
-    const aiFront = aiBox.max.z;
+    // Check if the ball is colliding with the player or AI player
+    if ((playerTurn && ballBox.intersectsBox(playerBox)) || (!playerTurn && ballBox.intersectsBox(aiPlayerBox))) {
+        // Place collision marker at the intersection point for debugging
+        collisionMarker.position.copy(ballPosition);
 
-    if (playerTurn && playerBox.intersectsBox(ballBox) && ball.position.z >= playerFront) {
-        ballSpeed.z = Math.abs(ballSpeed.z); // Ensure ball moves away from the player
-        playerTurn = false;
+        console.log('Collision Detected:', playerTurn ? 'Player' : 'AI Player');
+
+        // Get the paddle involved in the collision
+        const paddle = playerTurn ? player : aiPlayer;
+        const paddlePosition = paddle.getWorldPosition(new THREE.Vector3());
+        const paddleScale = paddle.scale;
+
+        // Calculate the relative collision point on the paddle
+        const relativeCollisionPoint = ballPosition.clone().sub(paddlePosition);
+
+        // Normalize the relative collision point to [-1, 1]
+        relativeCollisionPoint.x /= paddleScale.x / 2;
+        relativeCollisionPoint.y /= paddleScale.y / 2;
+        relativeCollisionPoint.z /= paddleScale.z / 2;
+
+        // Adjust ball direction based on the relative collision point
+        const speed = ballSpeed.length();
+        let newBallSpeed = new THREE.Vector3();
+        
+        // Example logic to change direction dynamically
+        newBallSpeed.x = ballSpeed.x + relativeCollisionPoint.x * 0.5;
+        newBallSpeed.y = ballSpeed.y + relativeCollisionPoint.y * 0.5;
+        newBallSpeed.z = -ballSpeed.z + relativeCollisionPoint.z * 0.5; // Reversing Z for a basic bounce back effect
+
+        // Normalize to maintain constant speed
+        newBallSpeed.setLength(speed);
+
+        const speedIncrement = 0.02; // Adjust this value to control the speed increase rate
+        newBallSpeed.multiplyScalar(1 + speedIncrement);
+
+        ballSpeed.copy(newBallSpeed);
+
+        // Move the ball slightly away from the collision point to prevent immediate re-collision
+        ball.position.add(ballSpeed.clone().multiplyScalar(0.1));
+
+        // Change player turn
+        playerTurn = !playerTurn;
+
+        // Reset wall hits
         wallHits = 0;
-        console.log("hit PL");
+
+        return true;
     }
-    else if (!playerTurn && aiBox.intersectsBox(ballBox) && ball.position.z <= aiFront) {
-        ballSpeed.z = -Math.abs(ballSpeed.z); // Ensure ball moves away from the AI player
-        playerTurn = true;
-        wallHits = 0;
-        console.log("hit AI");
-    }
+
+    return false;
 }
+
 
 const cubeGraph = {
     0: [2, 3, 4, 5], // Front face is connected to Left, Right, Top, Bottom
