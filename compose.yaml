@@ -15,6 +15,7 @@ services:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
+      - api
       - game_manager
       - game_lobby
       - game_logic
@@ -41,13 +42,27 @@ services:
     #ports:
     #  - "6380:6379"
 
+    api_gateway:
+      container_name: api
+      build: ./backend/api
+      volumes:
+        - ./backend/api:/code
+      ports:
+        - "8001:8001"
+      environment:
+        - POSTGRES_NAME=postgres
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres
+      depends_on:
+        - db
+
   game_manager:
     container_name: game_manager
     build: ./backend/game_manager_service
     volumes:
      - ./backend/game_manager_service:/code
     ports:
-      - "8001:8001"
+      - "8002:8002"
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
@@ -61,7 +76,7 @@ services:
     volumes:
       - ./backend/game_logic_service:/code
     ports:
-      - "8002:8002"
+      - "8003:8003"
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
@@ -75,7 +90,7 @@ services:
     volumes:
      - ./backend/game_lobby_service:/code
     ports:
-      - "8003:8003"
+      - "8004:8004"
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
