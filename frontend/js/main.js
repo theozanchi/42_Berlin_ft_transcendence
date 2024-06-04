@@ -1,3 +1,5 @@
+let PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
+
 document.getElementById('localGameButton').addEventListener('click', function() {
     document.getElementById('view1').style.display = 'none';
     document.getElementById('view2').style.display = 'block';
@@ -18,7 +20,8 @@ document.getElementById('addPlayerButton').addEventListener('click', function() 
     let input = document.createElement('input');
     input.type = 'text';
     input.className = 'form-control';
-    input.placeholder = `Player #${playerList.childElementCount}`;
+    input.label = `${playerList.childElementCount}`;
+    input.value = `${PongerChars[playerList.childElementCount]}`;
     inputDiv.appendChild(input);
 
     const buttonDiv = document.createElement('div');
@@ -37,5 +40,34 @@ document.getElementById('addPlayerButton').addEventListener('click', function() 
 });
 
 document.getElementById('generateGameButton').addEventListener('click', function() {
-    alert(`Generating Game with ${playerList.childElementCount} Players`);
+    
+	// 1. Selevt player List element
+	let playerNames = Array.from(document.querySelectorAll('#playerList input')).map(input => input.value);
+	
+	// 2. Create data obejct
+	let data = { players: playerNames };
+
+	// 3. Convert to JSON
+	var json = JSON.stringify(data);
+
+	// 4. Send POST request
+	fetch ('https://test-api.com', {
+		method:		'POST',
+		body:		json,
+		headers:	{ 'Content-Type': 'application/json' }
+	})
+
+	// 5. Handle response
+	.then(response => response.json())
+	.then(data => {
+		console.log('Success:', data);
+	})
+
+	// 6. Handle errors
+	.catch((error) => {
+		console.error('Error:', error);
+	});
+	console.log(json);
+
+	alert(`Generating Game with ${playerList.childElementCount} Players: ${json}`);
 });
