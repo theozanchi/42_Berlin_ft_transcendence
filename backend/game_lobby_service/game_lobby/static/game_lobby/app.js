@@ -19,7 +19,7 @@ const csrftoken = getCookie('csrftoken');
 
 function createLobby() {
     const guestName = document.getElementById('guestName').value;
-    fetch(apiUrl + 'create_lobby/', {
+    fetch(apiUrl + 'create_lobby/', {csrftoken,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
