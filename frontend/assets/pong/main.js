@@ -9,7 +9,7 @@ let previousMouseX = 0;
 let previousMouseY = 0;
 let ballUpdateEnabled = true;
 
-let scene, camera, renderer, cube, player, aiPlayer, ball, collisionMarker, aimingLine;
+let scene, camera, camera2, renderer, cube, player, player2, aiPlayer, ball, collisionMarker, aimingLine;
 let ballSpeed = new THREE.Vector3();
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
@@ -19,20 +19,23 @@ let playerScore = 0;
 let aiScore = 0;
 let wallHits = 0;
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
-let rotationX = 0;
-let rotationY = 0;
-let pivot; 
+let currentFace2 = 1;
+let pivot;
+let pivot2; 
 let isTransitioning = false;
+let isTransitioning2 = false;
 let ballIsHeld = true;
 let aimingAngle = 0;
+let player1Turn = true; // Player 1 starts
+let singlePlayer = false; // Set to false for two-player game
 
 function init() {
     // Create the scene
     scene = new THREE.Scene();
 
     // Set up the camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 3;
+    camera = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
+    camera2 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
 
     // Set up the renderer
     renderer = new THREE.WebGLRenderer();
@@ -49,6 +52,14 @@ function init() {
     cube.add(pivot);
     pivot.add(camera);
     camera.position.set(0, 0, cubeSize * 1.5);
+
+    // Create a pivot point at the cube's center
+    pivot2 = new THREE.Object3D();
+    cube.add(pivot2);
+    pivot2.add(camera2);
+    camera2.position.set(0, 0, cubeSize * 1.5);
+    camera2.position.copy(camera.position.clone().multiplyScalar(-1));
+    camera2.lookAt(0, 0, 0);
 
     // Create and position colored dots
     const dotRadius = 0.05;
@@ -77,13 +88,24 @@ function init() {
     player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6); // Initial position on the front face
     scene.add(player); // Add player to the scene, not the cube
 
+    // Create palyer2
+    let player2Geometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
+    let player2Material = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+    player2 = new THREE.Mesh(player2Geometry, player2Material);
+    player2.material.transparent = true;
+    player2.material.opacity = 0.25;
+    player2.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
+    player2.rotation.set(0, Math.PI, 0); // Initial position on the front face
+    scene.add(player2); // Add player to the scene, not the cube
+
     // Create AI player
+    if(singlePlayer){
     let aiPlayerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
     let aiPlayerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     aiPlayer = new THREE.Mesh(aiPlayerGeometry, aiPlayerMaterial);
     aiPlayer.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6)); // Initial position on the back face
     scene.add(aiPlayer); // Add AI player to the scene, not the cube
-    aiPlayer.currentFace = 1;
+    aiPlayer.currentFace = 1;}
     // Create ball
     let ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
     let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
@@ -166,49 +188,91 @@ let keysPressed = {
     w: false,
     s: false,
     a: false,
-    d: false
+    d: false,
+    i: false,
+    k: false,
+    j: false,
+    l: false,
+    '8': false,
+    '5': false,
+    '4': false,
+    '6': false
   };
 
 
 function onKeyDown(event) {
 
-    if (keysPressed.hasOwnProperty(event.key)) {
-        keysPressed[event.key] = true;
-      }
-    switch (event.key) {
-        case 'w':
-            switchFace('up');
+    keysPressed[event.key] = true;
+    if (singlePlayer){
+        switch (event.key) {
+            case 'w':
+                switchFace('up');
+                break;
+            case 's':
+                switchFace('down');
+                break;
+            case 'a':
+                switchFace('left');
+                break;
+            case 'd':
+                switchFace('right');
+                break;
+            case ' ': // Space key
+            if (ballIsHeld) {
+                playerTurn = !playerTurn;
+                ballIsHeld = false; // Release the ball
+                resetBall(); // Reset the ball to a random position
+            }
             break;
-        case 's':
-            switchFace('down');
-            break;
-        case 'a':
-            switchFace('left');
-            break;
-        case 'd':
-            switchFace('right');
-            break;
-        case ' ': // Space key
-        if (ballIsHeld) {
-            playerTurn = false;
-            ballIsHeld = false; // Release the ball
-            resetBall(); // Reset the ball to a random position
         }
-        break;
+    }else {
+        switch (event.key) {
+            case 'w':
+                switchFace('up');
+                break;
+            case 's':
+                switchFace('down');
+                break;
+            case 'a':
+                switchFace('left');
+                break;
+            case 'd':
+                switchFace('right');
+                break;
+        // Player 2 face switching
+        
+            case 'ArrowDown':
+                switchFace2('up');
+                break;
+            case 'ArrowUp':
+                switchFace2('down');
+                break;
+            case 'ArrowLeft':
+                switchFace2('left');
+                break;
+            case 'ArrowRight':
+                switchFace2('right');
+                break;
+            case ' ': // Space key
+                if (ballIsHeld) {
+                    
+                    ballIsHeld = false; // Release the ball
+                    resetBall(); // Reset the ball to a random position
+                    playerTurn = !playerTurn;
+                }
+            break;
+        }
     }
 }
 function onKeyUp(event) {
 
-    if (keysPressed.hasOwnProperty(event.key)) {
-        keysPressed[event.key] = false;
-      }
+keysPressed[event.key] = false;
 
 }
 
 
 
 function switchFace(direction) {
-
     if (isTransitioning) return; // Check if a transition is in progress
     isTransitioning = true; 
 
@@ -229,6 +293,7 @@ function switchFace(direction) {
             axis.set(0, 1, 0);
             break;
     }
+
 
     const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
     const initialRotation = pivot.quaternion.clone();
@@ -284,18 +349,7 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     currentFace = newCurrentFace;
 }
 
-/* function getCameraPositionForFace(face) {
-    const distance = cubeSize * 1.5;
-    switch (face) {
-        case 0: return new THREE.Vector3(0, 0, distance);
-        case 1: return new THREE.Vector3(0, 0, -distance);
-        case 2: return new THREE.Vector3(-distance, 0, 0);
-        case 3: return new THREE.Vector3(distance, 0, 0);
-        case 4: return new THREE.Vector3(0, distance, 0);
-        case 5: return new THREE.Vector3(0, -distance, 0);
-    }
-}
- */
+
 function updatePlayerPositionForFace(face) {
     switch (face) {
         case 0: // Front
@@ -324,6 +378,116 @@ function updatePlayerPositionForFace(face) {
             break;
     }
 }
+
+function switchFace2(direction) {
+    if (isTransitioning2) return; // Check if a transition is in progress
+    isTransitioning2 = true; 
+
+    const angle = Math.PI / 2; // 90 degrees
+
+    let axis = new THREE.Vector3();
+    switch (direction) {
+        case 'up':
+            axis.set(-1, 0, 0);
+            break;
+        case 'down':
+            axis.set(1, 0, 0);
+            break;
+        case 'left':
+            axis.set(0, -1, 0);
+            break;
+        case 'right':
+            axis.set(0, 1, 0);
+            break;
+    }
+
+
+    const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+    const initialRotation = pivot2.quaternion.clone();
+    const targetRotation = initialRotation.clone().multiply(quaternion);
+
+    updateCurrentFaceWithTargetRotation2(targetRotation);
+
+    new TWEEN.Tween(pivot2.quaternion)
+        .to({ x: targetRotation.x, y: targetRotation.y, z: targetRotation.z, w: targetRotation.w }, 300)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .onStart(() => {
+            
+            updatePlayerPositionForFace2(currentFace2)
+            ballUpdateEnabled = true; // Disable ball updates during the transition
+        })
+        .onComplete(() => {
+            isTransitioning2 = false;
+            ballUpdateEnabled = true; // Re-enable ball updates after the transition
+        })
+        .start();
+        
+}
+
+function updateCurrentFaceWithTargetRotation2(targetRotation) {
+    // Define the reference vector representing the front direction
+    const referenceVector = new THREE.Vector3(0, 0, -1);
+
+    // Apply the target rotation to the reference vector
+    const rotatedVector = referenceVector.clone().applyQuaternion(targetRotation);
+
+    // Define face vectors for comparison
+    const faceVectors = [
+        new THREE.Vector3(0, 0, 1), // Front face
+        new THREE.Vector3(0, 0, -1), // Back face
+        new THREE.Vector3(-1, 0, 0), // Left face
+        new THREE.Vector3(1, 0, 0), // Right face
+        new THREE.Vector3(0, 1, 0), // Top face
+        new THREE.Vector3(0, -1, 0) // Bottom face
+    ];
+
+    // Determine the face that the rotated vector is closest to
+    let maxDot = -Infinity;
+    let newCurrentFace = 0;
+
+    faceVectors.forEach((faceVector, index) => {
+        const dot = rotatedVector.dot(faceVector);
+        if (dot > maxDot) {
+            maxDot = dot;
+            newCurrentFace = index;
+        }
+    });
+
+    currentFace2 = newCurrentFace;
+    console.log(`Updated current face: ${currentFace2}`);
+}
+
+
+function updatePlayerPositionForFace2(face) {
+    console.log(`Updating player position for face: ${face}`);
+    switch (face) {
+        case 0: // Front
+            player2.position.set(0, 0, cubeSize / 2 + playerSize.z / 6);
+            player2.rotation.set(0, 0, 0);
+            break;
+        case 1: // Back
+            player2.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
+            player2.rotation.set(0, Math.PI, 0);
+            break;
+        case 2: // Left
+            player2.position.set(-(cubeSize / 2 + playerSize.z / 6), 0, 0);
+            player2.rotation.set(0, -Math.PI / 2, 0);
+            break;
+        case 3: // Right
+            player2.position.set(cubeSize / 2 + playerSize.z / 6, 0, 0);
+            player2.rotation.set(0, Math.PI / 2, 0);
+            break;
+        case 4: // Top
+            player2.position.set(0, cubeSize / 2 + playerSize.z / 6, 0);
+            player2.rotation.set(-Math.PI / 2, 0, 0);
+            break;
+        case 5: // Bottom
+            player2.position.set(0, -(cubeSize / 2 + playerSize.z / 6), 0);
+            player2.rotation.set(Math.PI / 2, 0, 0);
+            break;
+    }
+}
+
 
 
 function updateCollisionMarker() {
@@ -420,6 +584,61 @@ function movePlayer(player, deltaX, deltaY) {
     }
 }
 
+function movePlayer2(player2, deltaX, deltaY) {
+    const halfSize = cubeSize / 2 - playerSize.z / 2;
+
+    // Create a movement vector based on the mouse or key input
+    let movement = new THREE.Vector3(deltaX, deltaY, 0);
+
+    // Get the camera's rotation in world space
+    let cameraRotation = new THREE.Quaternion();
+    camera2.getWorldQuaternion(cameraRotation);
+
+    // Create a local to world matrix based on the camera's rotation
+    let localToWorld = new THREE.Matrix4().makeRotationFromQuaternion(cameraRotation);
+
+    // Transform the movement vector from local space to world space
+    movement.applyMatrix4(localToWorld);
+
+    // Constrain the movement to the plane of the current face
+    switch (currentFace2) {
+        case 0: // Front
+        case 1: // Back
+            movement.z = 0;
+            break;
+        case 2: // Left
+        case 3: // Right
+            movement.x = 0;
+            break;
+        case 4: // Top
+        case 5: // Bottom
+            movement.y = 0;
+            break;
+    }
+
+    // Apply the movement vector to the player's position
+    player2.position.add(movement);
+
+    // Constrain player within the current face
+    switch (currentFace2) {
+        case 0: // Front
+        case 1: // Back
+            player2.position.x = Math.max(-halfSize, Math.min(halfSize, player2.position.x));
+            player2.position.y = Math.max(-halfSize, Math.min(halfSize, player2.position.y));
+            break;
+        case 2: // Left
+        case 3: // Right
+            player2.position.z = Math.max(-halfSize, Math.min(halfSize, player2.position.z));
+            player2.position.y = Math.max(-halfSize, Math.min(halfSize, player2.position.y));
+            break;
+        case 4: // Top
+        case 5: // Bottom
+            player2.position.x = Math.max(-halfSize, Math.min(halfSize, player2.position.x));
+            player2.position.z = Math.max(-halfSize, Math.min(halfSize, player2.position.z));
+            break;
+    }
+}
+
 let aimingSpeed = 0.03;
 
 const minAimingAngle = -Math.PI / 4; // -45 degrees
@@ -437,7 +656,8 @@ function updateAimingLine() {
         }
 
         let aimingDirection = new THREE.Vector3();
-        switch (currentFace) {
+        console.log(playerTurn)
+        switch (playerTurn ? currentFace : currentFace2) {
             case 0: // Front
                 aimingDirection.set(Math.sin(aimingAngle), 0, -Math.cos(aimingAngle)); // Point inside
                 break;
@@ -474,12 +694,12 @@ function updateAimingLine() {
 function resetBall() {
     if (ballIsHeld) {
         // Place the ball at the player's position
-        ball.position.copy(player.position);
+        ball.position.copy(playerTurn ? player.position : player2.position);
         updateAimingLine();
     } else {
         // Calculate the direction based on the current face and aiming angle
         let direction = new THREE.Vector3();
-        switch (currentFace) {
+        switch (playerTurn ? currentFace : currentFace2) {
             case 0: // Front
                 direction.set(Math.sin(aimingAngle), 0, -Math.cos(aimingAngle));
                 break;
@@ -510,7 +730,7 @@ function resetBall() {
 
         // Set the ball's position slightly in front of the player to avoid immediate collision
         const offsetDistance = 0.1; // Adjust as needed
-        const ballStartPosition = player.position.clone().add(direction.clone().multiplyScalar(offsetDistance));
+        const ballStartPosition = playerTurn ? player.position.clone().add(direction.clone().multiplyScalar(offsetDistance)) : player2.position.clone().add(direction.clone().multiplyScalar(offsetDistance));
         ball.position.copy(ballStartPosition);
     }
 }
@@ -520,7 +740,7 @@ function updateBall() {
     if (!ballUpdateEnabled) return;
     if (ballIsHeld) {
         // Place the ball at the player's position
-        ball.position.copy(player.position);
+        ball.position.copy(playerTurn ? player.position : player2.position);
         return;
     }
 
@@ -558,6 +778,7 @@ function updateBall() {
         } else {
             aiScore++;
         }
+        playerTurn != playerTurn
         wallHits = 0;
         ballIsHeld = true;
         updateScore();
@@ -573,24 +794,173 @@ let keyMoveSpeed = 0.05;
 function gameLoop() {
     let deltaX = 0;
     let deltaY = 0;
-  
-    if (keysPressed.ArrowUp) {
-      deltaY += keyMoveSpeed;
-    }
-    if (keysPressed.ArrowDown) {
-      deltaY -= keyMoveSpeed;
-    }
-    if (keysPressed.ArrowLeft) {
-      deltaX -= keyMoveSpeed;
-    }
-    if (keysPressed.ArrowRight) {
-      deltaX += keyMoveSpeed;
-    }
-  
-    movePlayer(player, deltaX, deltaY);
-  
+    if(singlePlayer){
+        if (keysPressed.ArrowUp) {
+        deltaY += keyMoveSpeed;
+        }
+        if (keysPressed.ArrowDown) {
+        deltaY -= keyMoveSpeed;
+        }
+        if (keysPressed.ArrowLeft) {
+        deltaX -= keyMoveSpeed;
+        }
+        if (keysPressed.ArrowRight) {
+        deltaX += keyMoveSpeed;
+        }
+    
+        movePlayer(player, deltaX, deltaY);
+    } else {
+        if (keysPressed.i) {
+        deltaY += keyMoveSpeed;
+        }
+        if (keysPressed.k) {
+        deltaY -= keyMoveSpeed;
+        }
+        if (keysPressed.j) {
+        deltaX -= keyMoveSpeed;
+        }
+        if (keysPressed.l) {
+        deltaX += keyMoveSpeed;
+        }
+    
+        movePlayer(player, deltaX, deltaY);
+        
+        deltaX = 0;
+        deltaY = 0;
+    
+        if (keysPressed['8']) {
+        deltaY += keyMoveSpeed;
+        }
+        if (keysPressed['5']) {
+        deltaY -= keyMoveSpeed;
+        }
+        if (keysPressed['4']) {
+        deltaX -= keyMoveSpeed;
+        }
+        if (keysPressed['6']) {
+        deltaX += keyMoveSpeed;
+        }
+    
+        movePlayer2(player2, deltaX, deltaY);
+}
 }
   
+
+
+function updateScore() {
+    let scoreDisplay = document.getElementById('scoreDisplay');
+    scoreDisplay.innerHTML = `Player: ${playerScore} | AI: ${aiScore}`;
+}
+
+function checkCollision() {
+    if(ballIsHeld) return;
+    if (ballSpeed.length() === 0) {
+        return false;
+    }
+
+
+    const ballPosition = ball.getWorldPosition(new THREE.Vector3());
+    const nextPosition = ballPosition.clone().add(ballSpeed);
+    
+    // Create a bounding box that encompasses the ball's start and end points
+    const ballBox = new THREE.Box3().setFromCenterAndSize(
+        ballPosition.clone().add(nextPosition).multiplyScalar(0.5),
+        new THREE.Vector3(ballRadius * 2, ballRadius * 2, ballRadius * 2).add(ballSpeed.clone().set(Math.abs(ballSpeed.x), Math.abs(ballSpeed.y), Math.abs(ballSpeed.z)))
+        );
+        
+        const playerBox = new THREE.Box3().setFromObject(player);
+        const aiPlayerBox = new THREE.Box3().setFromObject(singlePlayer ? aiPlayer : player2);
+        // Check if the ball is colliding with the player or AI player
+        if ((playerTurn && ballBox.intersectsBox(playerBox)) || (!playerTurn && ballBox.intersectsBox(aiPlayerBox))) {
+            // Place collision marker at the intersection point for debugging
+            collisionMarker.position.copy(ballPosition);
+            
+            console.log('Collision Detected:', playerTurn ? 'Player' : 'AI Player');
+            
+            // Get the paddle involved in the collision
+            const paddle = playerTurn ? player : singlePlayer ? aiPlayer : player2;
+            const paddlePosition = paddle.getWorldPosition(new THREE.Vector3());
+            const paddleScale = paddle.scale;
+            
+            // Calculate the relative collision point on the paddle
+            const relativeCollisionPoint = ballPosition.clone().sub(paddlePosition);
+            
+            // Normalize the relative collision point to [-1, 1]
+            relativeCollisionPoint.x /= paddleScale.x / 2;
+            relativeCollisionPoint.y /= paddleScale.y / 2;
+            relativeCollisionPoint.z /= paddleScale.z / 2;
+            
+            // Adjust ball direction based on the relative collision point
+            const speed = ballSpeed.length();
+            let newBallSpeed = new THREE.Vector3();
+            
+            // Example logic to change direction dynamically
+            newBallSpeed.x = ballSpeed.x + relativeCollisionPoint.x * 0.5;
+            newBallSpeed.y = ballSpeed.y + relativeCollisionPoint.y * 0.5;
+            newBallSpeed.z = -ballSpeed.z + relativeCollisionPoint.z * 0.5; // Reversing Z for a basic bounce back effect
+            
+            // Normalize to maintain constant speed
+            newBallSpeed.setLength(speed);
+            
+            const speedIncrement = 0.02; // Adjust this value to control the speed increase rate
+            newBallSpeed.multiplyScalar(1 + speedIncrement);
+            
+            ballSpeed.copy(newBallSpeed);
+            
+            // Move the ball slightly away from the collision point to prevent immediate re-collision
+            ball.position.add(ballSpeed.clone().multiplyScalar(0.1));
+            
+            // Change player turn
+            playerTurn = !playerTurn;
+            
+            // Reset wall hits
+            wallHits = 0;
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    
+    const cubeGraph = {
+        0: [2, 3, 4, 5], // Front face is connected to Left, Right, Top, Bottom
+        1: [2, 3, 4, 5], // Back face
+        2: [0, 1, 4, 5], // Left face
+    3: [0, 1, 4, 5], // Right face
+    4: [0, 1, 2, 3], // Top face
+    5: [0, 1, 2, 3]  // Bottom face
+};
+
+
+function updateAI() {
+    if (playerTurn || !singlePlayer) return;
+    
+    // Move AI player towards the collision marker
+    const targetPosition = collisionMarker.position.clone();
+    aiPlayer.position.lerp(targetPosition, 0.05);
+    
+    // Constrain AI player within the current face
+    const halfSize = cubeSize / 2 - playerSize.z / 2;
+    
+    switch (currentFace) {
+        case 0: // Front
+        case 1: // Back
+        aiPlayer.position.x = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.x));
+        aiPlayer.position.y = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.y));
+        break;
+        case 2: // Left
+        case 3: // Right
+        aiPlayer.position.z = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.z));
+        aiPlayer.position.y = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.y));
+        break;
+        case 4: // Top
+        case 5: // Bottom
+        aiPlayer.position.x = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.x));
+        aiPlayer.position.z = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.z));
+        break;
+    }
+}
 
 function animate() {
     requestAnimationFrame(animate);
@@ -600,148 +970,22 @@ function animate() {
     gameLoop();
     updateBall();
     updateAI();
+    renderer.clear();
 
+    // Render the scene from the first camera
+    renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight);
+    renderer.setScissor(0, 0, window.innerWidth / 2, window.innerHeight);
+    renderer.setScissorTest(true);
     renderer.render(scene, camera);
-}
 
-function updateScore() {
-    let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player: ${playerScore} | AI: ${aiScore}`;
-}
+    // Render the scene from the second camera
+    renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
+    renderer.setScissor(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
+    renderer.setScissorTest(true);
+    renderer.render(scene, camera2);
 
-function checkCollision() {
-    if (ballSpeed.length() === 0) {
-        return false;
-    }
-
-    const ballPosition = ball.getWorldPosition(new THREE.Vector3());
-    const nextPosition = ballPosition.clone().add(ballSpeed);
-
-    // Create a bounding box that encompasses the ball's start and end points
-    const ballBox = new THREE.Box3().setFromCenterAndSize(
-        ballPosition.clone().add(nextPosition).multiplyScalar(0.5),
-        new THREE.Vector3(ballRadius * 2, ballRadius * 2, ballRadius * 2).add(ballSpeed.clone().set(Math.abs(ballSpeed.x), Math.abs(ballSpeed.y), Math.abs(ballSpeed.z)))
-    );
-
-    const playerBox = new THREE.Box3().setFromObject(player);
-    const aiPlayerBox = new THREE.Box3().setFromObject(aiPlayer);
-
-    // Check if the ball is colliding with the player or AI player
-    if ((playerTurn && ballBox.intersectsBox(playerBox)) || (!playerTurn && ballBox.intersectsBox(aiPlayerBox))) {
-        // Place collision marker at the intersection point for debugging
-        collisionMarker.position.copy(ballPosition);
-
-        console.log('Collision Detected:', playerTurn ? 'Player' : 'AI Player');
-
-        // Get the paddle involved in the collision
-        const paddle = playerTurn ? player : aiPlayer;
-        const paddlePosition = paddle.getWorldPosition(new THREE.Vector3());
-        const paddleScale = paddle.scale;
-
-        // Calculate the relative collision point on the paddle
-        const relativeCollisionPoint = ballPosition.clone().sub(paddlePosition);
-
-        // Normalize the relative collision point to [-1, 1]
-        relativeCollisionPoint.x /= paddleScale.x / 2;
-        relativeCollisionPoint.y /= paddleScale.y / 2;
-        relativeCollisionPoint.z /= paddleScale.z / 2;
-
-        // Adjust ball direction based on the relative collision point
-        const speed = ballSpeed.length();
-        let newBallSpeed = new THREE.Vector3();
-        
-        // Example logic to change direction dynamically
-        newBallSpeed.x = ballSpeed.x + relativeCollisionPoint.x * 0.5;
-        newBallSpeed.y = ballSpeed.y + relativeCollisionPoint.y * 0.5;
-        newBallSpeed.z = -ballSpeed.z + relativeCollisionPoint.z * 0.5; // Reversing Z for a basic bounce back effect
-
-        // Normalize to maintain constant speed
-        newBallSpeed.setLength(speed);
-
-        const speedIncrement = 0.02; // Adjust this value to control the speed increase rate
-        newBallSpeed.multiplyScalar(1 + speedIncrement);
-
-        ballSpeed.copy(newBallSpeed);
-
-        // Move the ball slightly away from the collision point to prevent immediate re-collision
-        ball.position.add(ballSpeed.clone().multiplyScalar(0.1));
-
-        // Change player turn
-        playerTurn = !playerTurn;
-
-        // Reset wall hits
-        wallHits = 0;
-
-        return true;
-    }
-
-    return false;
-}
-
-
-const cubeGraph = {
-    0: [2, 3, 4, 5], // Front face is connected to Left, Right, Top, Bottom
-    1: [2, 3, 4, 5], // Back face
-    2: [0, 1, 4, 5], // Left face
-    3: [0, 1, 4, 5], // Right face
-    4: [0, 1, 2, 3], // Top face
-    5: [0, 1, 2, 3]  // Bottom face
-};
-
-function bfsShortestPath(graph, start, target) {
-    let queue = [[start]];
-    let visited = new Set();
-    visited.add(start);
-
-    while (queue.length > 0) {
-        let path = queue.shift();
-        let node = path[path.length - 1];
-
-        if (node === target) {
-            return path;
-        }
-
-        for (let neighbor of graph[node]) {
-            if (!visited.has(neighbor)) {
-                visited.add(neighbor);
-                let newPath = path.slice();
-                newPath.push(neighbor);
-                queue.push(newPath);
-            }
-        }
-    }
-
-    return null;
-}
-
-
-function updateAI() {
-    if (playerTurn) return;
-
-    // Move AI player towards the collision marker
-    const targetPosition = collisionMarker.position.clone();
-    aiPlayer.position.lerp(targetPosition, 0.05);
-
-    // Constrain AI player within the current face
-    const halfSize = cubeSize / 2 - playerSize.z / 2;
-
-    switch (currentFace) {
-        case 0: // Front
-        case 1: // Back
-            aiPlayer.position.x = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.x));
-            aiPlayer.position.y = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.y));
-            break;
-        case 2: // Left
-        case 3: // Right
-            aiPlayer.position.z = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.z));
-            aiPlayer.position.y = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.y));
-            break;
-        case 4: // Top
-        case 5: // Bottom
-            aiPlayer.position.x = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.x));
-            aiPlayer.position.z = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.z));
-            break;
-    }
+    // Disable the scissor test after rendering both views
+    renderer.setScissorTest(false);
 }
 
 init();
