@@ -28,7 +28,7 @@ document.getElementById('addPlayerButton').addEventListener('click', function() 
     buttonDiv.className = 'col-auto'; // Bootstrap class for a column that only takes the space it needs
     const removeButton = document.createElement('button');
     removeButton.textContent = 'X';
-    removeButton.className = 'btn btn-outline-danger';
+    removeButton.className = 'btn btn-outline-danger col-auto';
     removeButton.addEventListener('click', function() {
         playerList.removeChild(playerDiv);
     });
