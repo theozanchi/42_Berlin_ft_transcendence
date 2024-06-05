@@ -17,11 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib import staticfiles
 from django.urls import path, include
+from game_lobby import views
 from . import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('api.urls')),
-]
+    path('create_lobby/', views.create_lobby),
+    path('join_lobby/', views.join_lobby),
+    path('verify_host/', views.verify_host)
+] 
 
 

@@ -5,27 +5,25 @@ curl -k -b cookies.txt -d
 "X-CSRFToken: $csrf_token" https://localhost:8443/api/create_lobby/
 
 MICROSERVICE ARCHITECTURE
-    Gateway Service:
+    API Gateway Service:
         Acts as the entry point for clients.
         Handles authentication, routing, and load balancing.
         Directs incoming requests to the appropriate services.
 
-    Game Management Service:
+    Game Lobby Service:
         Responsible for managing game lobbies and sessions.
-        Handles the creation of new games and generation of game IDs.
         Keeps track of players in each game lobby and their statuses.
+  
+    Game Management Service:
+        Handles the creation of new games and generation of game IDs.
         Communicates with other services to coordinate game setup and start.
+        Coordinates with other services to ensure all players are connected and ready.
+        Manages the game state and communicates updates to connected clients.
 
     Player Service:
         Manages guest and user players.
         Handles authentication and authorization.
         Stores player data such as guest_namees, avatars.
-
-    Game Configuration Service:
-        Handles game setup and configuration.
-        Receives requests from the Game Management Service to start games.
-        Coordinates with other services to ensure all players are connected and ready.
-        Manages the game state and communicates updates to connected clients.
 
     Communication Service:
         Manages real-time communication between clients and the game server.
