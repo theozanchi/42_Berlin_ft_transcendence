@@ -12,11 +12,7 @@ GAME_LOBBY_URL = 'http://game_lobby:8004'
 
 @api_view(['POST'])
 def create_lobby(request):
-    print('FROM API_GATEWAY, REQUEST=')
-    print(request.headers, request.data)
-
     url = f'{GAME_LOBBY_URL}/create_lobby/'
-    #headers = {'Content-Type': 'application/json'}
     response = requests.post(url, json=request.data, headers=request.headers)
 
     return Response(response.json(), status=response.status_code)
@@ -31,22 +27,27 @@ def join_lobby(request):
 
 @api_view(['POST'])
 def start_game(request):
-    url = f'{GAME_LOBBY_URL}/verify_host/'
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {request.auth.token}'
-    }
-    response = requests.post(url, payload=request.data, headers=headers)
-
-    if response.status_code != 200:
-        return Response(response.payload(), status=response.status_code)
-    
     url = f'{GAME_MANAGER_URL}/create_game/'
-    game_data = requests.post(url, payload=request.data, headers=headers)
+    request.data['game-mode'] = 'local'
+    response = requests.post(url, json=request.data, headers=request.headers)
 
-    # response is now serialized 'Game' model data
-
-    return Response(response.payload(), status=response.status_code)
+    return Response(response.json(), status=response.status_code)
     
+#INITIATE REMOTE GAME
+"""     if request.data.get('lobby-id'):
+        url = f'{GAME_LOBBY_URL}/verify_host/'
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {request.auth.token}'
+        }
+        response = requests.post(url, json=request.data, headers=headers)
+        if response.status_code != 200:
+            return Response(response.payload(), status=response.status_code)
+        game_mode = 'remote'
+
+    else:
+        game_mode = 'local' """
+
+
 
 

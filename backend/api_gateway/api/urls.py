@@ -6,3 +6,7 @@ urlpatterns = [
     path('join_lobby/', join_lobby, name='join_lobby'),
     path('start_game/', start_game, name='start_game'),
 ]
+
+
+
+

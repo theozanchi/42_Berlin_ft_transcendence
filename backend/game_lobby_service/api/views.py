@@ -29,15 +29,12 @@ def create_lobby(request):
   #      return JsonResponse({'lobby_id': lobby.lobby_id}, status=200)
   # else:
   #      return JsonResponse({'error': 'User is not authenticated'}, status=403)
-    print('FROM GAME_LOBBY, REQUEST=')
-    print(request.headers, request.data)
-
     while True:
         random_uuid = str(uuid.uuid4())[:8]
         if not Lobby.objects.filter(lobby_id=random_uuid).exists():
             break
 
-    lobby = Lobby.objects.create(host=request.data.get('guest_name'), lobby_id=random_uuid)
+    lobby = Lobby.objects.create(host=request.data.get('host'), lobby_id=random_uuid)
     return Response({'lobby_id': lobby.lobby_id}, status=200)
 
 def generate_unique_guest_name(lobby, guest_name):
