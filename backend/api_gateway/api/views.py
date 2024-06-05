@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 import requests
 
-
 GAME_MANAGER_URL = 'http://game_manager:8002'
 GAME_LOGIC_URL = 'http://game_logic:8003'
 GAME_LOBBY_URL = 'http://game_lobby:8004'
@@ -33,6 +32,8 @@ def start_game(request):
     return Response(response.json(), status=response.status_code)
     
 #INITIATE REMOTE GAME
+# MUST PASS ON WEBSOCKET ID OF ALL PLAYERS TO THE GAME LOGIC
+# MUST DELETE LOBBY OBJECT FROM DATABASE SO ONLY ACTIVE LOBBIES ARE SAVED
 """     if request.data.get('lobby-id'):
         url = f'{GAME_LOBBY_URL}/verify_host/'
         headers = {
@@ -46,7 +47,4 @@ def start_game(request):
 
     else:
         game_mode = 'local' """
-
-
-
 

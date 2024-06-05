@@ -1,4 +1,4 @@
-from game_manager.models import Game, Player, Round
+from .models import Game, Player, Round
 
 def serialize_game_data(game):
     response_data = {

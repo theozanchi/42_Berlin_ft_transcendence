@@ -20,10 +20,10 @@ class Game(models.Model):
         super().save(*args, **kwargs)
 
     def add_players_to_game(self, data):
-        player_keys = [key for key in data.keys() if key.startswith('player-')]
+        player_names = data.get("players", [])
 
-        for key in player_keys:
-            player = Player.objects.create(game=self, guest_name=data.get(key))
+        for name in player_names:
+            player = Player.objects.create(game=self, guest_name=name)
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -46,7 +46,7 @@ class Game(models.Model):
 class Player(models.Model):
 
     ###### ISSUE:truncate name for player in case it's too long
-    
+
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
     guest_name = models.CharField(max_length=255, null=True, blank=True)

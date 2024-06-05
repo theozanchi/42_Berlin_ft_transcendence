@@ -11,7 +11,6 @@ from .consumers import LobbyConsumer
 #    joined_lobbies = models.ManyToManyField('Lobby', related_name='players', blank=True)
 
 class Lobby(models.Model):
-    
     lobby_id = models.CharField(max_length=15, primary_key=True, unique=True, editable=False)
     #host = models.ForeignKey(User, related_name='hosted_lobbies', on_delete=models.CASCADE)
     host = models.CharField(max_length=25)
@@ -21,7 +20,7 @@ class Lobby(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Lobby {self.lobby_id} - Hosted by {self.host.username}"
+        return f"Lobby {self.lobby_id} - Hosted by {self.host.username} - Amount of players: {self.players.count()}"
 
     def is_full(self):
         return self.players.count() >= self.max_players
