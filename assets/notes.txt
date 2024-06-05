@@ -87,6 +87,13 @@ ENDPOINT /api/create_lobby/ [POST]
     - Accepts POST, expects (for now) host name: 'host': '[value]'
     - *Issues: user management, then only users will be able to host.*
 
+ENDPOINT /api/join_lobby/ [POST]
+    $ curl -k -d '{"lobby_id": "12345", "guest_name": "myname"}' -H "Content-Type: application/json" https://localhost:8443/api/join_lobby/
+
+    - Returns message indicating success or error
+    - Accepts POST, expects (for now): 'lobby-id': '[value]', 'guest_name': '[value]' 
+    - *Issues: user management, then join either as guest_name or user.*
+
 ENDPOINT /api/start_game/ [POST]
     $ curl -k -d '{"player-1": "me", "player-2": "you"}' -H "Content-Type: application/json" https://localhost:8443/api/start_game/
 

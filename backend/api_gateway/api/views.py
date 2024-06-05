@@ -20,8 +20,7 @@ def create_lobby(request):
 @api_view(['POST'])
 def join_lobby(request):
     url = f'{GAME_LOBBY_URL}/join_lobby/'
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post(url, payload=request.data, headers=headers)
+    response = requests.post(url, json=request.data, headers=request.headers)
 
     return Response(response.json(), status=response.status_code)
 
