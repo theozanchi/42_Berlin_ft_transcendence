@@ -1,6 +1,6 @@
 #!/bin/sh
 
-python manage.py makemigrations game_manager
+python manage.py makemigrations api
 python manage.py migrate
 
 # Start the Gunicorn server

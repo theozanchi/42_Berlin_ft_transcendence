@@ -6,7 +6,7 @@ from game_manager.models import Game
 from .serialize import serialize_game_data
 
 @api_view(['POST'])
-def start_game(request):
+def create_game(request):
     # Access form data using request.data
     game = Game.objects.create(mode=request.data.get('game-mode'))
     # Create players for the game
@@ -16,6 +16,6 @@ def start_game(request):
     # Game can now be played
     #for round in game.rounds.all():
     #    round.initialize_round()
-    #game.save()
+    game.save()
 
-    return JsonResponse(serialize_game_data(game), status=200)
+    return Response(serialize_game_data(game), status=200)

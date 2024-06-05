@@ -9,8 +9,8 @@ from game_lobby.models import Lobby, Player
 from django.views.decorators.csrf import csrf_exempt
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-import json
 import requests
+import uuid
 
 ###
 
@@ -29,9 +29,16 @@ def create_lobby(request):
   #      return JsonResponse({'lobby_id': lobby.lobby_id}, status=200)
   # else:
   #      return JsonResponse({'error': 'User is not authenticated'}, status=403)
-    print(request.data.get('guest_name'))
-    lobby = Lobby.objects.create(host=request.data.get('guest_name'))
-    return JsonResponse({'lobby_id': lobby.lobby_id}, status=200)
+    print('FROM GAME_LOBBY, REQUEST=')
+    print(request.headers, request.data)
+
+    while True:
+        random_uuid = str(uuid.uuid4())[:8]
+        if not Lobby.objects.filter(lobby_id=random_uuid).exists():
+            break
+
+    lobby = Lobby.objects.create(host=request.data.get('guest_name'), lobby_id=random_uuid)
+    return Response({'lobby_id': lobby.lobby_id}, status=200)
 
 def generate_unique_guest_name(lobby, guest_name):
     existing_names = set(player.guest_name for player in lobby.players.all() if player.guest_name)
@@ -53,15 +60,15 @@ def join_lobby(request):
     try:
         lobby = Lobby.objects.get(lobby_id=request.data.get('lobby_id'))
     except Lobby.DoesNotExist:
-        return JsonResponse({'error': 'Lobby does not exist'}, status=404)
+        return Response({'error': 'Lobby does not exist'}, status=404)
     
     if lobby.is_full():
-        return JsonResponse({'error': 'Lobby is full'}, status=400)
+        return Response({'error': 'Lobby is full'}, status=400)
     
     if not request.user.is_authenticated:
         user = None
         if not request.data.get('guest_name'):
-            return JsonResponse({'error': 'Guest name is required'}, status=400)
+            return Response({'error': 'Guest name is required'}, status=400)
         # Check if guest's name is already used in this lobby
         guest_name = generate_unique_guest_name(lobby, request.data.get('guest_name'))
     else:
@@ -79,39 +86,21 @@ def join_lobby(request):
         }
     )
 
-    return JsonResponse({'message': 'Player added', 'player_id': player.id})
+    return Response({'message': 'Player added', 'player_id': player.id})
 
 @api_view(['POST'])
 @csrf_exempt
 #@login_required
-def start_game(request):
+def verify_host(request):
     if request.user.is_authenticated == False:
         return JsonResponse({'error': 'User is not authenticated'}, status=403)
     
     try:
         lobby = Lobby.objects.get(lobby_id=request.data.get('lobby_id'))
     except Lobby.DoesNotExist:
-        return JsonResponse({'error': 'Lobby does not exist'}, status=404)
+        return Response({'error': 'Lobby does not exist'}, status=404)
    
     if lobby.host != request.user:
-        return JsonResponse({'error': 'You are not the host of this game'}, status=403)
+        return Response({'error': 'You are not the host of this game'}, status=403)
 
-     # Prepare the data to send to the game_manager_service
-    game_manager_url = 'http://game_manager/'  # Update with the actual URL of your game_manager_service
-    payload = {
-        'lobby_id': lobby.lobby_id,
-        'host': request.user.username,  # Or any other necessary data
-    }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {request.auth.token}'  # If you use token-based auth, otherwise adjust accordingly
-    }
-
-    # Send the POST request
-    try:
-        response = requests.post(game_manager_url, json=payload, headers=headers)
-        response.raise_for_status()  # Raise an error for bad responses
-    except requests.exceptions.RequestException as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-    return JsonResponse(response.json(), status=response.status_code)
+    return Response(status=200)

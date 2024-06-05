@@ -44,6 +44,9 @@ class Game(models.Model):
         return f"Game {self.pk} - {self.get_game_mode_display()} - {self.players.count()} players"
 
 class Player(models.Model):
+
+    ###### ISSUE:truncate name for player in case it's too long
+    
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
     guest_name = models.CharField(max_length=255, null=True, blank=True)
