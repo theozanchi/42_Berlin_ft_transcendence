@@ -12,40 +12,22 @@ document.getElementById('backButton').addEventListener('click', function() {
 
 document.getElementById('addPlayerButton').addEventListener('click', function() {
     let playerList = document.getElementById('playerList');
-    let playerDiv = document.createElement('div');
-    playerDiv.className = 'row'; // Bootstrap class for a row
 
-    var inputDiv = document.createElement('div');
-    inputDiv.className = 'col'; // Bootstrap class for a column
-    let input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'form-control';
-    input.label = `${playerList.childElementCount}`;
-    input.value = `${PongerChars[playerList.childElementCount]}`;
-    inputDiv.appendChild(input);
+    let newPlayer = document.createElement('player-component');
+    newPlayer.setAttribute('name', `${PongerChars[playerList.childElementCount]}`);
+    newPlayer.setAttribute('input', true);
+    newPlayer.setAttribute('remove-button', true);
 
-    const buttonDiv = document.createElement('div');
-    buttonDiv.className = 'col-auto'; // Bootstrap class for a column that only takes the space it needs
-    const removeButton = document.createElement('button');
-    removeButton.textContent = 'X';
-    removeButton.className = 'btn btn-outline-danger col-auto';
-    removeButton.addEventListener('click', function() {
-        playerList.removeChild(playerDiv);
-    });
-    buttonDiv.appendChild(removeButton);
-
-    playerDiv.appendChild(inputDiv);
-    playerDiv.appendChild(buttonDiv);
-    playerList.appendChild(playerDiv);
+    playerList.appendChild(newPlayer);
 });
 
 document.getElementById('generateGameButton').addEventListener('click', function() {
     
 	// 1. Selevt player List element
-	let playerNames = Array.from(document.querySelectorAll('#playerList input')).map(input => input.value);
+    let playerNames = Array.from(document.querySelectorAll('player-component')).map(player => player.getAttribute('name'));
 	
 	// 2. Create data obejct
-	let data = { players: playerNames };
+    let data = { players: playerNames };
 
 	// 3. Convert to JSON
 	var json = JSON.stringify(data);
