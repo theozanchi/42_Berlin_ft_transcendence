@@ -9,21 +9,19 @@ class MyPlayer extends HTMLElement {
 	}
 
 	render () {
-		console.log(`Trying to render Player ` + this.getAttribute('name'));
 		const	hasInput = this.hasAttribute('input');
 		const	hasRemoveButton = this.hasAttribute('remove-button');
 		const	baseUrl = document.location.href;
-        const	imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
-
-		console.log(hasInput);
-		console.log(hasRemoveButton);
+		const	imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
+		if (this.hasAttribute('avatar'))
+			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 
 
 		this.shadow.innerHTML = `
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
             <style>
                 img {
-                    height: 50px;
+                    height: 48px;
                 }
 				.d-flex > * {
                     margin: 6px 6px;
