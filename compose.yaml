@@ -16,14 +16,25 @@ services:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
-      - game_config
-      - game_logic
+      - frontend
+      - backup_server
+      - authentication
+      # - game_config
+      # - game_logic
 
   frontend:
     container_name: frontend
     image: nginx:latest
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
+    networks:
+      - pong_network
+
+  backup_server:
+    container_name: backup_server
+    image: nginx:latest
+    volumes:
+      - ./backup_server:/usr/share/nginx/html:ro
     networks:
       - pong_network
 
