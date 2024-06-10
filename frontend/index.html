@@ -39,15 +39,16 @@
 							</div>
 						</div>
 						<div id="view2" class="view h-100" style="display: none;">
-							<stepper-titlebar title="test"></stepper-titlebar>
-							<div class="d-grid">
-								<h3 class="text-bold">Players</h3>
-								<div id="playerList"></div>
-								<button id="addPlayerButton" class="btn btn-outline-primary d-grid">+ Add Player</button>
-							</div>
-							<div class="row align-self-end">
-								<button id="generateGameButton" class="btn btn-primary btn-lg d-grid sticky-bottom">Generate Game</button>
-							</div>
+							<!-- <stepper-titlebar title="test"></stepper-titlebar> -->
+							<!-- <div class="d-grid"> -->
+								<!-- <h3 class="text-bold">Players</h3> -->
+								<!-- <div id="playerList"></div> -->
+								<!-- <button id="addPlayerButton" class="btn btn-outline-primary d-grid">+ Add Player</button> -->
+							<!-- </div> -->
+							<!-- <div class="row align-self-end"> -->
+								<!-- <button id="generateGameButton" class="btn btn-primary btn-lg d-grid sticky-bottom">Generate Game</button> -->
+							<!-- </div> -->
+							<stepper-component></stepper-component>
 						</div>
 						
 					</div>
@@ -55,18 +56,12 @@
 				<div class="col col-lg-6" style="background-color: #E78C89">
 					<div style="height:48px"></div>
 					<h2>GAMING AREA</h2>
+					<pong-game></pong-game>
 				</div>
 				<div class="col col-lg-3"  style="background-color: #81CB71">
 					<div style="height:48px"></div>
 					<h2>GAME INFO AREA</h2>
-					<stepper-titlebar title="test"></stepper-titlebar>
-					<stepper-titlebar title="test stepper with long content"></stepper-titlebar>
-					<player-component input remove-button name="Player 1"></player-component>
-					<player-component remove-button name="Player 2"></player-component>	
-					<player-component name="Player 3 has an incredible long name. You can't make this up."></player-component>	
-					<my-counter id='counter' count = "10"></my-countermycounter>
-		
-					
+					<stepper-component></stepper-component>					
 				</div>
 			</div>
 		</div>
@@ -74,8 +69,13 @@
     <!-- custom JS -->
 	<script src="./js/main.js"></script>
 	<script src="./js/counter.js"></script>
+	<script src="./js/stepper.js"></script>
 	<script src="./js/stepper_titlebar.js"></script>
+	<script src="./js/player_list.js"></script>
 	<script src="./js/player.js"></script>
+	<script src="./js/static_game.js"></script>
+
+	<!-- <script src="./js/.js"></script> -->
 
 
 

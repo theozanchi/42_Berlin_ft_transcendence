@@ -10,16 +10,16 @@ document.getElementById('backButton').addEventListener('click', function() {
     document.getElementById('view2').style.display = 'none';
 });
 
-document.getElementById('addPlayerButton').addEventListener('click', function() {
-    let playerList = document.getElementById('playerList');
+// document.getElementById('addPlayerButton').addEventListener('click', function() {
+//     let playerList = document.getElementById('playerList');
 
-    let newPlayer = document.createElement('player-component');
-    newPlayer.setAttribute('name', `${PongerChars[playerList.childElementCount]}`);
-    newPlayer.setAttribute('input', true);
-    newPlayer.setAttribute('remove-button', true);
+//     let newPlayer = document.createElement('player-component');
+//     newPlayer.setAttribute('name', `${PongerChars[playerList.childElementCount]}`);
+//     newPlayer.setAttribute('input', true);
+//     newPlayer.setAttribute('remove-button', true);
 
-    playerList.appendChild(newPlayer);
-});
+//     playerList.appendChild(newPlayer);
+// });
 
 document.getElementById('generateGameButton').addEventListener('click', function() {
     

@@ -6,6 +6,10 @@ class MyPlayer extends HTMLElement {
 
 	connectedCallback() {
 		this.render();
+		this.shadow.getElementById('removeButton').addEventListener('click', () => {
+			console.log("REMOVE CLICKED");
+			this.dispatchEvent(new CustomEvent('removePlayer'));
+		});
 	}
 
 	render () {
@@ -15,7 +19,6 @@ class MyPlayer extends HTMLElement {
 		const	imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 		if (this.hasAttribute('avatar'))
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
-
 
 		this.shadow.innerHTML = `
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -31,11 +34,11 @@ class MyPlayer extends HTMLElement {
                 <img src="${imageUrl}" class="col-auto">
                 ${hasInput 
                     ? 
-                        '<input type="text" class="form-control col" value="' + this.getAttribute('name') + '">' 
+                        '<input type="text" class="form-control col" maxlength="30" value="' + this.getAttribute('name') + '">' 
                     : 
                         '<p class="col">' + this.getAttribute('name') + '</p>'
                 }
-                ${hasRemoveButton ? '<button class="btn btn-outline-danger col-auto">X</button>' : ''}
+                ${hasRemoveButton ? '<button id="removeButton" class="btn btn-outline-danger col-auto">X</button>' : ''}
 			<span class="border-bottom"></span>
 			</div>
         `;
