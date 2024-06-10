@@ -8,7 +8,8 @@ services:
       - ${CERTS_DIR}:/etc/letsencrypt
       - ./static:/usr/share/nginx/html/static
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.2
     ports:
       - "${PORT}:80"
       - "${SPORT}:443"
@@ -17,7 +18,6 @@ services:
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
       - frontend
-      - backup_server
       - authentication
       # - game_config
       # - game_logic
@@ -28,15 +28,8 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
     networks:
-      - pong_network
-
-  backup_server:
-    container_name: backup_server
-    image: nginx:latest
-    volumes:
-      - ./backup_server:/usr/share/nginx/html:ro
-    networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.3
 
   db:
     image: postgres:latest
@@ -44,7 +37,8 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.4
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -57,7 +51,8 @@ services:
     volumes:
      - ./backend/game_config_service:/code
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.5
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -74,7 +69,8 @@ services:
     volumes:
       - ./backend/game_logic_service:/code
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.6
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -92,17 +88,20 @@ services:
       - ./backend/authentication_service:/code
       - ./static:/usr/share/static
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.7
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     expose: 
       - "8003"
-    ports:
-      - "8003:8003"
     depends_on:
       - db
 
 networks:
   pong_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

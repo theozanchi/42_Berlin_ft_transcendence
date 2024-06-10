@@ -4,5 +4,6 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('authentication/', views.coucou),
 	path('', views.hello_world),
 ]
