@@ -14,6 +14,8 @@ RUN	pip install -r requirements.txt
 # Copy the rest of the code
 COPY . /code/
 
-# Collect static files and run gunicorn
+# Collect static files, makemigration migrate data model and run gunicorn
 CMD	python manage.py collectstatic --noinput && \
+	python manage.py makemigrations authentication && \
+	python manage.py migrate authentication && \
 	gunicorn --workers 3 --bind 0.0.0.0:8003 authentication.wsgi:application
