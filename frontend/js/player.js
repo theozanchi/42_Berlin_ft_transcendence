@@ -41,7 +41,7 @@ class MyPlayer extends HTMLElement {
                 ${hasRemoveButton ? '<button id="removeButton" class="btn btn-outline-danger col-auto">X</button>' : ''}
 			<span class="border-bottom"></span>
 			</div>
-        `;
+			`;
 	}
 }
 

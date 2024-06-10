@@ -27,30 +27,50 @@
 				<div class="col col-lg-3" style="background-color: #98DAF1">
 					<div style="height:48px"></div>
 					<div class="d-flex row align-self-start">
-						<div id="view1" class="view">
+						<stepper-component></stepper-component>
+						<div id="00-welcome" class="step" >
 							<h2>WELCOME</h2>
 							<p>to our ponger puff girl. There are a lot of things to do in this app:
-							Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. </p>
+							Do you want to play locally or remotely with friends?</p>
 							<div class="d-flex align-items-stretch gap-2 d-md-block">
 								<button id="localGameButton" class="btn btn-primary btn-lg">Local Game</button>
-								<button class="btn btn-secondary btn-lg"> 
-									Remote game
-								</button>
+								<button id="remoteGameButton" class="btn btn-secondary btn-lg">Remote Game</button>
 							</div>
 						</div>
-						<div id="view2" class="view h-100" style="display: none;">
-							<!-- <stepper-titlebar title="test"></stepper-titlebar> -->
-							<!-- <div class="d-grid"> -->
-								<!-- <h3 class="text-bold">Players</h3> -->
-								<!-- <div id="playerList"></div> -->
-								<!-- <button id="addPlayerButton" class="btn btn-outline-primary d-grid">+ Add Player</button> -->
-							<!-- </div> -->
-							<!-- <div class="row align-self-end"> -->
-								<!-- <button id="generateGameButton" class="btn btn-primary btn-lg d-grid sticky-bottom">Generate Game</button> -->
-							<!-- </div> -->
-							<stepper-component></stepper-component>
+						
+						<div id="10-local" class="step" style="display: none;">
+							<stepper-titlebar title="Local Game"></stepper-titlebar>
+							<player-list mode ="local"></player-list>
+							<button id="generateLocalGameButton" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
 						</div>
 						
+						<div id="20-remote-switch" class="step" style="display: none;">
+							<stepper-titlebar title="Remote Game"></stepper-titlebar>
+							<p>Fantastic! Nothing better than playing with friends via the internet.</p>
+							<h3>Join Game</h3>
+							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
+							<form class="d-flex" role="search">
+								<input class="form-control me-2" type="search" placeholder="Game ID">
+								<!-- <button id="joinRemoteGameButton" class="btn btn-primary" type="submit">Join</button> -->
+							</form>
+							<button id="joinRemoteGameButton" class="btn btn-primary" type="submit">Join</button>
+							<h3>Host Game</h3>
+							<p>Do your prefer to host your own game to share it with friends?</p>
+							<button id="hostRemoteGameButton" class="btn btn-primary btn-lg d-grid generate-game-button">Host Remote Game</button>
+							
+						</div>
+						
+						<div id="21-remote-join" class="step" style="display: none;">
+							<h1>TESTING THIS</h1>
+							<stepper-titlebar title="Join Remote Game"></stepper-titlebar>
+							<player-list mode="join"></player-list>
+						</div>
+						
+						<div id="22-remote-host" class="step" style="display: none;">
+							<stepper-titlebar title="Host Remote Game"></stepper-titlebar>
+							<player-list mode ="host"></player-list>
+							<button id="startRemoteGameButton"  class="btn btn-primary btn-lg d-grid generate-game-button">Start Game</button>
+						</div>						
 					</div>
 				</div>
 				<div class="col col-lg-6" style="background-color: #E78C89">
@@ -61,7 +81,6 @@
 				<div class="col col-lg-3"  style="background-color: #81CB71">
 					<div style="height:48px"></div>
 					<h2>GAME INFO AREA</h2>
-					<stepper-component></stepper-component>					
 				</div>
 			</div>
 		</div>

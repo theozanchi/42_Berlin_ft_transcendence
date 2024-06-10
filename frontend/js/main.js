@@ -1,9 +1,9 @@
 let PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
 
-document.getElementById('localGameButton').addEventListener('click', function() {
-    document.getElementById('view1').style.display = 'none';
-    document.getElementById('view2').style.display = 'block';
-});
+// document.getElementById('localGameButton').addEventListener('click', function() {
+//     document.getElementById('view1').style.display = 'none';
+//     document.getElementById('view2').style.display = 'block';
+// });
 
 document.getElementById('backButton').addEventListener('click', function() {
     document.getElementById('view1').style.display = 'block';

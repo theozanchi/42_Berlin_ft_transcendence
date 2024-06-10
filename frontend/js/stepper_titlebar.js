@@ -11,7 +11,7 @@ class StepperTitleBar extends HTMLElement {
 	}
 
 	connectedCallback() {
-		console.log("rendering");
+		console.log("rendering titlebar");
 		this.render();
 	}
 

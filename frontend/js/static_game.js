@@ -81,15 +81,15 @@ class PongGame extends HTMLElement {
             ball.x += ball.dx;
             ball.y += ball.dy;
 
-            if(paddleX1 < ball.x) {
+            if(ball.y < canvas.height / 2 && paddleX1 < ball.x) {
                 paddleX1 += paddleSpeed;
-            } else {
+            } else if (ball.y < canvas.height / 2 ){
                 paddleX1 -= paddleSpeed;
             }
 
-            if(paddleX2 < ball.x) {
+            if(ball.y > canvas.height / 2 && paddleX2 < ball.x) {
                 paddleX2 += paddleSpeed;
-            } else {
+            } else if (ball.y > canvas.height / 2) {
                 paddleX2 -= paddleSpeed;
             }
 
