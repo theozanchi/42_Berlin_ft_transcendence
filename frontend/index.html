@@ -9,55 +9,87 @@
 
     <!-- Bootstrap CSS -->
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
 
   	</head>
 	<body>
 		<header>
-			<div class="d-flex justify-content-center" style="height:48px">
-				<h1> PongerPuff Girls </h1>
+			<div class="d-flex justify-content-center fixed-top" style="height:72px">
+				<img src="file:///sgoinfre/goinfre/Perso/jschott/Curriculum/00_PRIVAT_GIT/06_transcendence_42CC/frontend/assets/logo_ppg.png"></img>
 			</div>
 		</header>
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col bg-success col-lg-3">
+				<div class="col col-lg-3" style="background-color: #98DAF1">
+					<div style="height:48px"></div>
 					<div class="d-flex row align-self-start">
-						<div id="view1" class="view">
-							<h2>WELCOME</h2>
-							<p>to our ponger puff girl. There are a lot of things to do in this app:
-							Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. </p>
+						<stepper-component></stepper-component>
+						<div id="00-welcome" class="step" >
+							<h1>WELCOME</h1>
+							<p>to our ponger puff girl. There are a lot of things to do in this app.
+							Do you want to play locally or remotely with friends?</p>
+
+							<p>We have you assigned the following Character. You can change its name or login with your 42 Credentials:</p>
+							<!-- <div class="d-flex align-items-stretch gap-2 d-md-block"> -->
+								<player-component input></player-component>
+								<button id="login42Button" class="btn btn-outline-secondary">Login</button>
+							<!-- </div> -->
+
+							<h2>Play Pong</h2>
 							<div class="d-flex align-items-stretch gap-2 d-md-block">
-								<button id="localGameButton" class="btn-lg btn-primary">Local Game</button>
-								<button class="btn-lg btn-secondary"> 
-									Remote game
-								</button>
+								<button id="localGameButton" class="btn btn-primary btn-lg">Local Game</button>
+								<button id="remoteGameButton" class="btn btn-secondary btn-lg">Remote Game</button>
 							</div>
 						</div>
-						<div id="view2" class="view" style="display: none;">
-							<div class="row">
-								<div class="col-auto">
-									<button id="backButton" class="btn btn-secondary">Back</button>
-								</div>
-								<div class="col">
-									<h2>Local Game</h2>
-								</div>
-							</div>
-							<div id="playerList"></div>
-							<button id="addPlayerButton" class="btn-lg btn-outline-primary">+ Add Player</button>
-							<button id="generateGameButton" class="btn-lg btn-primary">Generate Game</button>
+						
+						<div id="10-local" class="step" style="display: none;">
+							<stepper-titlebar title="Local Game"></stepper-titlebar>
+							<player-list mode ="local"></player-list>
+							<button id="generateLocalGameButton" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
 						</div>
+						
+						<div id="20-remote-switch" class="step" style="display: none;">
+							<stepper-titlebar title="Remote Game"></stepper-titlebar>
+							<p>Fantastic! Nothing better than playing with friends via the internet.</p>
+							<h3>Join Game</h3>
+							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
+
+							<div class="input-group mb-3">
+								<input type="search" class="form-control" placeholder="Game-ID" aria-label="Game-ID" aria-describedby="button-addon2">
+								<button class="btn btn-primary" type="button" id="joinRemoteGameButton">Join</button>
+							</div>
+
+							<h3>Host Game</h3>
+							<p>Do your prefer to host your own game to share it with friends?</p>
+							<button id="hostRemoteGameButton" class="btn btn-primary d-grid generate-game-button">Host Remote Game</button>
+							
+						</div>
+						
+						<div id="21-remote-join" class="step" style="display: none;">
+							<h1>TESTING THIS</h1>
+							<stepper-titlebar title="Join Remote Game"></stepper-titlebar>
+							<player-list mode="join"></player-list>
+						</div>
+						
+						<div id="22-remote-host" class="step" style="display: none;">
+							<stepper-titlebar title="Host Remote Game"></stepper-titlebar>
+							<player-list mode ="host"></player-list>
+							<button id="startRemoteGameButton"  class="btn btn-primary btn-lg d-grid generate-game-button">Start Game</button>
+						</div>						
 					</div>
 				</div>
-				<div class="col bg-warning col-lg-6">
+				<div class="col col-lg-6" style="background-color: #E78C89">
+					<div style="height:48px"></div>
 					<h2>GAMING AREA</h2>
+					<pong-game></pong-game>
 				</div>
-				<div class="col bg-danger bd-highlight col-lg-3">
+				<div class="col col-lg-3"  style="background-color: #81CB71">
+					<div style="height:48px"></div>
 					<h2>GAME INFO AREA</h2>
-					<my-counter id='counter' count = "10"></my-countermycounter>
 				</div>
 			</div>
 		</div>
@@ -65,6 +97,14 @@
     <!-- custom JS -->
 	<script src="./js/main.js"></script>
 	<script src="./js/counter.js"></script>
+	<script src="./js/stepper.js"></script>
+	<script src="./js/stepper_titlebar.js"></script>
+	<script src="./js/player_list.js"></script>
+	<script src="./js/player.js"></script>
+	<script src="./js/static_game.js"></script>
+
+	<!-- <script src="./js/.js"></script> -->
+
 
 
   <!-- </body> -->

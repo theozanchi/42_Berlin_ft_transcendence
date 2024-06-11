@@ -1,0 +1,43 @@
+
+<div id="00-welcome" class="step">
+	<h2>WELCOME</h2>
+	<p>to our ponger puff girl. There are a lot of things to do in this app:
+	Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. </p>
+	<div class="d-flex align-items-stretch gap-2 d-md-block">
+		<button id="localGameButton" class="btn btn-primary btn-lg">Local Game</button>
+		<button class="btn btn-secondary btn-lg"> 
+			Remote game
+		</button>
+	</div>
+</div>
+
+<div id="10-local" class="step">
+	<stepper-titlebar title="Local Game"></stepper-titlebar>
+	<player-list mode ="local"></player-list>
+	<button class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
+</div>
+
+<div id="20-remote-switch" class="step">
+	<stepper-titlebar title="Remote Game"></stepper-titlebar>
+	<p>Fantastic! Nothing better than playing with friends via the internet.</p>
+	<h3>Join Game</h3>
+	<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
+	<form class="d-flex" role="search">
+        <input class="form-control me-2" type="search" placeholder="Game ID" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+	<h3>Host Game</h3>
+	<p>Do your prefer to host your own game to share it with friends?</p>
+	<button class="btn btn-primary btn-lg d-grid generate-game-button">Host Remote Game</button>
+</div>
+
+<div id="21-remote-join" class="step">
+	<stepper-titlebar title="Join Remote Game"></stepper-titlebar>
+	<player-list mode ="join"></player-list>
+</div>
+
+<div id="22-remote-host" class="step">
+	<stepper-titlebar title="Host Remote Game"></stepper-titlebar>
+	<player-list mode ="host"></player-list>
+	<button class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
+</div>
