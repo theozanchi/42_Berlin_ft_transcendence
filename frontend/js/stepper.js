@@ -14,8 +14,16 @@
 			console.log("rendering");
 
 			document.getElementById('localGameButton').addEventListener('click', () => {
+				// Get the current step from the URL
+				const urlParams = new URLSearchParams(window.location.search);
+				const currentStep = parseInt(urlParams.get('step') || '1');
+				alert(currentStep);
+			
+				// Navigate to the next step
+				// navigate(currentStep + 1);
 				document.getElementById('00-welcome').style.display = 'none';
     			document.getElementById('10-local').style.display = 'block';
+				history.pushState({ currentStep }, `Step ${step}`, `?step=${step}`);
 			});
 
 			document.getElementById('remoteGameButton').addEventListener('click', () => {
@@ -46,7 +54,18 @@
 				alert(`Get Ready to Play Your Remote Game`)	
 			});
 
-
+			document.getElementById('shareRemoteGameIDButton').addEventListener('click', function() {
+				// Get the input field
+				const input = this.previousElementSibling;
+			
+				// Copy the input field's value to the clipboard
+				navigator.clipboard.writeText(input.value).then(function() {
+					console.log('Copying to clipboard was successful!');
+				}, function(err) {
+					console.error('Could not copy text: ', err);
+				});
+			});
+			
 			// this.render();
 		}
 	

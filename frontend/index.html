@@ -70,12 +70,22 @@
 						</div>
 						
 						<div id="21-remote-join" class="step" style="display: none;">
-							<stepper-titlebar title="Join Remote Game"></stepper-titlebar>
+							<stepper-titlebar title="Remote Game ID"></stepper-titlebar>
+							<div class="input-group mb-3">
+								<span class="input-group-text" id="basic-addon1">Game ID</span>
+								<input type="search" class="form-control" value="FGZ6" readonly>
+								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton">Copy</button>
+							</div>
 							<player-list mode="join"></player-list>
 						</div>
 						
 						<div id="22-remote-host" class="step" style="display: none;">
 							<stepper-titlebar title="Host Remote Game"></stepper-titlebar>
+							<div class="input-group mb-3">
+								<span class="input-group-text" id="basic-addon1">Game ID</span>
+								<input type="search" class="form-control" value="FGZ6" readonly>
+								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton">Copy</button>
+							</div>
 							<player-list mode ="host"></player-list>
 							<button id="startRemoteGameButton"  class="btn btn-primary btn-lg d-grid generate-game-button">Start Game</button>
 						</div>						
