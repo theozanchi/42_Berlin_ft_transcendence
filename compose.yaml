@@ -1,3 +1,4 @@
+
 services:
   nginx:
     container_name: nginx
@@ -35,13 +36,14 @@ services:
       - ./data:/var/lib/postgresql/data
     networks:
       - pong_network
+    env_file: .env
 
-  game_config:
-    image: game_config_service
-    container_name: game_config
-    build: ./backend/game_config_service
+  game_lobby:
+    image: game_lobby_service
+    container_name: game_lobby
+    build: ./backend/game_lobby_service
     volumes:
-     - ./backend/game_config_service:/code
+     - ./backend/game_lobby_service:/code
     networks:
       - pong_network
     ports:
@@ -59,6 +61,32 @@ services:
       - pong_network
     ports:
       - "8002:8002"
+    depends_on:
+      - db
+
+  api_gateway:
+    image: api_gateway
+    container_name: api_gateway
+    build: ./backend/api_gateway
+    volumes:
+      - ./backend/api_gateway:/code
+    networks:
+      - pong_network
+    ports:
+      - "8003:8003"
+    depends_on:
+      - db
+
+  game_manager:
+    image: game_manager_service
+    container_name: game_manager
+    build: ./backend/game_manager_service
+    volumes:
+      - ./backend/game_manager_service:/code
+    networks:
+      - pong_network
+    ports:
+      - "8004:8004"
     depends_on:
       - db
 

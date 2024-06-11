@@ -42,7 +42,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'game_logic',
-    'request',
+    'channels',
 ]
 
 MIDDLEWARE = [
