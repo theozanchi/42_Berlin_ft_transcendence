@@ -39,7 +39,7 @@
 				document.getElementById('20-remote-switch').style.display = 'none';
 				document.getElementById('22-remote-host').style.display = 'block';
 			});
-
+			
 			document.getElementById('startRemoteGameButton').addEventListener('click', () => {
 				document.getElementById('00-welcome').style.display = 'block';
 				document.getElementById('22-remote-host').style.display = 'none';

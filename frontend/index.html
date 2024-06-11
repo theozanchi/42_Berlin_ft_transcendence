@@ -29,9 +29,17 @@
 					<div class="d-flex row align-self-start">
 						<stepper-component></stepper-component>
 						<div id="00-welcome" class="step" >
-							<h2>WELCOME</h2>
-							<p>to our ponger puff girl. There are a lot of things to do in this app:
+							<h1>WELCOME</h1>
+							<p>to our ponger puff girl. There are a lot of things to do in this app.
 							Do you want to play locally or remotely with friends?</p>
+
+							<p>We have you assigned the following Character. You can change its name or login with your 42 Credentials:</p>
+							<!-- <div class="d-flex align-items-stretch gap-2 d-md-block"> -->
+								<player-component input></player-component>
+								<button id="login42Button" class="btn btn-outline-secondary">Login</button>
+							<!-- </div> -->
+
+							<h2>Play Pong</h2>
 							<div class="d-flex align-items-stretch gap-2 d-md-block">
 								<button id="localGameButton" class="btn btn-primary btn-lg">Local Game</button>
 								<button id="remoteGameButton" class="btn btn-secondary btn-lg">Remote Game</button>
@@ -49,14 +57,15 @@
 							<p>Fantastic! Nothing better than playing with friends via the internet.</p>
 							<h3>Join Game</h3>
 							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
-							<form class="d-flex" role="search">
-								<input class="form-control me-2" type="search" placeholder="Game ID">
-								<!-- <button id="joinRemoteGameButton" class="btn btn-primary" type="submit">Join</button> -->
-							</form>
-							<button id="joinRemoteGameButton" class="btn btn-primary" type="submit">Join</button>
+
+							<div class="input-group mb-3">
+								<input type="search" class="form-control" placeholder="Game-ID" aria-label="Game-ID" aria-describedby="button-addon2">
+								<button class="btn btn-primary" type="button" id="joinRemoteGameButton">Join</button>
+							</div>
+
 							<h3>Host Game</h3>
 							<p>Do your prefer to host your own game to share it with friends?</p>
-							<button id="hostRemoteGameButton" class="btn btn-primary btn-lg d-grid generate-game-button">Host Remote Game</button>
+							<button id="hostRemoteGameButton" class="btn btn-primary d-grid generate-game-button">Host Remote Game</button>
 							
 						</div>
 						
