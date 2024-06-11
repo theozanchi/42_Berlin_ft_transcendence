@@ -98,3 +98,9 @@ ENDPOINT /api/start_game/ [POST]
     - Returns game_id, game_mode, players and rounds. Game is saved in the database.
     - Accepts POST, expects players in Json: 'player-1': '[value]' etc.
     - *Issues: remote games based on lobby_id, user management, communication with game_logic to actually play*
+
+
+
+
+WEBSOCKETS  
+The Lobby ID is used as the group_name for the channel layer. channel_name is used as WebSocket ID for each Player object. 

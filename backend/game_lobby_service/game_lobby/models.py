@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from itertools import combinations
 import requests
 from django.contrib.auth.models import User, AbstractUser
-from .consumers import LobbyConsumer
 
 #class User(AbstractUser):
 #    hosted_lobbies = models.ManyToManyField('Lobby', related_name='host', blank=True)
