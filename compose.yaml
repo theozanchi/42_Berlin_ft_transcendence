@@ -44,6 +44,7 @@ services:
     build: ./backend/game_lobby_service
     volumes:
      - ./backend/game_lobby_service:/code
+    env_file: .env
     networks:
       - pong_network
     ports:
@@ -57,6 +58,7 @@ services:
     build: ./backend/game_logic_service
     volumes:
       - ./backend/game_logic_service:/code
+    env_file: .env
     networks:
       - pong_network
     ports:
@@ -83,6 +85,7 @@ services:
     build: ./backend/game_manager_service
     volumes:
       - ./backend/game_manager_service:/code
+    env_file: .env
     networks:
       - pong_network
     ports:

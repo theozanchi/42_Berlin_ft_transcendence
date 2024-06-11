@@ -18,6 +18,5 @@ from django.urls import path, include
 from game_logic import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', views.play_game),
+    path('', include('game_logic.urls'))
 ]

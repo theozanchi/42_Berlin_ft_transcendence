@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby</title>
+</head>
+<body>
+    <h1>Welcome to the Lobby</h1>
+    <div id="message-container"></div>
+    <form id="message-form">
+        <input type="text" id="message-input" name="message">
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        let url = `ws://${window.location.host}/ws/socket-server/`
+        const socket = new WebSocket(url);
+
+        socket.onopen = function(event) {
+            console.log('WebSocket connection established.');
+        };
+
+        socket.onmessage = function(event) {
+            let data = JSON.parse(event.data)
+            console.log('Data:', data)
+            const messageContainer = document.getElementById('message-container');
+            const newMessage = document.createElement('div');
+            newMessage.textContent = event.data;
+            messageContainer.appendChild(newMessage);
+        };
+
+        let form = document.getElementById('message-input')
+        form.addEventListener('submit', (e) => {
+            e.preventDefault()
+            let message = e.target.message.value
+            socket.send(JSON.stringify({
+                'message':message
+            }))
+            form.reset()
+        })
+    </script>
+</body>
+</html>

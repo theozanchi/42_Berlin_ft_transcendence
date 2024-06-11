@@ -9,7 +9,10 @@ RUN pip install -r requirements.txt
 
 COPY . /code/
 
+EXPOSE 8000
+
 COPY entrypoint.sh /code/entrypoint.sh
 RUN chmod +x /code/entrypoint.sh
+
 
 ENTRYPOINT ["/bin/sh", "/code/entrypoint.sh"]
