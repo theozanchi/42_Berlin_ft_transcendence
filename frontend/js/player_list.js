@@ -5,7 +5,6 @@
 
 class PlayerList extends HTMLElement {
 	constructor() {
-		console.log("constructing Playerlist");
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
 		this.count = 1;
@@ -35,12 +34,13 @@ class PlayerList extends HTMLElement {
 	}
 
 	connectedCallback() {			
-		console.log("rendering PlayerList");
+		// console.log("rendering PlayerList");
 		this.render();
 
-		this.shadow.getElementById('addPlayerButton').addEventListener('click', () => {
-			this.addPlayer();
-		});
+		if (this.gameMode === 'local')
+			this.shadow.getElementById('addPlayerButton').addEventListener('click', () => {
+				this.addPlayer();
+			});
 	}
 
 	addPlayer() {
@@ -54,8 +54,6 @@ class PlayerList extends HTMLElement {
 			newPlayer.setAttribute('input', '');
 		if (this.gameMode === 'host' || this.gameMode === 'local')
 			newPlayer.setAttribute('remove-button', '');
-
-		console.log("THIS IS WHAT I GOT" + this.gameMode);
 
 		// Add an event listener for the 'removePlayer' event
 		newPlayer.addEventListener('removePlayer', () => {
@@ -71,12 +69,6 @@ class PlayerList extends HTMLElement {
 
 		// Update the player count display
 		this.shadow.getElementById('playerCount').textContent = `${this.count} Players`;
-
-		console.log("MY NEW PLAYER");
-		console.log(newPlayer.getAttribute('name'));
-
-		console.log("MY PLAYERLIST STARTS HERE");
-		console.log(playerList);
 	}
 
 	getPlayerNames() {
@@ -97,8 +89,6 @@ class PlayerList extends HTMLElement {
 
 		// if (!gameModes.includes(gameMode))
 			// console.error(`invalid game mode: ${gameMode}`);
-		
-		console.log("GAME MODE: " + this.gameMode);
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>

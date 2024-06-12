@@ -5,13 +5,12 @@
 
 class StepperTitleBar extends HTMLElement {
 	constructor() {
-		console.log("constructing");
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
 	}
 
 	connectedCallback() {
-		console.log("rendering titlebar");
+		// console.log("rendering titlebar");
 		this.render();
 	}
 

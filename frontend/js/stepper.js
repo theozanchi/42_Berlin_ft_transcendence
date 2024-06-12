@@ -9,10 +9,7 @@
 function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
-
 	let playerNames = playerList.getPlayerNames();
-
-	console.log(playerNames);
 
 	// 2. Create data obejct
 	let data = { players: playerNames };
@@ -21,7 +18,7 @@ function generateLocalGame() {
 	var json = JSON.stringify(data);
 
 	// 4. Send POST request
-	fetch ('https://test-api.com', {
+	fetch ('ws://localhost:8443/local', {
 		method:		'POST',
 		body:		json,
 		headers:	{ 'Content-Type': 'application/json' }
@@ -50,7 +47,7 @@ alert(`Generating Game with Players: ${json}`);
 		}
 	
 		connectedCallback() {
-			console.log("rendering");
+			// console.log("rendering stepper form");
 
 			document.getElementById('localGameButton').addEventListener('click', () => {
 				// Get the current step from the URL
