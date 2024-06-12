@@ -4,6 +4,45 @@
 	// VIEW TO EDIT SETTINGS
 	// PROCCEED/START BUTTON
 
+// import { generateLocalGame } from './api_calls.js';
+
+function generateLocalGame() {
+
+	let playerList = document.querySelector('player-list');
+
+	let playerNames = playerList.getPlayerNames();
+
+	console.log(playerNames);
+
+	// 2. Create data obejct
+	let data = { players: playerNames };
+
+	// 3. Convert to JSON
+	var json = JSON.stringify(data);
+
+	// 4. Send POST request
+	fetch ('https://test-api.com', {
+		method:		'POST',
+		body:		json,
+		headers:	{ 'Content-Type': 'application/json' }
+	})
+
+	// 5. Handle response
+	.then(response => response.json())
+	.then(data => {
+		console.log('Success:', data);
+	})
+
+	// 6. Handle errors
+	.catch((error) => {
+		console.error('Error:', error);
+	});
+	console.log(json);
+
+alert(`Generating Game with Players: ${json}`);
+}
+
+
 	class StepperWrapper extends HTMLElement {
 		constructor() {
 			super();
@@ -16,14 +55,14 @@
 			document.getElementById('localGameButton').addEventListener('click', () => {
 				// Get the current step from the URL
 				const urlParams = new URLSearchParams(window.location.search);
-				const currentStep = parseInt(urlParams.get('step') || '1');
-				alert(currentStep);
+				// const currentStep = parseInt(urlParams.get('step') || '1');
+				// alert(currentStep);
 			
 				// Navigate to the next step
 				// navigate(currentStep + 1);
 				document.getElementById('00-welcome').style.display = 'none';
     			document.getElementById('10-local').style.display = 'block';
-				history.pushState({ currentStep }, `Step ${step}`, `?step=${step}`);
+				// history.pushState({ currentStep }, `Step ${step}`, `?step=${step}`);
 			});
 
 			document.getElementById('remoteGameButton').addEventListener('click', () => {
@@ -35,7 +74,9 @@
 			document.getElementById('generateLocalGameButton').addEventListener('click', () => {
 				document.getElementById('00-welcome').style.display = 'block';
 				document.getElementById('10-local').style.display = 'none';
-				alert(`Generating LocalGame with Players`)				
+				// generateLocalGame();
+				// document.addEventListener('DOMContentLoaded', generateLocalGame());
+				setTimeout(generateLocalGame(), 1000);
 			});
 
 			document.getElementById('joinRemoteGameButton').addEventListener('click', () => {
@@ -65,27 +106,7 @@
 					console.error('Could not copy text: ', err);
 				});
 			});
-			
-			// this.render();
 		}
-	
-		/* render() {
-			this.shadow.innerHTML = `
-				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
-				<style>
-					.stepper-container {
-						display: flex;
-						flex-direction: column;
-						height: 100%;
-					}
-					.generate-game-button {
-						margin-top: auto;
-					}
-				</style>
-				<stepper-titlebar></stepper-titlebar>
-				<button class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-				`
-		} */
 	}
 	
 	

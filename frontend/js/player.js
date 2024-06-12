@@ -17,6 +17,7 @@ class MyPlayer extends HTMLElement {
 		const	hasRemoveButton = this.hasAttribute('remove-button');
 		const	baseUrl = document.location.href;
 		const	imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
+		const	name = this.getAttribute('name');
 		if (this.hasAttribute('avatar'))
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 
@@ -36,7 +37,7 @@ class MyPlayer extends HTMLElement {
                     ? 
                         '<input type="text" class="form-control col" maxlength="30" value="' + this.getAttribute('name') + '">' 
                     : 
-                        '<p class="col">' + this.getAttribute('name') + '</p>'
+                        `<p class="col"> ${name} </p>`
                 }
                 ${hasRemoveButton ? '<button id="removeButton" class="btn btn-outline-danger col-auto">X</button>' : ''}
 			<span class="border-bottom"></span>

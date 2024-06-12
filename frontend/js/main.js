@@ -5,10 +5,10 @@ let PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The 
 //     document.getElementById('view2').style.display = 'block';
 // });
 
-document.getElementById('backButton').addEventListener('click', function() {
+/* document.getElementById('backButton').addEventListener('click', function() {
     document.getElementById('view1').style.display = 'block';
     document.getElementById('view2').style.display = 'none';
-});
+}); */
 
 // document.getElementById('addPlayerButton').addEventListener('click', function() {
 //     let playerList = document.getElementById('playerList');
