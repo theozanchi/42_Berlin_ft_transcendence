@@ -37,6 +37,8 @@ class LocalConsumer(AsyncWebsocketConsumer):
             self.send(text_data=json.dumps({'error': 'Invalid action'}))
     
     async def create_game(self, data):
+        data['game-mode'] = 'local'
+        #data['host-channel-name'] = self.channel_name
         try:
             response = requests.post(GAME_MANAGER_URL + '/create-game/', json=data)
             response.raise_for_status()  # Raise exception for any HTTP error status
