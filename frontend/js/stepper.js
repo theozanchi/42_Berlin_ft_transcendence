@@ -21,7 +21,7 @@ function generateLocalGame() {
 	var json = JSON.stringify(data);
 
 	// Send POST request
-	fetch ('ws://localhost:8443/local/', {
+	fetch ('wss://localhost:8443/ws/local/', {
 		method:		'POST',
 		body:		json,
 		headers:	{ 'Content-Type': 'application/json' }
