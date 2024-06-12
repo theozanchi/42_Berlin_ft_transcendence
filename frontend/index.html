@@ -54,14 +54,25 @@
 						
 						<div id="20-remote-switch" class="step" style="display: none;">
 							<stepper-titlebar title="Remote Game"></stepper-titlebar>
+							<p></p>
 							<p>Fantastic! Nothing better than playing with friends via the internet.</p>
 							<h3>Join Game</h3>
 							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
 
-							<div class="input-group mb-3">
-								<input type="search" class="form-control" placeholder="Game-ID" aria-label="Game-ID" aria-describedby="button-addon2">
-								<button class="btn btn-primary" type="button" id="joinRemoteGameButton">Join</button>
-							</div>
+							<form class="input-group mb-3 needs-validation" novalidate>
+								<div class="form-floating">
+									<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" required>
+									<label for="searchGameID">Game-ID</label>
+									<!-- VALIDATION TBD -->
+									<!-- <div class="valid-feedback">
+									  Looks good!
+									</div>
+									<div class="invalid-feedback">
+										Please provide a valid city.
+									</div> -->
+								</div>
+								<button class="btn btn-primary" type="submit" id="joinRemoteGameButton">Join</button>
+							</form>
 
 							<h3>Host Game</h3>
 							<p>Do your prefer to host your own game to share it with friends?</p>
@@ -98,13 +109,25 @@
 				</div>
 				<div class="col col-lg-3"  style="background-color: #81CB71">
 					<div style="height:48px"></div>
-					<h2>GAME INFO AREA</h2>
+					<h1>WebSocket Client</h1>
+					<div>
+						<button onclick="connectWebSocket()">Connect</button>
+						<button onclick="disconnectWebSocket()">Disconnect</button>
+					</div>
+					<div>
+						<textarea id="messages" rows="10" cols="30" readonly></textarea>
+					</div>
+					<div>
+						<input type="text" id="messageInput" placeholder="Enter message"/>
+						<button onclick="sendMessage()">Send</button>
+					</div>
 				</div>
 			</div>
 		</div>
 	</body>
     <!-- custom JS -->
-	<script src="./js/main.js"></script>
+	<script src="./js/websocket_connect.js"></script>
+	<!-- <script src="./js/main.js"></script> -->
 	<script src="./js/stepper.js"></script>
 	<script src="./js/stepper_titlebar.js"></script>
 	<script src="./js/player_list.js"></script>

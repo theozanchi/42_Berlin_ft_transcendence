@@ -11,20 +11,23 @@ function generateLocalGame() {
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 
-	// 2. Create data obejct
-	let data = { players: playerNames };
+	// Create data object with action key
+	let data = {action: 'start-game'}
 
-	// 3. Convert to JSON
+	// Add players to JSON
+	data.players = playerNames;
+
+	// Convert to JSON
 	var json = JSON.stringify(data);
 
-	// 4. Send POST request
-	fetch ('ws://localhost:8443/local', {
+	// Send POST request
+	fetch ('ws://localhost:8443/local/', {
 		method:		'POST',
 		body:		json,
 		headers:	{ 'Content-Type': 'application/json' }
 	})
 
-	// 5. Handle response
+	// Handle response
 	.then(response => response.json())
 	.then(data => {
 		console.log('Success:', data);
@@ -51,12 +54,8 @@ alert(`Generating Game with Players: ${json}`);
 
 			document.getElementById('localGameButton').addEventListener('click', () => {
 				// Get the current step from the URL
-				const urlParams = new URLSearchParams(window.location.search);
-				// const currentStep = parseInt(urlParams.get('step') || '1');
-				// alert(currentStep);
-			
-				// Navigate to the next step
-				// navigate(currentStep + 1);
+				// const urlParams = new URLSearchParams(window.location.search);
+
 				document.getElementById('00-welcome').style.display = 'none';
     			document.getElementById('10-local').style.display = 'block';
 				// history.pushState({ currentStep }, `Step ${step}`, `?step=${step}`);
@@ -69,11 +68,10 @@ alert(`Generating Game with Players: ${json}`);
 			});
 
 			document.getElementById('generateLocalGameButton').addEventListener('click', () => {
+				generateLocalGame();
+
 				document.getElementById('00-welcome').style.display = 'block';
 				document.getElementById('10-local').style.display = 'none';
-				// generateLocalGame();
-				// document.addEventListener('DOMContentLoaded', generateLocalGame());
-				setTimeout(generateLocalGame(), 1000);
 			});
 
 			document.getElementById('joinRemoteGameButton').addEventListener('click', () => {

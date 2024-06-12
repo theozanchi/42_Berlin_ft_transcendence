@@ -6,10 +6,11 @@ class MyPlayer extends HTMLElement {
 
 	connectedCallback() {
 		this.render();
-		this.shadow.getElementById('removeButton').addEventListener('click', () => {
-			console.log("REMOVE CLICKED");
-			this.dispatchEvent(new CustomEvent('removePlayer'));
-		});
+		if (this.hasAttribute('remove-button'))
+			this.shadow.getElementById('removeButton').addEventListener('click', () => {
+				console.log("REMOVE CLICKED");
+				this.dispatchEvent(new CustomEvent('removePlayer'));
+			});
 	}
 
 	render () {
