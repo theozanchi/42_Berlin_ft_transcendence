@@ -8,6 +8,12 @@ GAME_MANAGER_URL = 'http://game_manager:8002'
 GAME_LOGIC_URL = 'http://game_logic:8003'
 GAME_LOBBY_URL = 'http://game_lobby:8004'
 
+def websocket_connect(request):
+    url = f'{GAME_LOBBY_URL}/ws/'
+    response = requests.post(url, json=request.data, headers=request.headers)
+
+    return Response(response.json(), status=response.status_code)
+
 
 @api_view(['POST'])
 def create_lobby(request):

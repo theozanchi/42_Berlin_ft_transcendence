@@ -24,22 +24,23 @@ SECRET_KEY = 'django-insecure-k59%s^q9psaw_qj5-fdv!3u%+w3uc!g1+4-7aclg-otq2rgu0)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+    'rest_framework',
+    'game_lobby',
+    'daphne',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'rest_framework',
-    'game_lobby',
-    'channels',
 ]
 
 CHANNEL_LAYERS = {

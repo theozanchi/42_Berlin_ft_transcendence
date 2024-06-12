@@ -25,10 +25,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('create_lobby/', views.create_lobby),
     #path('join_lobby/', views.join_lobby),
-    path('verify_host/', views.verify_host)
+    path('verify_host/', views.verify_host),
+    path('ws/', include(routing.websocket_urlpatterns)),
 ] 
 
-urlpatterns += routing.websocket_urlpatterns
+""" # websocket url patterns
+urlpatterns += [
+    path('ws/', include(routing.websocket_urlpatterns)),
+] """
 
 
 

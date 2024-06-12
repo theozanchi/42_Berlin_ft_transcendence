@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM python:3
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=game_lobby_service.settings
 WORKDIR /code
 
 COPY requirements.txt /code/
