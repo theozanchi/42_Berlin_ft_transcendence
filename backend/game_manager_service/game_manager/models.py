@@ -8,22 +8,23 @@ import requests
 # Create your models here.
 class Game(models.Model):
     mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
-    host = models.ForeignKey(User, related_name='games_hosted')
-    host_ws_id = models.CharField(max_length=100, blank=True, null=True)
+    #host_channel_name = models.CharField(max_length=100, blank=True, null=True)
 
     def clean(self):
         if not self.mode:
             raise ValidationError('No valid game mode detected')
+        if not self.host_channel_name:
+            raise ValidationError('No valid websocket channel name for host detected')
 
     def save(self, *args, **kwargs):
-        self.clean()  # Validate before saving
+        self.clean()
         super().save(*args, **kwargs)
 
     def add_players_to_game(self, data):
         player_names = data.get("players", [])
 
         for name in player_names:
-            player = Player.objects.create(game=self, guest_name=name)
+            player = Player.objects.create(game=self, alias=name)
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -47,26 +48,22 @@ class Player(models.Model):
     ###### ISSUE:truncate name for player in case it's too long
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
-    guest_name = models.CharField(max_length=25, null=True, blank=True)
-    #lobby = models.ForeignKey(Lobby, related_name='players', on_delete=models.CASCADE)
-    ws_id = models.CharField(max_length=100, blank=True, null=True)
+    alias = models.CharField(max_length=25, null=True, blank=True)
+    #channel_name = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        if self.user:
-            return self.user.username
-        return self.guest_name
+        return f"Player {self.alias} in Game {self.game.pk}"
 
     def save(self, *args, **kwargs):
-        if not self.user and not self.guest_name:
-            raise ValueError("Player must have either a user or a guest name.")
+        if not self.alias:
+            raise ValueError("Player must have an alias.")
         super().save(*args, **kwargs)
     
 class Round(models.Model):
     game = models.ForeignKey(Game, related_name='rounds', on_delete=models.CASCADE)
     round_number = models.PositiveIntegerField(null=True) 
-    player1 = models.CharField(max_length=15)
-    player2 = models.CharField(max_length=15)
+    player1 = models.ForeignKey('Player', related_name='player1_rounds', on_delete=models.CASCADE)
+    player2 = models.ForeignKey('Player', related_name='player2_rounds', on_delete=models.CASCADE)
     winner = models.ForeignKey('Player', related_name='won_rounds', null=True, on_delete=models.SET_NULL)
 
     def clean(self):
