@@ -8,7 +8,7 @@ function connectWebSocket() {
 	}
 
 	// Connect to WebSocket server
-	socket = new WebSocket('ws://localhost:8000/');
+	socket = new WebSocket('wss://localhost:8443/ws/local/');
 
 	socket.onopen = function(event) {
 		logMessage('Connected to WebSocket server.');
