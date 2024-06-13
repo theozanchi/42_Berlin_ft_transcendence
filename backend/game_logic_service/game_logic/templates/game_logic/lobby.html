@@ -37,25 +37,11 @@
     <canvas id="bg"></canvas>
     <script type="module" src="{% static 'main.js' %}"></script>
 
-    <script>
-        let url = `ws://${window.location.host}/ws/socket-server/`
-        const socket = new WebSocket(url);
+    <script type="module">
+        import { initializeWebSocket, updateGameState, sendGameState } from '/static/main.js';
 
-        socket.onopen = function(event) {
-            console.log('WebSocket connection established.');
-        };
-
-        socket.onmessage = function(event) {
-            let data = JSON.parse(event.data)
-            console.log('Data:', data)
-            const messageContainer = document.getElementById('message-container');
-            const newMessage = document.createElement('div');
-            newMessage.textContent = event.data;
-            messageContainer.appendChild(newMessage);
-
-            // Handle game state updates
-            updateGameState(data);
-        };
+        const url = `ws://${window.location.host}/ws/socket-server/`;
+        const socket = initializeWebSocket(url);
 
         document.getElementById('message-form').addEventListener('submit', function(event) {
             event.preventDefault();
@@ -67,14 +53,6 @@
             messageInput.value = '';
         });
 
-        // Add game update handling function
-        function updateGameState(data) {
-            // Implement the game state update logic here
-            // This function will update the canvas and other game elements based on the server data
-        }
     </script>
-    
-
-    
 </body>
 </html>

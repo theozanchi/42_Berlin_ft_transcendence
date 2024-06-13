@@ -2,7 +2,114 @@
 import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 
-///
+
+let gameState;
+let maxReconnectInterval = 200;
+let reconnectInterval;
+let oldGameState;
+let socket;
+let reconnectAttempts;
+///setup web socket ///
+    export function initializeWebSocket(url){
+        function connect() {
+            socket = new WebSocket(url);
+    
+            socket.onopen = function(event) {
+                console.log('WebSocket connection established.');
+                reconnectAttempts = 0; // Reset reconnection attempts on successful connection
+            };
+    
+            socket.onmessage = function(event) {
+                let data = JSON.parse(event.data);
+                // Handle game state updates
+                if (data.type === 'game_state') {
+                    updateGameState(data);
+                }
+            };
+    
+            socket.onclose = function(event) {
+                console.log('WebSocket connection closed.', event);
+                if (reconnectAttempts < maxReconnectInterval) {
+                    setTimeout(connect, reconnectInterval);
+                    reconnectInterval = Math.min(reconnectInterval * 2, maxReconnectInterval); // Exponential backoff
+                    reconnectAttempts++;
+                } else {
+                    console.error('Max reconnect attempts reached. Could not reconnect.');
+                }
+            };
+    
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                // Optional: Handle errors such as failed connection attempts
+            };
+        }
+    
+        connect();
+    
+        // Keep-Alive Mechanism
+        function sendKeepAlive() {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ type: 'keep_alive' }));
+            }
+        }
+    
+        setInterval(sendKeepAlive, 30000); // Send a keep-alive message every 30 seconds
+    
+        return socket;
+        }
+
+
+        export function updateGameState(data) {
+            if (data.type === 'game_state') {
+                // Update player positions
+                player.position.set(data.player1.x, data.player1.y, data.player1.z);
+                player2.position.set(data.player2.x, data.player2.y, data.player2.z);
+
+                // Update ball position and speed
+                ball.position.set(data.ball.x, data.ball.y, data.ball.z);
+                ballSpeed.set(data.ballSpeed.x, data.ballSpeed.y, data.ballSpeed.z);
+
+                // Update game state variables
+                playerTurn = data.playerTurn;
+                playerScore = data.playerScore;
+                aiScore = data.aiScore;
+                ballIsHeld = data.ballIsHeld;
+            }
+        }
+
+        function deepEqual(obj1, obj2) {
+            return JSON.stringify(obj1) === JSON.stringify(obj2);
+        }
+
+        // Ensure WebSocket is open before sending data
+        export function sendGameState() {
+            if (socket.readyState === WebSocket.OPEN) {
+                const newGameState = {
+                    type: 'game_state',
+                    player1: { x: player.position.x, y: player.position.y, z: player.position.z },
+                    player2: { x: player2.position.x, y: player2.position.y, z: player2.position.z },
+                    ball: { x: ball.position.x, y: ball.position.y, z: ball.position.z },
+                    ballSpeed: { x: ballSpeed.x, y: ballSpeed.y, z: ballSpeed.z },
+                    playerTurn: playerTurn,
+                    playerScore: playerScore,
+                    aiScore: aiScore,
+                    ballIsHeld: ballIsHeld
+                };
+        
+                if (!deepEqual(oldGameState, newGameState)) {
+                    socket.send(JSON.stringify(newGameState));
+                    oldGameState = newGameState; // Update the old game state to the new one
+                }
+            } else {
+                console.error('WebSocket is not open. Ready state:', socket.readyState);
+            }
+        }
+
+
+
+    ///////////
+
+
 const canvas = document.getElementById('bg');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -34,7 +141,13 @@ let aimingAngle = 0;
 let player1Turn = true; // Player 1 starts
 let singlePlayer = false; // Set to false for two-player game
 
+
+
+
 function init() {
+
+    const url = `ws://${window.location.host}/ws/socket-server/`;
+    initializeWebSocket(url);
     // Create the scene
     scene = new THREE.Scene();
 
@@ -208,6 +321,7 @@ let keysPressed = {
 function onKeyDown(event) {
 
     keysPressed[event.key] = true;
+    console.log(keysPressed[event.key]);
     if (singlePlayer){
         switch (event.key) {
             case 'w':
@@ -847,6 +961,7 @@ function gameLoop() {
     
         movePlayer2(player2, deltaX, deltaY);
 }
+
 }
   
 
@@ -966,6 +1081,7 @@ function updateAI() {
     }
 }
 
+
 function animate() {
     requestAnimationFrame(animate);
 
@@ -974,6 +1090,7 @@ function animate() {
     gameLoop();
     updateBall();
     updateAI();
+    
     renderer.clear();
 
     // Render the scene from the first camera
@@ -990,7 +1107,8 @@ function animate() {
 
     // Disable the scissor test after rendering both views
     renderer.setScissorTest(false);
+    sendGameState();
+    
 }
 
 init();
-
