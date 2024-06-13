@@ -9,7 +9,7 @@ from .serialize import serialize_game_data
 @api_view(['POST'])
 def create_game(request):
     # Access form data using request.data
-    game = Game.objects.create(mode=request.data.get('game-mode'))
+    game = Game.objects.create(mode=request.data.get('game-mode')), #host_channel_name=request.data.get('host-channel-name'))
     # Create players for the game
     game.add_players_to_game(request.data)
     # Generate rounds for the game
