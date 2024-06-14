@@ -1,62 +1,91 @@
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from django.core.exceptions import ObjectDoesNotExist
-from .models import GamePosition, Lobby, Player
+from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import async_to_sync
+import logging
 
-####### FOR JAVASCRIPT#######
-""" const socket = new WebSocket('wss://yourserver.com/ws/lobby/some_lobby_id/');
+logging.basicConfig(level=logging.INFO)
 
-socket.onclose = function(event) {
-    switch(event.code) {
-        case 4001:
-            console.error('Position out of bounds.');
-            break;
-        default:
-            console.error('WebSocket closed with code:', event.code);
+class PongConsumer(WebsocketConsumer):
+    game_state = {
+        'player1': {'x': 0, 'y': 0, 'z': 1},
+        'player2': {'x': 0, 'y': 0, 'z': -1},
+        'ball': {'x': 0, 'y': 0, 'z': 0},
+        'ballSpeed': {'x': 0, 'y': 0, 'z': 0},
+        'playerTurn': True,  # Initial value, assuming player 1 starts
+        'playerScore': 0,
+        'aiScore': 0,
+        'ballIsHeld': True  # Initial value, assuming ball is held initially
     }
-}; """
-#########################################
 
-class LobbyConsumer(AsyncWebsocketConsumer):
-    game = GamePosition()
+    def connect(self):
+        self.accept()
+        self.room_group_name = 'pong_game'
 
-    async def connect(self):
-        # Establish connection
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        # Leave lobby group
-        await self.channel_layer.group_discard(
-            self.lobby_group_name,
+        # Join room group
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
             self.channel_name
         )
 
-    async def send_to_group(self, message):
-        # Send message to group
-        await self.channel_layer.group_send(
-            self.lobby_group_name,
-            {
-                'type': 'chat.message',
-                'message': message,
-            }
+        # Send initial game state to the newly connected client
+        self.send(text_data=json.dumps({
+            'type': 'game_state',
+            'player1': self.game_state['player1'],
+            'player2': self.game_state['player2'],
+            'ball': self.game_state['ball'],
+            'ballSpeed': self.game_state['ballSpeed'],
+            'playerTurn': self.game_state['playerTurn'],
+            'playerScore': self.game_state['playerScore'],
+            'aiScore': self.game_state['aiScore'],
+            'ballIsHeld': self.game_state['ballIsHeld']
+        }))
+
+    def disconnect(self, close_code):
+        # Leave room group
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
         )
 
-    async def update_position(self, position):
-        if self.channel_name == self.game.player1.ws_id:
-            player = self.game.player1
-        for pos in position[]:
-            player.pos = pos
-
-        
-    async def receive(self, text_data):
+    def receive(self, text_data):
         data = json.loads(text_data)
-        action = data.get('action', '')
-        
-        if action == 'update_position':
-            await self.create_lobby(data.get("positon", []))
-        else:
-            await self.close(code=4004)  # Custom code for invalid action
-            return {'error': 'Invalid action'}
 
+        if data['type'] == 'game_state':
+            self.game_state['player1'] = data['player1']
+            self.game_state['player2'] = data['player2']
+            self.game_state['ball'] = data['ball']
+            self.game_state['ballSpeed'] = data['ballSpeed']
+            self.game_state['playerTurn'] = data['playerTurn']
+            self.game_state['playerScore'] = data['playerScore']
+            self.game_state['aiScore'] = data['aiScore']
+            self.game_state['ballIsHeld'] = data['ballIsHeld']
 
+            # Broadcast updated game state to the room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'game_update',
+                    'player1': self.game_state['player1'],
+                    'player2': self.game_state['player2'],
+                    'ball': self.game_state['ball'],
+                    'ballSpeed': self.game_state['ballSpeed'],
+                    'playerTurn': self.game_state['playerTurn'],
+                    'playerScore': self.game_state['playerScore'],
+                    'aiScore': self.game_state['aiScore'],
+                    'ballIsHeld': self.game_state['ballIsHeld']
+                }
+            )
+
+    def game_update(self, event):
+        # Send updated game state to WebSocket
+        self.send(text_data=json.dumps({
+            'type': 'game_state',
+            'player1': event['player1'],
+            'player2': event['player2'],
+            'ball': event['ball'],
+            'ballSpeed': event['ballSpeed'],
+            'playerTurn': event['playerTurn'],
+            'playerScore': event['playerScore'],
+            'aiScore': event['aiScore'],
+            'ballIsHeld': event['ballIsHeld']
+        }))

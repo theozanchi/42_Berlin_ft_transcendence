@@ -11,12 +11,18 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
 from pathlib import Path
+import mimetypes
+
+mimetypes.add_type("text/css", ".css", True)
+mimetypes.add_type("application/javascript", ".js", True)
+mimetypes.add_type("text/html", ".html", True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 # Ensure correct prefix when Django redirects URLs
-FORCE_SCRIPT_NAME = '/game-logic'
+FORCE_SCRIPT_NAME = '/game_logic'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -42,7 +48,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'game_logic',
-    'request',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -74,8 +80,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'game_logic.wsgi.application'
+ASGI_APPLICATION = 'game_logic_service.asgi.application'
 
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -128,6 +140,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'pong'),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
