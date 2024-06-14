@@ -6,6 +6,46 @@
 
 // import { generateLocalGame } from './api_calls.js';
 
+let newsocket;
+let openPromise;
+
+function openSocket() {
+    if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+        console.log('Opening new WebSocket');
+        newsocket = new WebSocket('wss://localhost:8443/ws/local/');
+
+        openPromise = new Promise((resolve) => {
+            newsocket.onopen = function(event) {
+                console.log('Connected to WebSocket server.');
+                resolve();
+            };
+        });
+
+        newsocket.onmessage = function(event) {
+            console.log('Received: ' + event.data);
+        };
+
+        newsocket.onclose = function(event) {
+            console.log('Disconnected from WebSocket server.');
+        };
+
+        newsocket.onerror = function(error) {
+            console.log('WebSocket error: ' + error.message);
+        };
+    }
+    return openPromise;
+}
+
+async function sendJson(json) {
+    await openSocket();
+    if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+        console.log(`Sending json to server: ${json}`);
+        newsocket.send(json);
+    } else {
+        console.log('WebSocket is not connected.');
+    }
+}
+
 function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
@@ -19,26 +59,12 @@ function generateLocalGame() {
 
 	// Convert to JSON
 	var json = JSON.stringify(data);
-	
-	fetch ('wss://localhost:8443/ws/local/', {
-		method:		'POST',
-		body:		json,
-		headers:	{ 'Content-Type': 'application/json' }
-	})
 
-	// Handle response
-	.then(response => response.json())
-	.then(data => {
-		console.log('Success:', data);
-	})
+	//OPEN SOCKET
+	openSocket();
 
-	// 6. Handle errors
-	.catch((error) => {
-		console.error('Error:', error);
-	});
-	console.log(json);
-
-alert(`Generating Game with Players: ${json}`);
+	// Send JSON VIA WEBSOCKET
+	sendJson(json);
 }
 
 
@@ -64,6 +90,11 @@ alert(`Generating Game with Players: ${json}`);
 				document.getElementById('00-welcome').style.display = 'none';
     			document.getElementById('20-remote-switch').style.display = 'block';
 				
+			});
+
+			//THIS SENDS A JSON OF ALL PLAYERS TO THE WEBSOCKET AFTER ESTABLISHING A CONNECTION
+			document.getElementById('generateLocalGameButtonWS').addEventListener('click', () => {
+				generateLocalGame();
 			});
 
 			document.getElementById('generateLocalGameButton').addEventListener('click', () => {

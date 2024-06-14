@@ -110,6 +110,11 @@
 				<div class="col col-lg-3"  style="background-color: #81CB71">
 					<div style="height:48px"></div>
 					<h1>WebSocket Client</h1>
+					<div id="ws-local" class="step">
+						<stepper-titlebar title="Local Game"></stepper-titlebar>
+						<player-list mode ="local"></player-list>
+						<button id="generateLocalGameButtonWS" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
+					</div>
 					<div>
 						<button onclick="connectWebSocket()">Connect</button>
 						<button onclick="disconnectWebSocket()">Disconnect</button>
