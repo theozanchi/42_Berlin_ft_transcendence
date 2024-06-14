@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   nginx:
@@ -7,8 +8,6 @@ services:
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
-    networks:
-      - pong_network
     ports:
       - "$PORT:80"
       - "$SPORT:443"
@@ -26,17 +25,16 @@ services:
     image: nginx:latest
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
-    networks:
-      - pong_network
 
   db:
     image: postgres:latest
     container_name: db
     volumes:
-      - ./data:/var/lib/postgresql/data
-    networks:
-      - pong_network
-    env_file: .env
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
 
   redis:
     image: redis:latest
@@ -49,10 +47,7 @@ services:
     container_name: api_gateway
     build: ./backend/api_gateway
     volumes:
-     - ./backend/game_lobby_service:/code
-    env_file: .env
-    networks:
-      - pong_network
+      - ./backend/api_gateway:/code
     ports:
       - "8000:8000"
     environment:
@@ -79,27 +74,10 @@ services:
       - db
 
   game_logic:
-    image: game_logic_service
     container_name: game_logic
     build: ./backend/game_logic_service
     volumes:
       - ./backend/game_logic_service:/code
-    env_file: .env
-    networks:
-      - pong_network
-    ports:
-      - "8002:8002"
-    depends_on:
-      - db
-
-  api_gateway:
-    image: api_gateway
-    container_name: api_gateway
-    build: ./backend/api_gateway
-    volumes:
-      - ./backend/api_gateway:/code
-    networks:
-      - pong_network
     ports:
       - "8003:8003"
     environment:
@@ -110,15 +88,11 @@ services:
     depends_on:
       - db
 
-  game_manager:
-    image: game_manager_service
-    container_name: game_manager
-    build: ./backend/game_manager_service
+  game_lobby:
+    container_name: game_lobby
+    build: ./backend/game_lobby_service
     volumes:
-      - ./backend/game_manager_service:/code
-    env_file: .env
-    networks:
-      - pong_network
+     - ./backend/game_lobby_service:/code
     ports:
       - "8004:8004"
     environment:
@@ -128,6 +102,4 @@ services:
       - REDIS_PASSWORD=redis
     depends_on:
       - db
-
-networks:
-  pong_network:
+      - redis

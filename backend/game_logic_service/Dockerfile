@@ -39,6 +39,8 @@ RUN npm run build
 WORKDIR /code
 COPY . /code/
 
+ENV DJANGO_SECRET_KEY python -c 'import secrets; print(secrets.token_urlsafe(50))'
+
 # Expose the port
 EXPOSE 8000
 

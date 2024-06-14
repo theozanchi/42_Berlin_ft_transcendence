@@ -1,11 +1,18 @@
 from .models import Game, Player, Round
 from django.core import serializers
+from rest_framework import serializers
 
-def serialize_game_data(game):
-    # Fetch the game instance with related fields prefetched
-    game_instance = Game.objects.prefetch_related('players', 'rounds').get(id=game.id)
+class RoundSerializer(serializers.ModelSerializer):
+    player1 = serializers.CharField(source='player1.alias')
+    player2 = serializers.CharField(source='player2.alias')
 
-    # Serialize the game instance and related objects
-    serialized_data = serializers.serialize('json', [game_instance], use_natural_foreign_keys=True)
+    class Meta:
+        model = Round
+        fields = ['round_number', 'player1', 'player2', 'winner', 'player1_score', 'player2_score']
 
-    return serialized_data
+class GameSerializer(serializers.ModelSerializer):
+    rounds = RoundSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Game
+        fields = ['id', 'mode', 'winner', 'rounds']

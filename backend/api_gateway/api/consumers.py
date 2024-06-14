@@ -27,8 +27,10 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
 
         switcher = {
             'create-game': self.create_game,
-            #'start-game': self.start_game,
+            'start-game': self.start_game,
             #'pause-game': self.pause_game,
+            #'resume-game': self.resume_game,
+            'game-state': self.game_state,
         }
 
         method = switcher.get(action)
@@ -44,6 +46,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             response = requests.post(GAME_MANAGER_URL + '/create-game/', json=content, headers=headers)
             response.raise_for_status()
             game_content = response.json()
+            self.group_name = f'game_{game_content["id"]}'
             await self.send_json(game_content)
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
@@ -54,8 +57,29 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def pause_game(self, content):
         pass
 
+    async def resume_game(self, content):
+        pass
 
-class PlayerConsumer(AsyncJsonWebsocketConsumer):
+    async def game_state(self, content):
+        # check if player is allowed to send game state in specified game
+
+        # Broadcast updated game state to the group
+        await self.send_json(
+            {
+                'type': 'game_update',
+                'player1': content['player1'],
+                'player2': content['player2'],
+                'ball': content['ball'],
+                'ballSpeed': content['ballSpeed'],
+                'playerTurn': content['playerTurn'],
+                'playerScore': content['playerScore'],
+                'aiScore': content['aiScore'],
+                'ballIsHeld': content['ballIsHeld']
+            }
+        )
+
+
+class RemoteConsumer(AsyncJsonWebsocketConsumer):
     
     async def connect(self):
         print("Connected Player Consumer")
@@ -93,7 +117,7 @@ class PlayerConsumer(AsyncJsonWebsocketConsumer):
         self.alias = content.get('alias')
 
     
-class   HostConsumer(PlayerConsumer):
+class   HostConsumer(RemoteConsumer):
     
     async def connect(self):
         print("Connected Host Consumer")

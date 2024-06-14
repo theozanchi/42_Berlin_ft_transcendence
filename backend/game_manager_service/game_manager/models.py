@@ -8,6 +8,7 @@ import requests
 # Create your models here.
 class Game(models.Model):
     mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
+    winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
 
     def clean(self):
         if not self.mode:
@@ -38,8 +39,29 @@ class Game(models.Model):
             round = Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
             round_number += 1
 
+    def update_game(self, data):
+        winner = data.get('winner')
+        round_number = data.get('round_number')
+
+        if round_number is not None and winner:
+                try:
+                    round = Round.objects.get(game=self, round_number=round_number)
+                    round.winner = Player.objects.get(game=self, alias=winner)
+                    round.save()
+                except Round.DoesNotExist:
+                    print(f"No round found for game {self.pk} with round number {round_number}")
+                except Player.DoesNotExist:
+                    print(f"No player found for game {self.pk} with alias {self.pk}")
+        else:
+            raise ValidationError("Invalid data provided for game update.")
+        
+        if round_number == self.rounds.count():
+            self.winner = Player.objects.get(game=self, alias=winner)
+            self.save()
+
     def __str__(self):
         return self.pk
+    
 
 class Player(models.Model):
     ###### ISSUE:truncate name for player in case it's too long
@@ -61,6 +83,8 @@ class Round(models.Model):
     player1 = models.ForeignKey('Player', related_name='player1_rounds', on_delete=models.CASCADE)
     player2 = models.ForeignKey('Player', related_name='player2_rounds', on_delete=models.CASCADE)
     winner = models.ForeignKey('Player', related_name='won_rounds', null=True, on_delete=models.SET_NULL)
+    player1_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
+    player2_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
 
     def clean(self):
         if self.player1 == self.player2:
