@@ -1,5 +1,5 @@
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 import requests
 import uuid
@@ -8,21 +8,21 @@ GAME_MANAGER_URL = 'http://game_manager:8002'
 GAME_LOGIC_URL = 'http://game_logic:8003'
 GAME_LOBBY_URL = 'http://game_lobby:8004'
 
-class LocalConsumer(AsyncWebsocketConsumer):
+GAME_MANAGER_HOST = 'game_manager'
+GAME_LOGIC_HOST = 'game_logic'
+GAME_LOBBY_HOST = 'game_lobby'
+
+class LocalConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         print("Connected Local Consumer")
-        # Establish connection
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Cleanup when connection is closed
-        self.close(close_code)
+        await self.close(close_code)
 
-    async def receive(self, text_data):
-        # Handle incoming messages
-        data = json.loads(text_data)
-        action = data.get('action')
+    async def receive_json(self, content):
+        action = content.get('action')
 
         switcher = {
             'create-game': self.create_game,
@@ -32,23 +32,29 @@ class LocalConsumer(AsyncWebsocketConsumer):
 
         method = switcher.get(action)
         if method:
-            await method(data)
+            headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
+            await method(content, headers)
         else:
-            self.send(text_data=json.dumps({'error': 'Invalid action'}))
-    
-    async def create_game(self, data):
-        data['game-mode'] = 'local'
-        #data['host-channel-name'] = self.channel_name
-        try:
-            response = requests.post(GAME_MANAGER_URL + '/create-game/', json=data)
-            response.raise_for_status()  # Raise exception for any HTTP error status
-            game_data = response.json()
-            await self.send(text_data=json.dumps(game_data))
-        except requests.RequestException as e:
-            await self.send(text_data=json.dumps({'error': str(e)}))
-                                                                                                                
+            await self.send_json({'error': 'Invalid action'})
 
-class PlayerConsumer(AsyncWebsocketConsumer):
+    async def create_game(self, content, headers):
+        content['game-mode'] = 'local'
+        try:
+            response = requests.post(GAME_MANAGER_URL + '/create-game/', json=content, headers=headers)
+            response.raise_for_status()
+            game_content = response.json()
+            await self.send_json(game_content)
+        except requests.RequestException as e:
+            await self.send_json({'error': str(e)})
+                                                                                                                
+    async def start_game(self, content):
+        pass
+
+    async def pause_game(self, content):
+        pass
+
+
+class PlayerConsumer(AsyncJsonWebsocketConsumer):
     
     async def connect(self):
         print("Connected Player Consumer")
@@ -61,16 +67,16 @@ class PlayerConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
-        self.channel_layer.group_discard(
+        await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
         await self.close(close_code)
 
-    async def receive(self, text_data):
+    async def receive(self, content):
         # Handle incoming messages
-        data = json.loads(text_data)
-        action = data.get('action')
+        content = json.loads(content)
+        action = content.get('action')
 
         switcher = {
             'set-alias': self.set_alias,
@@ -78,12 +84,12 @@ class PlayerConsumer(AsyncWebsocketConsumer):
 
         method = switcher.get(action)
         if method:
-            await method(data)
+            await method(content)
         else:
-            self.send(text_data=json.dumps({'error': 'Invalid action'}))
+           await self.send_json({'error': 'Invalid action'})
 
-    async def set_alias(self, data):
-        self.alias = data.get('alias')
+    async def set_alias(self, content):
+        self.alias = content.get('alias')
 
     
 class   HostConsumer(PlayerConsumer):
@@ -99,15 +105,14 @@ class   HostConsumer(PlayerConsumer):
         )
 
     async def disconnect(self, close_code):
-        self.channel_layer.group_discard(
+        await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
-        self.close(close_code)
+        await self.close(close_code)
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        action = data.get('action')
+    async def receive(self, content):
+        action = content.get('action')
 
         switcher = {
             'set-alias': self.set_alias,
@@ -116,14 +121,15 @@ class   HostConsumer(PlayerConsumer):
 
         method = switcher.get(action)
         if method:
-            await method(data)
+            headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
+            await method(content, headers)
         else:
-            self.send(text_data=json.dumps({'error': 'Invalid action'}))
+            await self.send_json({'error': 'Invalid action'})
 
-    async def kick_player(self, data):
+    async def kick_player(self, content, headers):
         pass
 
-    async def start_game(self, event):
+    async def start_game(self, content, headers):
         pass
     
 """     @database_sync_to_async

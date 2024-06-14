@@ -4,11 +4,18 @@ curl -k -b cookies.txt -d
 "Content-Type: application/json" -H 
 "X-CSRFToken: $csrf_token" https://localhost:8443/api/create_lobby/
 
+14/06 issues:
+	Successful communication flow from client -> nginx -> api -> micro service <---|
+
 MICROSERVICE ARCHITECTURE
+
     API Gateway Service:
         Acts as the entry point for clients.
         Handles authentication, routing, and load balancing.
-        Directs incoming requests to the appropriate services.
+        Directs incoming requests to the appropriate services.        
+        Manages real-time communication between clients and the game server.
+        Handles WebSocket connections for real-time updates.
+        Broadcasts game events and updates to connected clients.
 
     Game Lobby Service:
         Responsible for managing game lobbies and sessions.
@@ -20,20 +27,16 @@ MICROSERVICE ARCHITECTURE
         Coordinates with other services to ensure all players are connected and ready.
         Manages the game state and communicates updates to connected clients.
 
-    Player Service:
-        Manages guest and user players.
-        Handles authentication and authorization.
-        Stores player data such as guest_namees, avatars.
-
-    Communication Service:
-        Manages real-time communication between clients and the game server.
-        Handles WebSocket connections for real-time updates.
-        Broadcasts game events and updates to connected clients.
-
     Game Logic Service:
         Implements the game mechanics and logic.
         Updates the game state based on player actions.
         Determines game outcomes and scores.
+        
+    Player/User Service:
+        Manages guest and user players.
+        Handles authentication and authorization.
+        Stores player data such as guest_namees, avatars.
+
 
 Here's how the flow might look for a remote game setup:
 

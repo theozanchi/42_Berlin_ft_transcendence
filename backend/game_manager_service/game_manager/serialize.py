@@ -1,24 +1,11 @@
 from .models import Game, Player, Round
+from django.core import serializers
 
 def serialize_game_data(game):
-    response_data = {
-        'game_id': game.id, 
-        'game_mode': game.mode,
-        'players': [],
-        'rounds': [],
-    }
+    # Fetch the game instance with related fields prefetched
+    game_instance = Game.objects.prefetch_related('players', 'rounds').get(id=game.id)
 
-    # Populate player information
-    for player in game.players.all():  # game.players is a related manager to Player model
-        response_data['players'].append({
-            'guest_name': player.guest_name,
-        })
+    # Serialize the game instance and related objects
+    serialized_data = serializers.serialize('json', [game_instance], use_natural_foreign_keys=True)
 
-    # Populate round information
-    for round_instance in game.rounds.all():  # game.rounds is a related manager to Round model
-        response_data['rounds'].append({
-            'round_number': round_instance.round_number,
-            'player1': round_instance.player1,
-            'player2': round_instance.player2,
-        })
-    return response_data
+    return serialized_data

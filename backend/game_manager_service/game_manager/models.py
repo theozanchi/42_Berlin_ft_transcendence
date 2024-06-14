@@ -8,13 +8,10 @@ import requests
 # Create your models here.
 class Game(models.Model):
     mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
-    #host_channel_name = models.CharField(max_length=100, blank=True, null=True)
 
     def clean(self):
         if not self.mode:
             raise ValidationError('No valid game mode detected')
-        if not self.host_channel_name:
-            raise ValidationError('No valid websocket channel name for host detected')
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -42,17 +39,16 @@ class Game(models.Model):
             round_number += 1
 
     def __str__(self):
-        return f"Game {self.pk} - {self.get_game_mode_display()} - {self.players.count()} players"
+        return self.pk
 
 class Player(models.Model):
     ###### ISSUE:truncate name for player in case it's too long
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, null=True, blank=True)
-    #channel_name = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"Player {self.alias} in Game {self.game.pk}"
+        return self.alias
 
     def save(self, *args, **kwargs):
         if not self.alias:
@@ -82,9 +78,7 @@ class Round(models.Model):
 
         response = requests.post('http://game_logic_service/start_game/', json={
             'player1': self.player1.guest_name,
-            'player1_ws_id': self.player1.ws_id,
             'player2': self.player2.guest_name,
-            'player2': self.player2.ws_id
         })
 
         if response.status_code == 200:
@@ -97,5 +91,5 @@ class Round(models.Model):
             print(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
     
     def __str__(self):
-        return f"Round {self.pk} of {self.game.pk} - {self.player1} vs {self.player2}"
+        return f"Round {self.round_number} - {self.player1} vs {self.player2}"
 

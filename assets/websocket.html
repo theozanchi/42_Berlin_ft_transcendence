@@ -56,6 +56,7 @@
 
         function sendMessage() {
             const message = document.getElementById('messageInput').value;
+            JSON.stringify(message);
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(message);
                 logMessage('Sent: ' + message);

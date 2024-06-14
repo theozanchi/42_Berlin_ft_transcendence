@@ -19,10 +19,8 @@ function generateLocalGame() {
 
 	// Convert to JSON
 	var json = JSON.stringify(data);
-
-	// Send POST request
-	socket.send(json);
-	/* fetch ('wss://localhost:8443/ws/local/', {
+	
+	fetch ('wss://localhost:8443/ws/local/', {
 		method:		'POST',
 		body:		json,
 		headers:	{ 'Content-Type': 'application/json' }
@@ -38,7 +36,7 @@ function generateLocalGame() {
 	.catch((error) => {
 		console.error('Error:', error);
 	});
-	console.log(json); */
+	console.log(json);
 
 alert(`Generating Game with Players: ${json}`);
 }

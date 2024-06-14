@@ -12,7 +12,6 @@ GAME_LOBBY_URL = 'http://game_lobby:8004'
 def create_lobby(request):
     url = f'{GAME_LOBBY_URL}/create_lobby/'
     response = requests.post(url, json=request.data, headers=request.headers)
-
     return Response(response.json(), status=response.status_code)
 
 @api_view(['POST'])
