@@ -52,7 +52,7 @@ function generateLocalGame() {
 	let playerNames = playerList.getPlayerNames();
 
 	// Create data object with action key
-	let data = {action: 'start-game'}
+	let data = {action: 'create-game'}
 
 	// Add players to JSON
 	data.players = playerNames;

@@ -22,6 +22,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         await self.close(close_code)
 
     async def receive_json(self, content):
+        print("LocalConsumer received message:", content, "\nHeaders: ", self.scope['headers'])
         action = content.get('action')
 
         switcher = {

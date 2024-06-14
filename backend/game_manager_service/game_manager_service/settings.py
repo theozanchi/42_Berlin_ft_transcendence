@@ -26,6 +26,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+}
+
 # Application definition
 
 INSTALLED_APPS = [

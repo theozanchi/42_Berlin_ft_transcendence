@@ -1,18 +1,17 @@
 # views.py
 from django.http import HttpResponse, JsonResponse
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework import status
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from game_manager.models import Game
 from .serialize import serialize_game_data
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def create_game(request):
-    # Access form data using request.data
     game = Game.objects.create(mode=request.data.get('game-mode'))
-    # Create players for the game
     game.add_players_to_game(request.data)
-    # Generate rounds for the game
     game.create_rounds()
     # Game can now be played
     #for round in game.rounds.all():
