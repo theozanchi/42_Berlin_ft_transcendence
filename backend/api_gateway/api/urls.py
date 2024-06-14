@@ -1,12 +1,9 @@
-from django.urls import path
-from .views import create_lobby, join_lobby, start_game
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import get_game, create_game, update_game
 
 urlpatterns = [
-    path('create-lobby/', create_lobby),
-    path('join-lobby/', join_lobby),
-    path('start-game/', start_game)
+    path('get_game/', get_game),
+    path('create_game/', create_game),
+    path('update_game/' , update_game),
 ]
-
-
-
-

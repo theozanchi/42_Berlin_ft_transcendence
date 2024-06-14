@@ -13,7 +13,6 @@ GAME_LOGIC_HOST = 'game_logic'
 GAME_LOBBY_HOST = 'game_lobby'
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
-
     async def connect(self):
         print("Connected Local Consumer")
         await self.accept()
@@ -30,7 +29,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             'start-game': self.start_game,
             #'pause-game': self.pause_game,
             #'resume-game': self.resume_game,
-            'game-state': self.game_state,
+            'game-state-update': self.game_state_update,
         }
 
         method = switcher.get(action)
@@ -60,27 +59,11 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def resume_game(self, content):
         pass
 
-    async def game_state(self, content):
+    async def game_state_update(self, content):
         # check if player is allowed to send game state in specified game
-
-        # Broadcast updated game state to the group
-        await self.send_json(
-            {
-                'type': 'game_update',
-                'player1': content['player1'],
-                'player2': content['player2'],
-                'ball': content['ball'],
-                'ballSpeed': content['ballSpeed'],
-                'playerTurn': content['playerTurn'],
-                'playerScore': content['playerScore'],
-                'aiScore': content['aiScore'],
-                'ballIsHeld': content['ballIsHeld']
-            }
-        )
-
+        pass
 
 class RemoteConsumer(AsyncJsonWebsocketConsumer):
-    
     async def connect(self):
         print("Connected Player Consumer")
         self.lobby_id = self.scope['url_route']['kwargs']['lobby_id']
@@ -118,7 +101,6 @@ class RemoteConsumer(AsyncJsonWebsocketConsumer):
 
     
 class   HostConsumer(RemoteConsumer):
-    
     async def connect(self):
         print("Connected Host Consumer")
         self.lobby_id = str(uuid.uuid4())[:8]

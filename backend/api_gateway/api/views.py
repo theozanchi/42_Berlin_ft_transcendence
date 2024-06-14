@@ -1,32 +1,30 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.permissions import AllowAny
+from rest_framework import viewsets
+from rest_framework.decorators import action
 import requests
 
 GAME_MANAGER_URL = 'http://game_manager:8002'
 GAME_LOGIC_URL = 'http://game_logic:8003'
 GAME_LOBBY_URL = 'http://game_lobby:8004'
 
-@api_view(['POST'])
-def create_lobby(request):
-    url = f'{GAME_LOBBY_URL}/create_lobby/'
-    response = requests.post(url, json=request.data, headers=request.headers)
+@api_view(['GET'])
+def get_game(self, request):
+    response = requests.get(self.GAME_MANAGER_URL + '/get-game/')
     return Response(response.json(), status=response.status_code)
 
 @api_view(['POST'])
-def join_lobby(request):
-    url = f'{GAME_LOBBY_URL}/join_lobby/'
-    response = requests.post(url, json=request.data, headers=request.headers)
-
+def create_game(self, request):
+    response = requests.post(self.GAME_MANAGER_URL + '/create-game/', json=request.data)
     return Response(response.json(), status=response.status_code)
 
-@api_view(['POST'])
-def start_game(request):
-    url = f'{GAME_MANAGER_URL}/create_game/'
-    request.data['game-mode'] = 'local'
-    response = requests.post(url, json=request.data, headers=request.headers)
-
+@api_view(['PUT'])
+def update_game(self, request):
+    response = requests.put(self.GAME_MANAGER_URL + '/update-game/', json=request.data)
     return Response(response.json(), status=response.status_code)
     
 #INITIATE REMOTE GAME
