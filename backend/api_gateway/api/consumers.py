@@ -3,27 +3,44 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 import requests
 import uuid
+import json
+import asyncio
+import redis
+from asgiref.sync import async_to_sync, sync_to_async
+
+# Initialize Redis client
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 GAME_MANAGER_URL = 'http://game_manager:8002'
 GAME_LOGIC_URL = 'http://game_logic:8003'
 GAME_LOBBY_URL = 'http://game_lobby:8004'
 
-GAME_MANAGER_HOST = 'game_manager'
-GAME_LOGIC_HOST = 'game_logic'
-GAME_LOBBY_HOST = 'game_lobby'
-
 class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
-        print("Connected Local Consumer")
+        # ISSUE: check if uuid is unique / store in database
+        self.game_id = str(uuid.uuid4())[:8]
+        self.room_group_name = f'{self.game_id}'
+        
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
         await self.accept()
+        await self.send_json({"game-id": self.game_id})
 
     async def disconnect(self, close_code):
+        await sync_to_async(self.pubsub.unsubscribe)(self.channel_name)
+        self.pubsub.close()
+        
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
         await self.close(close_code)
-
-    async def receive_json(self, content):
-        print("LocalConsumer received message:", content, "\nHeaders: ", self.scope['headers'])
-        action = content.get('action')
-
+    
+    async def get_action(self, action):
         switcher = {
             'create-game': self.create_game,
             'start-game': self.start_game,
@@ -31,24 +48,33 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             #'resume-game': self.resume_game,
             'game-state-update': self.game_state_update,
         }
+        return switcher.get(action)
 
-        method = switcher.get(action)
+    async def receive_json(self, content):
+        print("Consumer received message:", content, "\nHeaders: ", self.scope['headers'])
+        action = content.get('action')
+
+        method = self.get_action(action)
         if method:
             headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
-            await method(content, headers)
+            response = method(content, headers)
+            
+            await self.send_json({"action": action, **response})
+       
         else:
             await self.send_json({'error': 'Invalid action'})
 
     async def create_game(self, content, headers):
         content['game-mode'] = 'local'
+        
         try:
             response = requests.post(GAME_MANAGER_URL + '/create-game/', json=content, headers=headers)
             response.raise_for_status()
             game_content = response.json()
-            self.group_name = f'game_{game_content["id"]}'
-            await self.send_json(game_content)
+            return game_content
+        
         except requests.RequestException as e:
-            await self.send_json({'error': str(e)})
+            return({'error': str(e)})
                                                                                                                 
     async def start_game(self, content):
         pass
@@ -63,75 +89,17 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         # check if player is allowed to send game state in specified game
         pass
 
-class RemoteConsumer(AsyncJsonWebsocketConsumer):
-    async def connect(self):
-        print("Connected Player Consumer")
-        self.lobby_id = self.scope['url_route']['kwargs']['lobby_id']
-        self.group_name = f'lobby_{self.lobby_id}'
-        await self.accept()
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
+class   HostConsumer(LocalConsumer):
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
-        await self.close(close_code)
-
-    async def receive(self, content):
-        # Handle incoming messages
-        content = json.loads(content)
-        action = content.get('action')
-
-        switcher = {
-            'set-alias': self.set_alias,
-        }
-
-        method = switcher.get(action)
-        if method:
-            await method(content)
-        else:
-           await self.send_json({'error': 'Invalid action'})
-
-    async def set_alias(self, content):
-        self.alias = content.get('alias')
-
-    
-class   HostConsumer(RemoteConsumer):
-    async def connect(self):
-        print("Connected Host Consumer")
-        self.lobby_id = str(uuid.uuid4())[:8]
-        self.group_name = f'lobby_{self.lobby_id}'
-        await self.accept()
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
-
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
-        await self.close(close_code)
-
-    async def receive(self, content):
-        action = content.get('action')
-
+    async def get_action(self, action):
         switcher = {
             'set-alias': self.set_alias,
             'kick-player': self.kick_player,
+            'create-game': self.create_game,
+            'start-game': self.start_game,
+            #'game-state-update': self.game_state_update,
         }
-
-        method = switcher.get(action)
-        if method:
-            headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
-            await method(content, headers)
-        else:
-            await self.send_json({'error': 'Invalid action'})
+        return switcher.get(action)
 
     async def kick_player(self, content, headers):
         pass
@@ -142,3 +110,30 @@ class   HostConsumer(RemoteConsumer):
 """     @database_sync_to_async
     async def create_game(self, event):
         pass"""
+
+class RemoteConsumer(LocalConsumer):
+    async def connect(self):
+        print("Connected Player Consumer")
+        self.lobby_id = self.scope['url_route']['kwargs']['lobby_id']
+        self.room_group_name = f'lobby_{self.lobby_id}'
+        
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+        self.pubsub = redis_client.pubsub()
+        await sync_to_async(self.pubsub.subscribe)(self.room_group_name)
+        asyncio.create_task(self.listen_to_redis())
+
+    async def get_action(self, action):
+        switcher = {
+            'set-alias': self.set_alias,
+            #'game-state-update': self.game_state_update,
+        }
+        return switcher.get(action)
+    
+    async def set_alias(self, content):
+        self.alias = content.get('alias')
