@@ -3,7 +3,8 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import asyncio
 import redis
 import time
-from rest.framework import request
+#from rest.framework import request
+from threading import Thread
 
 # Initialize Redis client
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
@@ -27,13 +28,6 @@ class GameLogic:
             'ballIsHeld': True
         }
 
-    def get_game_state(self, game_id):
-        return self.games.get(game_id)
-
-    def update_game_state(self, game_id, data):
-        if game_id in self.games:
-            self.games[game_id].update(data)
-
     def finish_game(self, game_id):
         """ player1_score = self.games[game_id]['player1_score']
         player2_score = self.games[game_id]['player2_score']
@@ -45,19 +39,28 @@ class GameLogic:
     def start_listening(self):
         self.pubsub.psubscribe('player_*')
         while True:
+            print('Listening for updates...')
             message = self.pubsub.get_message()
             if message and message['type'] == 'pmessage':
                 self.process_update(json.loads(message['data']))
             time.sleep(0.01)
 
     def process_update(self, data):
-        game_state = self.get_game_state(data['game_id'])
+        print('Processing update:', data)
+        game_id = data['game_id']
+        if not game_id in self.games:
+            self.create_game(game_id)
+        game_state = self.games.get(game_id)
+
         # update game_state now based on the data
         # game logic ......
 
         # update game instance and publish the update
-        self.update_game_state(data['game_id'], data['game-state'])
-        redis_client.publish(f'{data["game_id"]}', json.dumps(game_state))
+        self.games[game_id].update(game_state)
+        redis_client.publish(f'game_id', json.dumps(game_state))
 
-game_logic_service = GameLogic()
-game_logic_service.start_listening()
+
+if __name__ == "__main__":
+    print('Starting Game Logic Service...')
+    game_logic_service = GameLogic()
+    game_logic_service.start_listening()
