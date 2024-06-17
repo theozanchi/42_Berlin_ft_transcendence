@@ -44,9 +44,9 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         switcher = {
             'create-game': self.create_game,
             'start-game': self.start_game,
-            #'pause-game': self.pause_game,
-            #'resume-game': self.resume_game,
-            'game-state-update': self.game_state_update,
+            'pause-game': self.pause_game,
+            'resume-game': self.resume_game,
+            'game-update': self.update_game,
         }
         return switcher.get(action)
 
@@ -85,9 +85,20 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def resume_game(self, content):
         pass
 
-    async def game_state_update(self, content):
-        # check if player is allowed to send game state in specified game
-        pass
+    async def update_game(self, content):
+        #will be send to game_logic
+        channel_layer = get_channel_layer()
+        await channel_layer.send(
+            'game_logic',
+            {
+                'type': 'process_game_state_update',
+                'data': content
+            }
+        )
+    
+    async def game_update(self, content):
+        self.send_json(content['game-state'])
+
 
 class   HostConsumer(LocalConsumer):
 
@@ -114,8 +125,8 @@ class   HostConsumer(LocalConsumer):
 class RemoteConsumer(LocalConsumer):
     async def connect(self):
         print("Connected Player Consumer")
-        self.lobby_id = self.scope['url_route']['kwargs']['lobby_id']
-        self.room_group_name = f'lobby_{self.lobby_id}'
+        self.game_id = self.scope['url_route']['kwargs']['game_id']
+        self.room_group_name = f'{self.game_id}'
         
         await self.channel_layer.group_add(
             self.room_group_name,
