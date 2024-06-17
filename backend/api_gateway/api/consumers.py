@@ -19,12 +19,17 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         # ISSUE: check if uuid is unique / store in database
         self.game_id = str(uuid.uuid4())[:8]
-        self.room_group_name = f'{self.game_id}'
+        self.game_id = f'{self.game_id}'
         
         await self.channel_layer.group_add(
-            self.room_group_name,
+            self.game_id,
             self.channel_name
         )
+
+        self.pubsub = redis_client.pubsub()
+        await sync_to_async(self.pubsub.subscribe)(self.game_id)
+
+        asyncio.create_task(self.listen_to_redis())
 
         await self.accept()
         await self.send_json({"game-id": self.game_id})
@@ -34,7 +39,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         self.pubsub.close()
         
         await self.channel_layer.group_discard(
-            self.room_group_name,
+            self.game_id,
             self.channel_name
         )
 
@@ -46,7 +51,8 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             'start-game': self.start_game,
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
-            'game-update': self.update_game,
+            'ready-to-play': self.ready_to_play,
+            'update-game': self.update_game,
         }
         return switcher.get(action)
 
@@ -85,16 +91,25 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def resume_game(self, content):
         pass
 
+    async def ready_to_play(self, content):
+        # indicate ready for round, only applicable to players in this round
+        pass
+
+########################################## REDIS PUBSUB METHODS ##########################################
+    
     async def update_game(self, content):
-        #will be send to game_logic
-        channel_layer = get_channel_layer()
-        await channel_layer.send(
-            'game_logic',
-            {
-                'type': 'process_game_state_update',
-                'data': content
-            }
-        )
+        data['game-id'] = self.game_id
+        data += content.get('game-state')
+
+        redis_client.publish(f'player_{self.channel_name}', json.dumps(data))
+        return "Game state published."
+
+    async def listen_to_redis(self):
+        while True:
+            message = await sync_to_async(self.pubsub.get_message)()
+            if message and message['type'] == 'message':
+                await self.send_json(json.loads(message['data']))
+            await asyncio.sleep(0.01)
     
     async def game_update(self, content):
         self.send_json(content['game-state'])
@@ -108,7 +123,7 @@ class   HostConsumer(LocalConsumer):
             'kick-player': self.kick_player,
             'create-game': self.create_game,
             'start-game': self.start_game,
-            #'game-state-update': self.game_state_update,
+            'update-game': self.update_game,
         }
         return switcher.get(action)
 
@@ -124,25 +139,25 @@ class   HostConsumer(LocalConsumer):
 
 class RemoteConsumer(LocalConsumer):
     async def connect(self):
-        print("Connected Player Consumer")
         self.game_id = self.scope['url_route']['kwargs']['game_id']
-        self.room_group_name = f'{self.game_id}'
+        self.game_id = f'{self.game_id}'
         
         await self.channel_layer.group_add(
-            self.room_group_name,
+            self.game_id,
             self.channel_name
         )
 
-        await self.accept()
-
         self.pubsub = redis_client.pubsub()
-        await sync_to_async(self.pubsub.subscribe)(self.room_group_name)
+        await sync_to_async(self.pubsub.subscribe)(self.game_id)
+
         asyncio.create_task(self.listen_to_redis())
+
+        await self.accept()
 
     async def get_action(self, action):
         switcher = {
             'set-alias': self.set_alias,
-            #'game-state-update': self.game_state_update,
+            'update-game': self.update_game,
         }
         return switcher.get(action)
     
