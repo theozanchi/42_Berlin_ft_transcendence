@@ -26,17 +26,10 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             self.channel_name
         )
 
-        #self.pubsub = redis_client.pubsub()
-        #await sync_to_async(self.pubsub.subscribe)(self.game_id)
-
-        #asyncio.create_task(self.listen_to_redis())
-
         await self.accept()
         await self.send_json({"game-id": self.game_id})
 
     async def disconnect(self, close_code):
-        #await sync_to_async(self.pubsub.unsubscribe)(self.channel_name)
-        #self.pubsub.close()
         
         await self.channel_layer.group_discard(
             self.game_id,
@@ -48,7 +41,6 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def get_action(self, action):
         switcher = {
             'create-game': self.create_game,
-            'start-game': self.start_game,
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
             'ready-to-play': self.ready_to_play,
@@ -63,6 +55,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         method = self.get_action(action)
         if method:
             headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
+            content['game-id'] = self.game_id
             response = await method(content, headers)
             
             await self.send_json({"action": action, **response})
@@ -81,39 +74,36 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         
         except requests.RequestException as e:
             return({'error': str(e)})
-                                                                                                                
-    async def start_game(self, content):
-        pass
-
-    async def pause_game(self, content):
-        pass
-
-    async def resume_game(self, content):
-        pass
-
-    async def ready_to_play(self, content):
-        # indicate ready for round, only applicable to players in this round
-        pass
-
-########################################## REDIS PUBSUB METHODS ##########################################
     
-    """ async def update_game(self, content):
-        data['game-id'] = self.game_id
-        data += content.get('game-state')
+    async def ready_to_play(self, content, headers):
+        try:
+            response = requests.post(GAME_MANAGER_URL + '/play-next-round/', json=content, headers=headers)
+            response.raise_for_status()
+            round_result = response.json()
+            return round_result
+        
+        except requests.RequestException as e:
+            return({'error': str(e)})
 
-        redis_client.publish(f'player_{self.channel_name}', json.dumps(data))
-        return "Game state published."
+    async def update_game(self, content, headers):
+        try:
+            response = requests.post(GAME_LOGIC_URL + '/update-game/', json=content, headers=headers)
+            response.raise_for_status()
+            game_state = response.json()
+            self.channel_layer.group_send(game_state.get('game_id'), {
+                'type': 'update_game_state',
+                'game_state': game_state
+            })
+            return "Game state published to channel."
+        
+        except requests.RequestException as e:
+            return({'error': str(e)})
+        
+    async def pause_game(self, content, headers):
+        pass
 
-    async def listen_to_redis(self):
-        while True:
-            message = await sync_to_async(self.pubsub.get_message)()
-            if message and message['type'] == 'message':
-                await self.send_json(json.loads(message['data']))
-            await asyncio.sleep(0.01)
-    
-    async def game_update(self, content):
-        self.send_json(content['game-state'])
- """
+    async def resume_game(self, content, headers):
+        pass
 
 class   HostConsumer(LocalConsumer):
     async def get_action(self, action):
@@ -121,7 +111,7 @@ class   HostConsumer(LocalConsumer):
             'set-alias': self.set_alias,
             'kick-player': self.kick_player,
             'create-game': self.create_game,
-            'start-game': self.start_game,
+            'ready-to-play': self.start_game,
             'update-game': self.update_game,
         }
         return switcher.get(action)
@@ -140,11 +130,6 @@ class RemoteConsumer(LocalConsumer):
             self.channel_name
         )
 
-        """ self.pubsub = redis_client.pubsub()
-        await sync_to_async(self.pubsub.subscribe)(self.game_id)
-
-        asyncio.create_task(self.listen_to_redis())
- """
         await self.accept()
         await self.send_json({"connect": "Successful"})
 
