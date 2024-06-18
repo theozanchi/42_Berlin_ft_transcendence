@@ -1,3 +1,4 @@
+
 class PongGame extends HTMLElement {
     constructor() {
         super();

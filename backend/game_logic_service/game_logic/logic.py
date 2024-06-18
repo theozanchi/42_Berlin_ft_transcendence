@@ -59,7 +59,6 @@ class GameLogic:
         self.games[game_id].update(game_state)
         redis_client.publish(f'game_id', json.dumps(game_state))
 
-
 if __name__ == "__main__":
     print('Starting Game Logic Service...')
     game_logic_service = GameLogic()

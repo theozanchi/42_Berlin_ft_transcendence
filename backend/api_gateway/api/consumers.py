@@ -116,7 +116,6 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
 
 
 class   HostConsumer(LocalConsumer):
-
     async def get_action(self, action):
         switcher = {
             'set-alias': self.set_alias,
@@ -132,10 +131,6 @@ class   HostConsumer(LocalConsumer):
 
     async def start_game(self, content, headers):
         pass
-    
-"""     @database_sync_to_async
-    async def create_game(self, event):
-        pass"""
 
 class RemoteConsumer(LocalConsumer):
     async def connect(self):
