@@ -9,10 +9,10 @@
 let newsocket;
 let openPromise;
 
-function openSocket() {
+function openSocket(path) {
     if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
         console.log('Opening new WebSocket');
-		const url = `wss://${window.location.host}/ws/local/`;
+		const url = `wss://${window.location.host}${path}`;
         newsocket = new WebSocket(url);
 
         openPromise = new Promise((resolve) => {
@@ -62,11 +62,20 @@ function generateLocalGame() {
 	var json = JSON.stringify(data);
 
 	//OPEN SOCKET
-	openSocket();
+	openSocket('/ws/local/');
 
 	// Send JSON VIA WEBSOCKET
 	sendJson(json);
 }
+
+function joinRemoteGame() {
+	openSocket('/ws/join/{game_id}/');
+}
+
+function hostRemoteGame() {
+	openSocket('/ws/host/');
+}
+
 
 
 	class StepperWrapper extends HTMLElement {
@@ -94,9 +103,9 @@ function generateLocalGame() {
 			});
 
 			//THIS SENDS A JSON OF ALL PLAYERS TO THE WEBSOCKET AFTER ESTABLISHING A CONNECTION
-			document.getElementById('generateLocalGameButtonWS').addEventListener('click', () => {
+/* 			document.getElementById('generateLocalGameButtonWS').addEventListener('click', () => {
 				generateLocalGame();
-			});
+			}); */
 
 			document.getElementById('generateLocalGameButton').addEventListener('click', () => {
 				generateLocalGame();
@@ -106,11 +115,15 @@ function generateLocalGame() {
 			});
 
 			document.getElementById('joinRemoteGameButton').addEventListener('click', () => {
-    			document.getElementById('21-remote-join').style.display = 'block';
+				joinRemoteGame();
+
+				document.getElementById('21-remote-join').style.display = 'block';
 				document.getElementById('20-remote-switch').style.display = 'none';
 			});
 
 			document.getElementById('hostRemoteGameButton').addEventListener('click', () => {
+				hostRemoteGame();
+				
 				document.getElementById('20-remote-switch').style.display = 'none';
 				document.getElementById('22-remote-host').style.display = 'block';
 			});

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'channels',
     'api',
+    'redis',
 
     'django.contrib.admin',
     'django.contrib.auth',
