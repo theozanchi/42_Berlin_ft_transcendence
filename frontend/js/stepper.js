@@ -38,7 +38,6 @@ function openSocket(path) {
 }
 
 async function sendJson(json) {
-    await openSocket();
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
         newsocket.send(json);
@@ -68,8 +67,8 @@ function generateLocalGame() {
 	sendJson(json);
 }
 
-function joinRemoteGame() {
-	openSocket('/ws/join/{game_id}/');
+function joinRemoteGame(gameId) {
+	openSocket('/ws/join/${game_id}/');
 }
 
 function hostRemoteGame() {
@@ -114,8 +113,11 @@ function hostRemoteGame() {
 				document.getElementById('10-local').style.display = 'none';
 			});
 
-			document.getElementById('joinRemoteGameButton').addEventListener('click', () => {
-				joinRemoteGame();
+			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
+				event.preventDefault();
+				
+				const gameId = document.getElementById('searchGameID').value;
+				joinRemoteGame(gameId);
 
 				document.getElementById('21-remote-join').style.display = 'block';
 				document.getElementById('20-remote-switch').style.display = 'none';
@@ -123,7 +125,7 @@ function hostRemoteGame() {
 
 			document.getElementById('hostRemoteGameButton').addEventListener('click', () => {
 				hostRemoteGame();
-				
+
 				document.getElementById('20-remote-switch').style.display = 'none';
 				document.getElementById('22-remote-host').style.display = 'block';
 			});
