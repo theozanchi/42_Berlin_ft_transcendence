@@ -68,7 +68,8 @@ function generateLocalGame() {
 }
 
 function joinRemoteGame(gameId) {
-	openSocket('/ws/join/${game_id}/');
+	uri = `/ws/join/${gameId}/`;
+	openSocket(uri);
 }
 
 function hostRemoteGame() {
@@ -116,7 +117,7 @@ function hostRemoteGame() {
 			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
 				event.preventDefault();
 				
-				const gameId = document.getElementById('searchGameID').value;
+				const gameId = document.getElementById('searchGameID').value.trim(); 
 				joinRemoteGame(gameId);
 
 				document.getElementById('21-remote-join').style.display = 'block';

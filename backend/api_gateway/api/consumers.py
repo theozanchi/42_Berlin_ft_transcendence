@@ -146,6 +146,7 @@ class RemoteConsumer(LocalConsumer):
         asyncio.create_task(self.listen_to_redis())
  """
         await self.accept()
+        await self.send_json({"connect": "Successful"})
 
     async def get_action(self, action):
         switcher = {
