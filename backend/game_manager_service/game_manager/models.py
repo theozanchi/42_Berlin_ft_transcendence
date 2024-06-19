@@ -7,7 +7,7 @@ import requests
 
 # Create your models here.
 class Game(models.Model):
-    game_id = models.AutoField(primary_key=True)
+    game_id = models.UUIDField(primary_key=True, editable=False, unique=True)
     mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
 

@@ -21,8 +21,8 @@ def create_game(request):
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
-    except Game.DoesNotExist:
-        return Response({'error': 'Game not found.'}, status=404)
+    except request.data.get('game-id') is None:
+        return Response({'error': 'Missing game ID.'}, status=404)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

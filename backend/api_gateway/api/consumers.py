@@ -52,7 +52,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         print("Consumer received message:", content, "\nHeaders: ", self.scope['headers'])
         action = content.get('action')
 
-        method = self.get_action(action)
+        method = await self.get_action(action)
         if method:
             headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
             content['game-id'] = self.game_id
@@ -115,7 +115,14 @@ class   HostConsumer(LocalConsumer):
             'update-game': self.update_game,
         }
         return switcher.get(action)
-
+    
+    async def set_alias(self, content, headers):
+        if content.get('alias'):
+            self.alias = content.get('alias')
+            return {'alias': self.alias}
+        else:
+            return {'error': 'No alias received'}
+        
     async def kick_player(self, content, headers):
         pass
 
