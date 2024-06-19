@@ -18,8 +18,8 @@ GAME_LOBBY_URL = 'http://game_lobby:8004'
 class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         # ISSUE: check if uuid is unique / store in database
-        self.game_id = str(uuid.uuid4())[:8]
-        self.game_id = f'{self.game_id}'
+        self.game_id = str(uuid.uuid4())[:8] # self.game_id = Tournament().game_id
+
         
         await self.channel_layer.group_add(
             self.game_id,
@@ -130,7 +130,7 @@ class   HostConsumer(LocalConsumer):
 class RemoteConsumer(LocalConsumer):
     async def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
-        self.game_id = f'{self.game_id}'
+        # ISSUE check if game id is valid
         
         await self.channel_layer.group_add(
             self.game_id,
