@@ -135,7 +135,9 @@ function hostRemoteGame() {
 				document.getElementById('22-remote-host').style.display = 'block';
 			});
 			
-			document.getElementById('startRemoteGameButton').addEventListener('click', () => {
+			document.getElementById('startRemoteGameButton').addEventListener('click', (event) => {
+				event.preventDefault();
+				
 				document.getElementById('00-welcome').style.display = 'block';
 				document.getElementById('22-remote-host').style.display = 'none';
 				alert(`Get Ready to Play Your Remote Game`)	
