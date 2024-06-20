@@ -1,0 +1,26 @@
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* cursor: none;  */
+ }
+
+ html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+ /* Set canvas dimensions */
+.game-canvas {
+  width: 100%;
+  height: calc(100% - 48px); /* Adjust for the space taken by other elements */
+  position: absolute;
+  top: 48px; /* Adjust to account for the height of other elements */
+  left: 0;
+}
+.col {
+  position: relative;
+}
