@@ -91,10 +91,6 @@ class PlayerList extends HTMLElement {
 			// console.error(`invalid game mode: ${gameMode}`);
 
 		this.shadow.innerHTML = `
-			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
-			<style>
-			</style>
-
 			<h3 id="playerCount"> ${this.count} Players</h3>
 			<div id="list-of-players">
 				<player-component name="USER" input></player-component>

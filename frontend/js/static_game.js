@@ -11,14 +11,7 @@ class PongGame extends HTMLElement {
 
     render() {
         this.shadow.innerHTML = `
-            <style>
-                canvas {
-                    border: 1px solid black;
-                    width: 100%;
-                    height: 80%;
-                }
-            </style>
-            <canvas id="gameCanvas"></canvas>
+            <canvas id="gameCanvas" class="game-canvas"></canvas>
         `;
     }
 
