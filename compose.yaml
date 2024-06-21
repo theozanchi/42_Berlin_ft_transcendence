@@ -19,8 +19,8 @@ services:
     depends_on:
       - frontend
       - authentication
-      # - game_config
-      # - game_logic
+      - game_config
+      - game_logic
 
   frontend:
     container_name: frontend
