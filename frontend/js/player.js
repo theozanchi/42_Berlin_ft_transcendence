@@ -17,7 +17,7 @@ class MyPlayer extends HTMLElement {
 		const	hasInput = this.hasAttribute('input');
 		const	hasRemoveButton = this.hasAttribute('remove-button');
 		const	baseUrl = document.location.href;
-		const	imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
+		let		imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 		const	name = this.getAttribute('name');
 		if (this.hasAttribute('avatar'))
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
