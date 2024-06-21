@@ -23,7 +23,10 @@ class MyPlayer extends HTMLElement {
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 
 			this.shadow.innerHTML = `
-            <div class="player-component d-flex align-items-center justify-content-center border-bottom">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"/>
+			<link rel="stylesheet" href="css/styles.css"/>
+			<div class="player-component d-flex align-items-center justify-content-center border-bottom">
                 <img src="${imageUrl}" class="player-avatar col-auto">
                 ${hasInput 
                     ? 
