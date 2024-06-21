@@ -27,7 +27,7 @@ class MyPlayer extends HTMLElement {
                 <img src="${imageUrl}" class="player-avatar col-auto">
                 ${hasInput 
                     ? 
-                        '<input type="text" class="form-control col player-input" maxlength="30" value="' + this.getAttribute('name') + '">' 
+                        '<input type="text" id="user_name" name="user_name" class="form-control col player-input" maxlength="30" value="' + this.getAttribute('name') + '">' 
                     : 
                         `<p class="col player-name"> ${name} </p>`
                 }
