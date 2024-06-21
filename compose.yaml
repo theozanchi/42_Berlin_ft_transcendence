@@ -1,7 +1,7 @@
 services:
   nginx:
     container_name: nginx
-    image: nginx:latest
+    image: nginx:latest # Based on debian:bookworm-slim
     entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
     volumes:
       - ./nginx:/tmp
@@ -24,7 +24,7 @@ services:
 
   frontend:
     container_name: frontend
-    image: nginx:latest
+    image: nginx:latest # Based on debian:bookworm-slim
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
     networks:
@@ -32,7 +32,7 @@ services:
         ipv4_address: 172.20.0.3
 
   db:
-    image: postgres:latest
+    image: postgres:latest # Based on debian:bookworm-slim
     container_name: db
     volumes:
       - ./data/db:/var/lib/postgresql/data
@@ -81,7 +81,7 @@ services:
       - db
 
   authentication:
-    image: authentication_service
+    image: authentication_service # Based on debian:bookworm-slim
     container_name: authentication
     build: ./backend/authentication_service
     volumes:
