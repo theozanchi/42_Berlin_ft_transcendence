@@ -1,38 +1,48 @@
 services:
   nginx:
     container_name: nginx
-    image: nginx:latest
+    image: nginx:latest # Based on debian:bookworm-slim
     entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
+      - ./static:/usr/share/nginx/html/static
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.2
     ports:
-      - "$PORT:80"
-      - "$SPORT:443"
+      - "${PORT}:80"
+      - "${SPORT}:443"
     environment:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
+      - frontend
+      - authentication
       - game_config
       - game_logic
 
   frontend:
     container_name: frontend
-    image: nginx:latest
+    image: nginx:latest # Based on debian:bookworm-slim
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.3
 
   db:
-    image: postgres:latest
+    image: postgres:latest # Based on debian:bookworm-slim
     container_name: db
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./data/db:/var/lib/postgresql/data
     networks:
-      - pong_network
+      pong_network:
+        ipv4_address: 172.20.0.4
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   game_config:
     image: game_config_service
@@ -41,9 +51,14 @@ services:
     volumes:
      - ./backend/game_config_service:/code
     networks:
-      - pong_network
-    ports:
-      - "8001:8001"
+      pong_network:
+        ipv4_address: 172.20.0.5
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - "8001"
     depends_on:
       - db
 
@@ -54,11 +69,39 @@ services:
     volumes:
       - ./backend/game_logic_service:/code
     networks:
-      - pong_network
-    ports:
-      - "8002:8002"
+      pong_network:
+        ipv4_address: 172.20.0.6
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - "8002"
+    depends_on:
+      - db
+
+  authentication:
+    image: authentication_service # Based on debian:bookworm-slim
+    container_name: authentication
+    build: ./backend/authentication_service
+    volumes:
+      - ./backend/authentication_service:/code
+      - ./static:/usr/share/static
+    networks:
+      pong_network:
+        ipv4_address: 172.20.0.7
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose: 
+      - "8003"
     depends_on:
       - db
 
 networks:
   pong_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
