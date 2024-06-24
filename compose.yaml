@@ -80,6 +80,24 @@ services:
     depends_on:
       - db
 
+  game_manager:
+    image: game_manager_service # Based on debian:bookworm-slim
+    container_name: game_manager
+    build: ./backend/game_manager_service
+    volumes:
+      - ./backend/game_manager_service:/code
+    networks:
+      pong_network:
+        ipv4_address: 172.20.0.8
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - "8004"
+    depends_on:
+      - db
+
   authentication:
     image: authentication_service # Based on debian:bookworm-slim
     container_name: authentication
