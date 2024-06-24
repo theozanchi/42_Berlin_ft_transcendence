@@ -44,6 +44,12 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
+  redis:
+    image: redis:latest # Based on debian:bookworm-slim
+    container_name: redis
+    environment:
+    - REDIS_PASSWORD=${REDIS_PASSWORD}
+
   game_config:
     image: game_config_service
     container_name: game_config
