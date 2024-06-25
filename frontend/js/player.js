@@ -17,33 +17,26 @@ class MyPlayer extends HTMLElement {
 		const	hasInput = this.hasAttribute('input');
 		const	hasRemoveButton = this.hasAttribute('remove-button');
 		const	baseUrl = document.location.href;
-		const	imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
+		let		imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 		const	name = this.getAttribute('name');
 		if (this.hasAttribute('avatar'))
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 
-		this.shadow.innerHTML = `
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-            <style>
-                img {
-                    height: 48px;
-                }
-				.d-flex > * {
-                    margin: 6px 6px;
-                }
-            </style>
-            <div class="d-flex align-items-center justify-content-center border-bottom">
-                <img src="${imageUrl}" class="col-auto">
+			this.shadow.innerHTML = `
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"/>
+			<link rel="stylesheet" href="css/styles.css"/>
+			<div class="player-component d-flex align-items-center justify-content-center border-bottom">
+                <img src="${imageUrl}" class="player-avatar col-auto">
                 ${hasInput 
                     ? 
-                        '<input type="text" class="form-control col" maxlength="30" value="' + this.getAttribute('name') + '">' 
+                        '<input type="text" id="user_name" name="user_name" class="form-control col player-input" maxlength="30" value="' + this.getAttribute('name') + '">' 
                     : 
-                        `<p class="col"> ${name} </p>`
+                        `<p class="col player-name"> ${name} </p>`
                 }
                 ${hasRemoveButton ? '<button id="removeButton" class="btn btn-outline-danger col-auto">X</button>' : ''}
-			<span class="border-bottom"></span>
-			</div>
-			`;
+            </div>
+            `;
 	}
 }
 
