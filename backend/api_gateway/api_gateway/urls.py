@@ -21,5 +21,5 @@ from api import urls, routing
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(urls)),
-    re_path(r'^ws/', include(routing.websocket_urlpatterns)),
-]
+    path('ws/', include(routing.websocket_urlpatterns)),
+    ]

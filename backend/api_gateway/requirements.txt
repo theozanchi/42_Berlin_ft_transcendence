@@ -3,6 +3,7 @@ daphne
 gunicorn
 psycopg2-binary>=2.8
 redis
+websockets
 channels>=3.0.0,<4.0.0
 channels_redis>=3.3.0,<4.0.0
 djangorestframework>=3.0.0,<4.0.0

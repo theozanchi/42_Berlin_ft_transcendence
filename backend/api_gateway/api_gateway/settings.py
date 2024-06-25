@@ -74,7 +74,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api_gateway.wsgi.application'
-
 #REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
 CHANNEL_LAYERS = {

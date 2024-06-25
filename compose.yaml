@@ -49,11 +49,18 @@ services:
     volumes:
       - ./backend/api_gateway:/code
       - ./static:/usr/share/static
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       pong_network:
         ipv4_address: 172.20.0.5
     expose:
       - "8001"
+    depends_on:
+      - db
+      - redis
 
   redis:
     image: redis:latest # Based on debian:bookworm-slim
@@ -65,7 +72,7 @@ services:
         ipv4_address: 172.20.0.9
 
   game_logic:
-    image: game_logic_service
+    image: game_logic_service # Based on debian:bookworm-slim
     container_name: game_logic
     build: ./backend/game_logic_service
     volumes:
