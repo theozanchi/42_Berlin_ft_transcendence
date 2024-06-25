@@ -18,9 +18,7 @@ services:
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
       - frontend
-      - authentication
-      - game_config
-      - game_logic
+      - api_gateway
 
   frontend:
     container_name: frontend
@@ -44,23 +42,27 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
-  game_config:
-    image: game_config_service
-    container_name: game_config
-    build: ./backend/game_config_service
+  api_gateway:
+    image: api_gateway_service
+    container_name: api_gateway
+    build: ./backend/api_gateway
     volumes:
-     - ./backend/game_config_service:/code
+      - ./backend/api_gateway:/code
+      - ./static:/usr/share/static
     networks:
       pong_network:
         ipv4_address: 172.20.0.5
-    environment:
-      - POSTGRES_NAME=${POSTGRES_NAME}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     expose:
       - "8001"
-    depends_on:
-      - db
+
+  redis:
+    image: redis:latest # Based on debian:bookworm-slim
+    container_name: redis
+    environment:
+    - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      pong_network:
+        ipv4_address: 172.20.0.9
 
   game_logic:
     image: game_logic_service
@@ -68,6 +70,7 @@ services:
     build: ./backend/game_logic_service
     volumes:
       - ./backend/game_logic_service:/code
+      - ./static:/usr/share/static
     networks:
       pong_network:
         ipv4_address: 172.20.0.6
@@ -77,6 +80,25 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     expose:
       - "8002"
+    depends_on:
+      - db
+
+  game_manager:
+    image: game_manager_service # Based on debian:bookworm-slim
+    container_name: game_manager
+    build: ./backend/game_manager_service
+    volumes:
+      - ./backend/game_manager_service:/code
+      - ./static:/usr/share/static
+    networks:
+      pong_network:
+        ipv4_address: 172.20.0.8
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - "8004"
     depends_on:
       - db
 
