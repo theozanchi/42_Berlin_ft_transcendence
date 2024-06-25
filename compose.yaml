@@ -50,24 +50,6 @@ services:
     environment:
     - REDIS_PASSWORD=${REDIS_PASSWORD}
 
-  game_config:
-    image: game_config_service
-    container_name: game_config
-    build: ./backend/game_config_service
-    volumes:
-     - ./backend/game_config_service:/code
-    networks:
-      pong_network:
-        ipv4_address: 172.20.0.5
-    environment:
-      - POSTGRES_NAME=${POSTGRES_NAME}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    expose:
-      - "8001"
-    depends_on:
-      - db
-
   game_logic:
     image: game_logic_service
     container_name: game_logic
@@ -93,6 +75,7 @@ services:
     build: ./backend/game_manager_service
     volumes:
       - ./backend/game_manager_service:/code
+      - ./static:/usr/share/static
     networks:
       pong_network:
         ipv4_address: 172.20.0.8
