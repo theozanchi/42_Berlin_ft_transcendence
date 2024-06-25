@@ -10,31 +10,38 @@ let newsocket;
 let openPromise;
 
 function openSocket(path) {
-    if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
-        console.log('Opening new WebSocket');
+	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+		console.log('Opening new WebSocket');
 		const url = `wss://${window.location.host}${path}`;
-        newsocket = new WebSocket(url);
+		newsocket = new WebSocket(url);
 
-        openPromise = new Promise((resolve) => {
-            newsocket.onopen = function(event) {
-                console.log('Connected to WebSocket server.');
-                resolve();
+		openPromise = new Promise((resolve) => {
+			newsocket.onopen = function(event) {
+				console.log('Connected to WebSocket server.');
+				resolve();
+			};
+		});
+
+        messagePromise = new Promise((resolve) => {
+            newsocket.onmessage = function(event) {
+                console.log('Received: ' + event.data);
+                resolve(event.data);
             };
         });
 
-        newsocket.onmessage = function(event) {
-            console.log('Received: ' + event.data);
-        };
+		newsocket.onmessage = function(event) {
+			console.log('Received: ' + event.data);
+		};
 
-        newsocket.onclose = function(event) {
-            console.log('Disconnected from WebSocket server.');
-        };
+		newsocket.onclose = function(event) {
+			console.log('Disconnected from WebSocket server.');
+		};
 
-        newsocket.onerror = function(error) {
-            console.log('WebSocket error: ' + error.message);
-        };
+		newsocket.onerror = function(error) {
+			console.log('WebSocket error: ' + error.message);
+		};
     }
-    return openPromise;
+	return (openPromise, messagePromise);
 }
 
 async function sendJson(json) {
@@ -67,6 +74,22 @@ function generateLocalGame() {
     });
 }
 
+function loadLocalGame() {
+	// Get the game area element
+    const gameArea = document.getElementById('game-column');
+
+    // Create and append the script
+    let script = document.createElement('script');
+    script.type = 'module';
+    script.src = './js/pong/main.js';
+    gameArea.appendChild(script);
+
+    // Create and append the canvas
+    let canvas = document.createElement('canvas');
+    canvas.id = 'bg';
+    gameArea.appendChild(canvas);
+}
+
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
 
@@ -74,8 +97,12 @@ function joinRemoteGame() {
 	openSocket(uri);
 }
 
-function hostRemoteGame() {
-	openSocket('/ws/host/');
+async function hostRemoteGame() {
+	const { openPromise, messagePromise } = openSocket('/ws/host/');
+	await openPromise;
+    console.log('MY RESPONSE');
+    const message = await messagePromise;
+    console.log('MY RESPONSE', message);
 }
 
 
@@ -113,9 +140,12 @@ function hostRemoteGame() {
 				event.preventDefault();
 
 				generateLocalGame();
+				loadLocalGame();
 
-				document.getElementById('00-welcome').style.display = 'block';
+				// document.getElementById('00-welcome').style.display = 'block';
+				document.getElementById('30-game-mode').style.display = 'block';
 				document.getElementById('10-local').style.display = 'none';
+
 			});
 
 			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
