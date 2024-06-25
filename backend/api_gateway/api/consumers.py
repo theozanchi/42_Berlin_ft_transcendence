@@ -24,6 +24,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         self.game_logic_ws = None
     
     async def connect(self):
+        print("API: Connecting to local game")
         # ISSUE: check if uuid is unique / store in database
         self.game_id = str(uuid.uuid4())[:8] # self.game_id = Tournament().game_id
         

@@ -1,12 +1,11 @@
 import json
-from channels.generic.websocket import WebsocketConsumer
-from asgiref.sync import async_to_sync
 import logging
 import math
+from channels.generic.websocket import AsyncWebsocketConsumer
 
 logging.basicConfig(level=logging.INFO)
 
-class PongConsumer(WebsocketConsumer):
+class PongConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.aiming_angle = 0  # Initialize aiming_angle
@@ -15,7 +14,6 @@ class PongConsumer(WebsocketConsumer):
         self.minaiming_angle = -1.57 
         self.cube_size = 2
         self.ball_radius = 0.05
-        
 
     game_state = {
         'player1': {'x': 0, 'y': 0, 'z': 1},
@@ -28,60 +26,57 @@ class PongConsumer(WebsocketConsumer):
         'ballIsHeld': True,  # Initial value, assuming ball is held initially
         'current_face': 0,  # Adding initial value for current face
         'current_face2': 0,
-        'wall_hits' : 0,
-        'aiming_angle' : 0
+        'wall_hits': 0,
+        'aiming_angle': 0
     }
 
-    def connect(self):
-        self.accept()
-        self.room_group_name = 'pong_game'
+    async def connect(self):
+        print("GAME LOGIC CONNECTED")
+        self.game_id = self.scope['url_route']['kwargs']['game_id']
 
-        # Join room group
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
+        await self.channel_layer.group_add(
+            self.game_id,
             self.channel_name
         )
 
-        # Send initial game state to the newly connected client
-        self.reset_ball()
-        self.send_game_state()
+        await self.accept()
+        await self.reset_ball()
+        await self.send_game_state()
 
-    def disconnect(self, close_code):
-        # Leave room group
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name,
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.game_id,
             self.channel_name
         )
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         data = json.loads(text_data)
         if data['type'] == 'player_move':
-            self.handle_player_move(data)
+            await self.handle_player_move(data)
         elif data['type'] == 'update_state':
-            self.update_game_state(data)
+            await self.update_game_state(data)
         elif data['type'] == 'game_state':
-            self.update_game_state_from_data(data)
+            await self.update_game_state_from_data(data)
 
-
-    def handle_player_move(self, data):
+    async def handle_player_move(self, data):
         # Update player positions based on client input
         self.game_state['player1'] = data['player1']
         self.game_state['player2'] = data['player2']
         self.game_state['current_face'] = data.get('current_face', self.game_state['current_face'])
         self.game_state['current_face2'] = data.get('current_face2', self.game_state['current_face2'])
         # Broadcast the updated game state
-        self.send_game_state()
+        await self.send_game_state()
 
-    def update_game_state(self, data):
+    async def update_game_state(self, data):
+        print("GAME LOGIC: update_game_state from type: update_state")
         # Handle ball movement and collision detection server-side
         self.game_update(data)
         self.update_aiming_line()
         self.update_ball()
         self.update_ai()
-        self.send_game_state()
+        await self.send_game_state()
 
     def update_ball(self):
-
         if self.game_state['ballIsHeld']:
             # Place the ball at the player's position
             if self.game_state['playerTurn']:
@@ -135,7 +130,6 @@ class PongConsumer(WebsocketConsumer):
 
         # Update the collision marker position
         self.update_collision_marker()
-
 
     def check_collision(self):
         if self.game_state['ballIsHeld']:
@@ -371,12 +365,12 @@ class PongConsumer(WebsocketConsumer):
         pass
 
     def send_game_state(self):
-        self.send(text_data=json.dumps({
-            'type': 'game_state',
+        self.channel_layer.group_send(
+        self.game_id,
+        {
+            'type': 'game_update',
             'player1': self.game_state['player1'],
             'player2': self.game_state['player2'],
-            'ball': self.game_state['ball'],
-            'ballSpeed': self.game_state['ballSpeed'],
             'playerTurn': self.game_state['playerTurn'],
             'playerScore': self.game_state['playerScore'],
             'aiScore': self.game_state['aiScore'],
@@ -384,7 +378,8 @@ class PongConsumer(WebsocketConsumer):
             'current_face': self.game_state['current_face'],
             'current_face2': self.game_state['current_face2'],
             'aiming_angle': self.game_state['aiming_angle']
-        }))
+        }
+    )
 
     def game_update(self, data):
         # Update game state based on received data
