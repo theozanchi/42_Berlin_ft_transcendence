@@ -223,15 +223,18 @@ class PongConsumer(WebsocketConsumer):
         return False
 
     def create_bounding_box(self, start, end):
+
+        margin = 0.009
+
         center = {
             'x': (start['x'] + end['x']) / 2,
             'y': (start['y'] + end['y']) / 2,
             'z': (start['z'] + end['z']) / 2
         }
         size = {
-            'x': abs(end['x'] - start['x']) + self.ball_radius * 2,
-            'y': abs(end['y'] - start['y']) + self.ball_radius * 2,
-            'z': abs(end['z'] - start['z']) + self.ball_radius * 2
+            'x': abs(end['x'] - start['x']) + self.ball_radius * 2 + margin * 2,
+            'y': abs(end['y'] - start['y']) + self.ball_radius * 2 + margin * 2,
+            'z': abs(end['z'] - start['z']) + self.ball_radius * 2 + margin * 2
         }
         return (center, size)
 

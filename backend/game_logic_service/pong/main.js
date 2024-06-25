@@ -2,6 +2,8 @@
 import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 
+
+const gifImage = document.getElementById('backgroundGif');
 const canvas = document.getElementById('bg');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -12,9 +14,11 @@ let mouseDown = false;
 let previousMouseX = 0;
 let previousMouseY = 0;
 let ballUpdateEnabled = true;
-
+const faceMaterials = {};
 let scene, camera, camera2, renderer, cube, player, player2, aiPlayer, ball, collisionMarker, aimingLine;
 let ballSpeed = new THREE.Vector3();
+let targetFace = null;
+
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 const cubeSize = 2; // Size of the cube
@@ -109,6 +113,9 @@ export function initializeWebSocket(url){
                 currentFace2 = data.current_face2;
                 aimingAngle = data.aiming_angle;
                 resetBall_ = data.reset_ball;
+
+
+                updateScore();
             }    
         }    
 
@@ -153,32 +160,71 @@ export function initializeWebSocket(url){
 
 
 function init() {
-
+    
     const url = `ws://${window.location.host}/ws/socket-server/`;
     initializeWebSocket(url);
     // Create the scene
     scene = new THREE.Scene();
-
+    
     // Set up the camera
     camera = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
     camera2 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
-
+    
     // Set up the renderer
-    renderer = new THREE.WebGLRenderer({ canvas: canvas });
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
+    
+    // Create the background plane
+    const bgTexture = new THREE.TextureLoader().load('{% static "510b9e17faac6df15673e42e534f9d57.gif" %}');
+    const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture });
+    const bgGeometry = new THREE.PlaneGeometry(2, 2, 0);
+    const bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+
+    // Position the background mesh
+    bgMesh.material.depthTest = false;
+    bgMesh.material.depthWrite = false;
+    const bgScene = new THREE.Scene();
+    const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    bgScene.add(bgMesh);
 
     // Create the cube
     let geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-    let material = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
+    let material = new THREE.MeshBasicMaterial({ visible: false });
     cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
+
+    const colors = {
+        front: '#ff0000',   // Red
+        back: '#ffa500',    // Orange
+        left: '#ffff00',    // Yellow
+        right: '#ffc0cb',   // Pink
+        top: '#800080',     // Purple
+        bottom: '#a52a2a'   // Brown
+    };
+
+    const faceSize = 1.7;
+    const transparentMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+
+    const frontFace = createFace(transparentMaterial, faceSize, colors.front, { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: 0 });
+    const backFace = createFace(transparentMaterial, faceSize, colors.back, { x: 0, y: 0, z: -1 }, { x: 0, y: Math.PI, z: 0 });
+    const leftFace = createFace(transparentMaterial, faceSize, colors.left, { x: -1, y: 0, z: 0 }, { x: 0, y: Math.PI / 2, z: 0 });
+    const rightFace = createFace(transparentMaterial, faceSize, colors.right, { x: 1, y: 0, z: 0 }, { x: 0, y: -Math.PI / 2, z: 0 });
+    const topFace = createFace(transparentMaterial, faceSize, colors.top, { x: 0, y: 1, z: 0 }, { x: -Math.PI / 2, y: 0, z: 0 });
+    const bottomFace = createFace(transparentMaterial, faceSize, colors.bottom, { x: 0, y: -1, z: 0 }, { x: Math.PI / 2, y: 0, z: 0 });
+    
+    faceMaterials.front = frontFace.face;
+    faceMaterials.back = backFace.face;
+    faceMaterials.left = leftFace.face;
+    faceMaterials.right = rightFace.face;
+    faceMaterials.top = topFace.face;
+    faceMaterials.bottom = bottomFace.face;
     // Create a pivot point at the cube's center
     pivot = new THREE.Object3D();
     cube.add(pivot);
     pivot.add(camera);
     camera.position.set(0, 0, cubeSize * 1.5);
-
+    
     // Create a pivot point at the cube's center
     pivot2 = new THREE.Object3D();
     cube.add(pivot2);
@@ -186,8 +232,8 @@ function init() {
     camera2.position.set(0, 0, cubeSize * 1.5);
     camera2.position.copy(camera.position.clone().multiplyScalar(-1));
     camera2.lookAt(0, 0, 0);
-
-    // Create and position colored dots
+    
+/*     // Create and position colored dots
     const dotRadius = 0.05;
     const dotPositions = [
         { color: 0xff0000, position: new THREE.Vector3(0, 0, cubeSize / 2 + dotRadius) }, // Front face: red
@@ -197,14 +243,15 @@ function init() {
         { color: 0xff00ff, position: new THREE.Vector3(0, cubeSize / 2 + dotRadius, 0) }, // Top face: magenta
         { color: 0x00ffff, position: new THREE.Vector3(0, -(cubeSize / 2 + dotRadius), 0) } // Bottom face: cyan
     ];
-
+    
     dotPositions.forEach(dot => {
         const dotGeometry = new THREE.SphereGeometry(dotRadius, 16, 16);
         const dotMaterial = new THREE.MeshBasicMaterial({ color: dot.color });
         const dotMesh = new THREE.Mesh(dotGeometry, dotMaterial);
         dotMesh.position.copy(dot.position);
         scene.add(dotMesh);
-    });
+    }); */
+
     // Create player
     let playerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
     let playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -213,7 +260,7 @@ function init() {
     setPlayerTransparency(0.25);
     player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6); // Initial position on the front face
     scene.add(player); // Add player to the scene, not the cube
-
+    
     // Create palyer2
     let player2Geometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
     let player2Material = new THREE.MeshBasicMaterial({ color: 0x00ffff });
@@ -223,79 +270,108 @@ function init() {
     player2.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
     player2.rotation.set(0, Math.PI, 0); // Initial position on the front face
     scene.add(player2); // Add player to the scene, not the cube
-
+    
     // Create AI player
     if(singlePlayer){
-    let aiPlayerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
-    let aiPlayerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    aiPlayer = new THREE.Mesh(aiPlayerGeometry, aiPlayerMaterial);
-    aiPlayer.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6)); // Initial position on the back face
-    scene.add(aiPlayer); // Add AI player to the scene, not the cube
-    aiPlayer.currentFace = 1;}
-    // Create ball
-    let ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
-    let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    ball = new THREE.Mesh(ballGeometry, ballMaterial);
-    cube.add(ball);
-
-    // Create aiming line
-    const aimingLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 ,transparent: true, opacity: 0});
-    const aimingLineGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-    aimingLine = new THREE.Line(aimingLineGeometry, aimingLineMaterial);
-    scene.add(aimingLine);
-
-    // Create collision marker
-    const collisionMarkerGeometry = new THREE.SphereGeometry(0.05, 16, 16); // Smaller marker
-    const collisionMarkerMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
-    collisionMarker = new THREE.Mesh(collisionMarkerGeometry, collisionMarkerMaterial);
-    scene.add(collisionMarker);
-    // Set the ball at a random position on the cube's surface
-    //resetBall();
-
-    // Add event listeners for movement and face change
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('keyup', onKeyUp);
-    // Request pointer lock when the canvas is clicked
-    renderer.domElement.addEventListener('click', () => {
-        renderer.domElement.requestPointerLock();
-    });
-    document.addEventListener('pointerlockchange', () => {
+        let aiPlayerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
+        let aiPlayerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        aiPlayer = new THREE.Mesh(aiPlayerGeometry, aiPlayerMaterial);
+        aiPlayer.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6)); // Initial position on the back face
+        scene.add(aiPlayer); // Add AI player to the scene, not the cube
+        aiPlayer.currentFace = 1;}
+        // Create ball
+        let ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
+        let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        ball = new THREE.Mesh(ballGeometry, ballMaterial);
+        cube.add(ball);
+        
+        // Create aiming line
+        const aimingLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 ,transparent: true, opacity: 0});
+        const aimingLineGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+        aimingLine = new THREE.Line(aimingLineGeometry, aimingLineMaterial);
+        scene.add(aimingLine);
+        
+        // Create collision marker
+        const collisionMarkerGeometry = new THREE.SphereGeometry(0.05, 16, 16); // Smaller marker
+        const collisionMarkerMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+        collisionMarker = new THREE.Mesh(collisionMarkerGeometry, collisionMarkerMaterial);
+        scene.add(collisionMarker);
+        // Set the ball at a random position on the cube's surface
+        //resetBall();
+        
+        // Add event listeners for movement and face change
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+        // Request pointer lock when the canvas is clicked
+        renderer.domElement.addEventListener('click', () => {
+            renderer.domElement.requestPointerLock();
+        });
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement === renderer.domElement) {
+                // Pointer is locked, add event listener for mouse movement
+                document.addEventListener('mousemove', onMouseMove);
+            } else {
+                // Pointer is unlocked, remove event listener for mouse movement
+                document.removeEventListener('mousemove', onMouseMove);
+            }
+        });
+        
+        // Add score display
+        let scoreDisplay = document.createElement('div');
+        scoreDisplay.id = 'scoreDisplay';
+        scoreDisplay.style.position = 'absolute';
+        scoreDisplay.style.top = '10px';
+        scoreDisplay.style.left = '10px';
+        scoreDisplay.style.color = 'white';
+        scoreDisplay.style.fontSize = '20px';
+        document.body.appendChild(scoreDisplay);
+        
+        
+        updateScore();
+        
+        animate();
+    }
+    
+    function createFace(material, size, outlineColor, position, rotation) {
+        const group = new THREE.Group();
+        
+        // Create the face
+        const faceGeometry = new THREE.PlaneGeometry(size, size);
+        const face = new THREE.Mesh(faceGeometry, material);
+        face.position.set(position.x, position.y, position.z);
+        face.rotation.set(rotation.x, rotation.y, rotation.z);
+        group.add(face);
+        
+        // Create the circular outline (torus)
+        const torusRadius = size / 8; // Adjust the torus radius as necessary
+        const torusThickness = 0.01; // Thickness of the torus ring
+        const torusGeometry = new THREE.TorusGeometry(torusRadius, torusThickness, 16, 100);
+        const torusMaterial = new THREE.MeshBasicMaterial({ color: outlineColor, side: THREE.FrontSide });
+        const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+        torus.position.set(position.x, position.y, position.z);
+        torus.rotation.set(rotation.x, rotation.y, rotation.z);
+        group.add(torus);
+        
+        // Add the group to the scene
+        scene.add(group);
+        
+        return { group, face };
+    }
+    
+    
+    
+    function onMouseMove(event) {
+        // Normalize mouse coordinates to range [-1, 1]
         if (document.pointerLockElement === renderer.domElement) {
-            // Pointer is locked, add event listener for mouse movement
-            document.addEventListener('mousemove', onMouseMove);
-        } else {
-            // Pointer is unlocked, remove event listener for mouse movement
-            document.removeEventListener('mousemove', onMouseMove);
-        }
-    });
-
-    // Add score display
-    let scoreDisplay = document.createElement('div');
-    scoreDisplay.id = 'scoreDisplay';
-    scoreDisplay.style.position = 'absolute';
-    scoreDisplay.style.top = '10px';
-    scoreDisplay.style.left = '10px';
-    scoreDisplay.style.color = 'white';
-    scoreDisplay.style.fontSize = '20px';
-    document.body.appendChild(scoreDisplay);
-
-    updateScore();
-
-    animate();
-}
-
-function onMouseMove(event) {
-    // Normalize mouse coordinates to range [-1, 1]
-    if (document.pointerLockElement === renderer.domElement) {
-        // Use movementX and movementY to get mouse movement since the last event
-        const movementX = event.movementX || event.mozMovementX || 0;
-        const movementY = event.movementY || event.mozMovementY || 0;
-
-        // Adjust the sensitivity of movement
-        const sensitivity = 0.01;
-
-        // Update player position based on mouse movement
-        let deltaX = movementX * sensitivity;
+            // Use movementX and movementY to get mouse movement since the last event
+            const movementX = event.movementX || event.mozMovementX || 0;
+            const movementY = event.movementY || event.mozMovementY || 0;
+            
+            // Adjust the sensitivity of movement
+            const sensitivity = 0.01;
+            
+            // Update player position based on mouse movement
+            let deltaX = movementX * sensitivity;
         let deltaY = -movementY * sensitivity; // Invert Y-axis as needed
 
         movePlayer(player, deltaX, deltaY);
@@ -614,6 +690,7 @@ function updatePlayerPositionForFace2(face) {
 }
 
 
+let blinkingInterval;
 
 function updateCollisionMarker() {
     const halfCubeSize = cubeSize / 2;
@@ -622,9 +699,9 @@ function updateCollisionMarker() {
 
     let minT = Infinity;
     let intersectionPoint = null;
+    let collidedFace = null;
 
-    // Check intersections with each cube face
-    const checkFace = (axis, direction, limit) => {
+    const checkFace = (axis, limit, faceName) => {
         if (ballVelocity[axis] !== 0) {
             const t = (limit - ballPosition[axis]) / ballVelocity[axis];
             if (t > 0 && t < minT) {
@@ -636,23 +713,93 @@ function updateCollisionMarker() {
                 ) {
                     minT = t;
                     intersectionPoint = point;
+                    collidedFace = faceName;
                 }
             }
         }
     };
 
     // Check all 6 faces
-    checkFace('x', 1, halfCubeSize); // Right face
-    checkFace('x', -1, -halfCubeSize); // Left face
-    checkFace('y', 1, halfCubeSize); // Top face
-    checkFace('y', -1, -halfCubeSize); // Bottom face
-    checkFace('z', 1, halfCubeSize); // Front face
-    checkFace('z', -1, -halfCubeSize); // Back face
+    checkFace('x', halfCubeSize, 'right'); // Right face
+    checkFace('x', -halfCubeSize, 'left'); // Left face
+    checkFace('y', halfCubeSize, 'top'); // Top face
+    checkFace('y', -halfCubeSize, 'bottom'); // Bottom face
+    checkFace('z', halfCubeSize, 'front'); // Front face
+    checkFace('z', -halfCubeSize, 'back'); // Back face
 
     if (intersectionPoint) {
         collisionMarker.position.copy(intersectionPoint);
+        if (!ballIsHeld){
+            currentBlinkingFace = collidedFace;
+            startBlinking(collidedFace);
+        }
     }
 }
+
+let currentBlinkingFace = null;
+let isBlinking = false;
+let blinkInterval = 500; 
+let lastBlinkTime = 0;
+
+
+function startBlinking(faceName) {
+    if (currentBlinkingFace)
+    {
+        const face = faceMaterials[faceName];
+        console.log(`Current material:`, face.material);
+        console.log("Blinking face:", faceName, face);
+            if (!face) {
+            console.error(`Face material for ${faceName} is not defined`);
+            return;
+        }
+
+        const currentTime = Date.now();
+
+            face.material.opacity = isBlinking ? 1.0 : 0.5;
+            console.log("Blinking :", face.material.opacity);
+            face.material.needsUpdate = true;
+            isBlinking = !isBlinking;
+            lastBlinkTime = currentTime;
+        
+
+    }
+}
+
+function stopBlinking(faceName) {
+    const face = faceMaterials[faceName];
+    face.material.opacity = 0.5; // Reset to original opacity
+    currentBlinkingFace = null;
+}
+
+
+
+
+
+function checkPlayerPosition() {
+    const playerPosition = playerTurn ? player.position : player2.position;
+    const halfCubeSize = cubeSize / 2;
+
+    let currentFace = null;
+
+    if (playerPosition.z >= halfCubeSize) {
+        currentFace = 'front';
+    } else if (playerPosition.z <= -halfCubeSize) {
+        currentFace = 'back';
+    } else if (playerPosition.x >= halfCubeSize) {
+        currentFace = 'right';
+    } else if (playerPosition.x <= -halfCubeSize) {
+        currentFace = 'left';
+    } else if (playerPosition.y >= halfCubeSize) {
+        currentFace = 'top';
+    } else if (playerPosition.y <= -halfCubeSize) {
+        currentFace = 'bottom';
+    }
+
+    if (currentFace = currentBlinkingFace) {
+        stopBlinking(currentFace);
+    }
+}
+
 
 function movePlayer(player, deltaX, deltaY) {
     const halfSize = cubeSize / 2 - playerSize.z / 2;
@@ -973,7 +1120,7 @@ function gameLoop() {
 
 function updateScore() {
     let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player: ${playerScore} | AI: ${aiScore}`;
+    scoreDisplay.innerHTML = `Player: ${playerScore} | Player_2: ${aiScore}`;
 }
 
 function checkCollision() {
@@ -1093,7 +1240,13 @@ function animate() {
     gameLoop();
     updateAimingLine();
     updateCollisionMarker();
+    checkPlayerPosition();
+    updateScore();
     sendGameState();
+    if (currentBlinkingFace) {
+        startBlinking(currentBlinkingFace);
+    }
+    renderer.autoClear = false;
     renderer.clear();
 
     // Render the scene from the first camera
