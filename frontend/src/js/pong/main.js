@@ -165,7 +165,7 @@ function init() {
     renderer = new THREE.WebGLRenderer({ canvas: canvas });
     renderer.setSize(canvas.width, canvas.height);
     // document.body.appendChild(renderer.domElement);
-    container.appendChild(renderer.domElement); // PLACING GAME IN PARENT CONTAINER INSTEAD OF PAGE
+    container. appendChild(renderer.domElement); // PLACING GAME IN PARENT CONTAINER INSTEAD OF PAGE
 
     // Create the cube
     let geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
