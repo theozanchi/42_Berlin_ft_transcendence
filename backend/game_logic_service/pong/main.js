@@ -38,6 +38,7 @@ let reconnectInterval;
 let oldGameState;
 let socket;
 let reconnectAttempts;
+let resetBall_ = false;
 
 export function initializeWebSocket(url){
     
@@ -107,6 +108,7 @@ export function initializeWebSocket(url){
                 currentFace = data.current_face;
                 currentFace2 = data.current_face2;
                 aimingAngle = data.aiming_angle;
+                resetBall_ = data.reset_ball;
             }    
         }    
 
@@ -129,7 +131,8 @@ export function initializeWebSocket(url){
                     ballIsHeld: ballIsHeld,
                     current_face: currentFace,
                     current_face2: currentFace2,
-                    aiming_angle: aimingAngle
+                    aiming_angle: aimingAngle,
+                    reset_ball: resetBall_
 
                 };    
         
@@ -247,7 +250,7 @@ function init() {
     collisionMarker = new THREE.Mesh(collisionMarkerGeometry, collisionMarkerMaterial);
     scene.add(collisionMarker);
     // Set the ball at a random position on the cube's surface
-    resetBall();
+    //resetBall();
 
     // Add event listeners for movement and face change
     document.addEventListener('keydown', onKeyDown);
@@ -343,9 +346,8 @@ function onKeyDown(event) {
                 break;
             case ' ': // Space key
             if (ballIsHeld) {
-                playerTurn = !playerTurn;
                 ballIsHeld = false; // Release the ball
-                //resetBall(); // Reset the ball to a random position
+                resetBall_ = true; // Reset the ball to a random position
             }
             break;
         }
@@ -381,8 +383,7 @@ function onKeyDown(event) {
                 if (ballIsHeld) {
                     
                     ballIsHeld = false; // Release the ball
-                    //resetBall(); // Reset the ball to a random position
-                    playerTurn = !playerTurn;
+                    resetBall_ = true; // Reset the ball to a random position
                 }
             break;
         }
@@ -806,12 +807,11 @@ function updateAimingLine() {
         // Calculate the position of the aiming line's endpoint
         const endPoint = ball.position.clone().add(aimingDirection.clone().multiplyScalar(0.5));
 
-
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
     }
     else
-    aimingLine.material.opacity = 0;
+        aimingLine.material.opacity = 0;
 }
 
 function resetBall() {
