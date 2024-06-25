@@ -12,11 +12,10 @@ from asgiref.sync import async_to_sync, sync_to_async
 # Initialize Redis client
 #redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
-GAME_MANAGER_URL = 'http://game_manager:8002'
-GAME_LOGIC_URL = 'http://game_logic:8003'
-GAME_LOBBY_URL = 'http://game_lobby:8004'
+GAME_MANAGER_URL = 'http://game_manager'
+GAME_LOGIC_URL = 'http://game_logic'
 
-GAME_LOGIC_WS_URL = 'ws://172.20.0.6:8002/ws/'
+GAME_LOGIC_WS_URL = 'ws://game_logic:8000/ws/'
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
