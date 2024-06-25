@@ -4,8 +4,8 @@ import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
 const canvas = document.getElementById('bg');
 const container = canvas.parentElement;
-canvas.width = container.clientWidth;
-canvas.height = container.clientHeight;
+canvas.width = container.clientWidth - 24;
+canvas.height = container.clientHeight - 24;
 
 let mouseX = 0;
 let mouseY = 0;
@@ -158,13 +158,14 @@ function init() {
     scene = new THREE.Scene();
 
     // Set up the camera
-    camera = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
-    camera2 = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(100, (canvas.width / 2) / canvas.height, 0.1, 1000);
+    camera2 = new THREE.PerspectiveCamera(100, (canvas.width / 2) / canvas.height, 0.1, 1000);
 
     // Set up the renderer
     renderer = new THREE.WebGLRenderer({ canvas: canvas });
     renderer.setSize(canvas.width, canvas.height);
-    document.body.appendChild(renderer.domElement);
+    // document.body.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     // Create the cube
     let geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
