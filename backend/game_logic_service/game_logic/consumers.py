@@ -407,7 +407,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.game_state['aiming_angle'] = data.get('aiming_angle', self.game_state['aiming_angle'])
 
         # Broadcast updated game state to the room group
-        async_to_sync(self.channel_layer.group_send)(
+        self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'game_update',
