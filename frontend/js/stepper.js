@@ -51,8 +51,8 @@ function generateLocalGame() {
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 
-	// Create data object with action key
-	let data = {action: 'start-game'}
+	// Create data object with type key
+	let data = {type: 'start-game'}
 
 	// Add players to JSON
 	data.players = playerNames;
