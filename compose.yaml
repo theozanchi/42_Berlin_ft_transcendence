@@ -8,7 +8,8 @@ services:
       - ${CERTS_DIR}:/etc/letsencrypt
       - ./static:/usr/share/nginx/html/static
     networks:
-      - frontend_ntw
+      - frontend
+      - backend
     ports:
       - "${PORT}:80"
       - "${SPORT}:443"
@@ -25,7 +26,7 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
     networks:
-      - frontend_ntw
+      - frontend
 
   db:
     image: postgres:latest # Based on debian:bookworm-slim
@@ -33,7 +34,7 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     networks:
-      - db_ntw
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -51,14 +52,12 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
-      - frontend_ntw
-      - redis_ntw
-      - game_manager_ntw
-      - authentication_ntw
-      - game_logic_ntw
+      - backend
     depends_on:
-      - db
       - redis
+      - game_logic
+      - game_manager
+      - authentication
 
   redis:
     image: redis:latest # Based on debian:bookworm-slim
@@ -66,7 +65,7 @@ services:
     environment:
     - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
-      - redis_ntw
+      - backend
 
   game_logic:
     image: game_logic_service # Based on debian:bookworm-slim
@@ -76,9 +75,7 @@ services:
       - ./backend/game_logic_service:/code
       - ./static:/usr/share/static
     networks:
-      - game_logic_ntw
-      - db_ntw
-      - redis_ntw
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -94,8 +91,7 @@ services:
       - ./backend/game_manager_service:/code
       - ./static:/usr/share/static
     networks:
-      - game_manager_ntw
-      - db_ntw
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -111,8 +107,7 @@ services:
       - ./backend/authentication_service:/code
       - ./static:/usr/share/static
     networks:
-      - authentication_ntw
-      - db_ntw
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -121,9 +116,5 @@ services:
       - db
 
 networks:
-  frontend_ntw:
-  redis_ntw:
-  db_ntw:
-  game_logic_ntw:
-  game_manager_ntw:
-  authentication_ntw:
+  frontend:
+  backend:
