@@ -18,9 +18,7 @@ services:
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
       - frontend
-      - authentication
-      - game_config
-      - game_logic
+      - api_gateway
 
   frontend:
     container_name: frontend
@@ -44,11 +42,27 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
+  api_gateway:
+    image: api_gateway_service
+    container_name: api_gateway
+    build: ./backend/api_gateway
+    volumes:
+      - ./backend/api_gateway:/code
+      - ./static:/usr/share/static
+    networks:
+      pong_network:
+        ipv4_address: 172.20.0.5
+    expose:
+      - "8001"
+
   redis:
     image: redis:latest # Based on debian:bookworm-slim
     container_name: redis
     environment:
     - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      pong_network:
+        ipv4_address: 172.20.0.9
 
   game_logic:
     image: game_logic_service
