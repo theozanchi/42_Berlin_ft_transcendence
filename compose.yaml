@@ -52,11 +52,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       - frontend_ntw
+      - redis_ntw
       - game_manager_ntw
       - authentication_ntw
       - game_logic_ntw
-    expose:
-      - "8001"
     depends_on:
       - db
       - redis
@@ -67,7 +66,7 @@ services:
     environment:
     - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
-      - frontend_ntw
+      - redis_ntw
 
   game_logic:
     image: game_logic_service # Based on debian:bookworm-slim
@@ -79,6 +78,7 @@ services:
     networks:
       - game_logic_ntw
       - db_ntw
+      - redis_ntw
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -122,6 +122,7 @@ services:
 
 networks:
   frontend_ntw:
+  redis_ntw:
   db_ntw:
   game_logic_ntw:
   game_manager_ntw:
