@@ -1,55 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-
-	<title>PongerPuff Girls</title>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-	<style>
-        /* Set canvas dimensions */
-        #bg {
-            width: 100%;
-            height: calc(100% - 48px); /* Adjust for the space taken by other elements */
-            position: absolute;
-			margin: auto;
-            top: 48px; /* Adjust to account for the height of other elements */
-            left: 0px;
-        }
-        .col {
-            position: relative;
-        }
-    </style>
-
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    />
-
+	<head>
+		<title>PongerPuff Girls</title>
+    	<meta charset="utf-8"/>
+    	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"/>
+		<link rel="stylesheet" href="css/styles.css"/>
   	</head>
 	<body>
-		<script type="importmap">
-			{
-				"imports": {
-				"three": "./js/pong/staticfiles/node_modules/three/src/Three.js",
-				"@tweenjs/tween.js": "./js/pong/staticfiles/node_modules/@tweenjs/tween.js/dist/tween.esm.js"
-				}
-			}
-		</script>
-
 		<header>
-			<div class="d-flex justify-content-center fixed-top" style="height:72px">
-				<img src="file:///sgoinfre/goinfre/Perso/jschott/Curriculum/00_PRIVAT_GIT/06_transcendence_42CC/frontend/assets/logo_ppg.png"></img>
+			<div class="d-flex justify-content-center fixed-top header-logo">
+				<img src="/assets/logo_ppg.png" alt="Logo"></img>
 			</div>
 		</header>
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col col-lg-3" style="background-color: #98DAF1">
-					<div style="height:48px"></div>
+				<div class="col col-lg-3 ppg-blue-light">
+					<div class="spacer-48"></div>
 					<div class="d-flex row align-self-start">
 						<stepper-component></stepper-component>
 						<div id="00-welcome" class="step" >
@@ -59,7 +28,7 @@
 
 							<p>We have you assigned the following Character. You can change its name or login with your 42 Credentials:</p>
 							<!-- <div class="d-flex align-items-stretch gap-2 d-md-block"> -->
-								<player-component input></player-component>
+								<player-component name="Blossom" avatar="assets/avatar_blossom.png" input remove-button></player-component>
 								<button id="login42Button" class="btn btn-outline-secondary">Login</button>
 							<!-- </div> -->
 
@@ -70,13 +39,13 @@
 							</div>
 						</div>
 						
-						<div id="10-local" class="step" style="display: none;">
+						<div id="10-local" class="step hidden">
 							<stepper-titlebar title="Local Game"></stepper-titlebar>
 							<player-list mode ="local"></player-list>
 							<button id="generateLocalGameButton" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
 						</div>
 						
-						<div id="20-remote-switch" class="step" style="display: none;">
+						<div id="20-remote-switch" class="step hidden">
 							<stepper-titlebar title="Remote Game"></stepper-titlebar>
 							<p></p>
 							<p>Fantastic! Nothing better than playing with friends via the internet.</p>
@@ -85,7 +54,7 @@
 
 							<form class="input-group mb-3 needs-validation" novalidate>
 								<div class="form-floating">
-									<input type="input" class="form-control" id="searchGameID" placeholder="Enter Game ID" required>
+									<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" required>
 									<label for="searchGameID">Game-ID</label>
 									<!-- VALIDATION TBD -->
 									<!-- <div class="valid-feedback">
@@ -104,21 +73,21 @@
 							
 						</div>
 						
-						<div id="21-remote-join" class="step" style="display: none;">
+						<div id="21-remote-join" class="step hidden">
 							<stepper-titlebar title="Remote Game ID"></stepper-titlebar>
 							<div class="input-group mb-3">
 								<span class="input-group-text" id="basic-addon1">Game ID</span>
-								<input type="search" class="form-control" value="FGZ6" readonly>
+								<input type="search" name="game_id" class="form-control" value="FGZ6" readonly>
 								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton">Copy</button>
 							</div>
 							<player-list mode="join"></player-list>
 						</div>
 						
-						<div id="22-remote-host" class="step" style="display: none;">
+						<div id="22-remote-host" class="step hidden">
 							<stepper-titlebar title="Host Remote Game"></stepper-titlebar>
 							<div class="input-group mb-3">
 								<span class="input-group-text" id="basic-addon1">Game ID</span>
-								<input type="search" class="form-control" value="FGZ6" readonly>
+								<input type="search" name="game_id" class="form-control" value="FGZ6" readonly>
 								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton">Copy</button>
 							</div>
 							<player-list mode ="host"></player-list>
@@ -126,17 +95,13 @@
 						</div>						
 					</div>
 				</div>
-				<div class="col col-lg-6" style="background-color: #E78C89">
-					<!-- <div style="height:48px"></div> -->
+				<div class="col col-lg-6 ppg-pink-light">
+					<div class="spacer-48"></div>
 					<h2>GAMING AREA</h2>
-					<!-- <div class="col"> -->
-					<canvas id="bg"></canvas>
-						<!-- <script-loader></script-loader> -->
-					<script type="module" src="./js/pong/main.js"></script>
-					<!-- </div> -->
+					<pong-game></pong-game>
 				</div>
-				<div class="col col-lg-3"  style="background-color: #81CB71">
-					<div style="height:48px"></div>
+				<div class="col col-lg-3 ppg-green-light">
+					<div class="spacer-48"></div>
 					<h1>WebSocket Client</h1>
 					<div id="ws-local" class="step">
 						<stepper-titlebar title="Local Game"></stepper-titlebar>
@@ -159,18 +124,10 @@
 		</div>
 	</body>
     <!-- custom JS -->
-	<script src="./js/websocket_connect.js"></script>
-	<!-- <script src="./js/main.js"></script> -->
-	<script src="./js/stepper.js"></script>
-	<script src="./js/stepper_titlebar.js"></script>
-	<script src="./js/player_list.js"></script>
-	<script src="./js/player.js"></script>
-	<script src="./js/static_game.js"></script>
-	<script src="./js/pong/pong-component.js"></script>
-
-	<!-- <script src="./js/.js"></script> -->
-
-
-
-  <!-- </body> -->
+	<script src="js/websocket_connect.js"></script>
+	<script src="js/stepper.js"></script>
+	<script src="js/stepper_titlebar.js"></script>
+	<script src="js/player_list.js"></script>
+	<script src="js/player.js"></script>
+	<script src="js/static_game.js"></script>
 </html>
