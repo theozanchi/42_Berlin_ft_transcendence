@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+
+  web:
+    build: .
+    command: >
+      sh -c "
+      ./wait_for_postgres.sh db &&
+      python manage.py migrate &&
+      python create_superuser.py &&
+      gunicorn --bind 0.0.0.0:8000 user_mgt.wsgi:application
+      "
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - USR_ADMIN=admin
+      - USR_EMAIL=admin@admin.com
+      - USR_PASSWORD=admin
+    stop_signal: SIGINT
+    stop_grace_period: 2s
+
+
+
+volumes:
+  postgres_data:

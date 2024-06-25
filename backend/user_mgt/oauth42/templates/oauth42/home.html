@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Status</title>
+</head>
+<body>
+
+    {% if user.is_authenticated %}
+	<h1>Hello {{ user.first_name|default:user.username }}!</h1>
+    {% if user.userprofile.picture_url %}
+	    <img src="{{ user.userprofile.picture_url }}" alt="User picture">
+    {% else %}
+        <p>Image missing</p>
+    {% endif %}
+        <p>You are logged in as '{{ user.username }}' with nickname '{{ user.nickname }}'.
+            {% if user.userprofile.access_token %}
+            <br>
+                <br>Logged in via OAuth2 from 42.fr
+                <br>Access token: {{ user.userprofile.access_token }}
+            {% endif %}
+            <br>
+			<br>Last login: {{ user.last_login }}
+			<br>Created at: {{ user.date_joined}}
+		</p>
+
+        {% include 'profile.html' %}
+        
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+		<form method="post" action="{% url 'delete_cookie' %}">
+			{% csrf_token %}
+			<button type="submit">Logout and Delete Cookie</button>
+		</form>
+    {% else %}
+	<h1>Login Status</h1>
+        <p>You are not logged in.</p>
+        <a href="{% url 'oauth_login' %}">Login with 42</a>
+        <br>
+        <a href="{% url 'login' %}">Login with email and password</a>
+    {% endif %}
+    <br>
+    <a href="{% url 'admin:index' %}">Admin panel</a>
+</body>
+</html>
