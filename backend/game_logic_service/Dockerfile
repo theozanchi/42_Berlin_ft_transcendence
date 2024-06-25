@@ -23,5 +23,8 @@ COPY . /code/
 # Expose the port
 EXPOSE 8000
 
-# Set entrypoint
-ENTRYPOINT ["/bin/sh", "/code/entrypoint.sh"]
+# Collect static files, makemigration migrate data model and run daphne
+CMD	python manage.py collectstatic --noinput && \
+	python manage.py makemigrations game_logic && \
+	python manage.py migrate game_logic && \
+	daphne -b 0.0.0.0 -p 8002 game_logic_service.asgi:application

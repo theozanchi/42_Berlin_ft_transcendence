@@ -74,6 +74,7 @@ services:
     build: ./backend/game_logic_service
     volumes:
       - ./backend/game_logic_service:/code
+      - ./static:/usr/share/static
     networks:
       pong_network:
         ipv4_address: 172.20.0.6
