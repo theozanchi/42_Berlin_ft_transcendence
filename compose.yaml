@@ -8,8 +8,8 @@ services:
       - ${CERTS_DIR}:/etc/letsencrypt
       - ./static:/usr/share/nginx/html/static
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.2
+      - frontend
+      - backend
     ports:
       - "${PORT}:80"
       - "${SPORT}:443"
@@ -26,8 +26,7 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.3
+      - frontend
 
   db:
     image: postgres:latest # Based on debian:bookworm-slim
@@ -35,8 +34,7 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.4
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -54,13 +52,12 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.5
-    expose:
-      - "8001"
+      - backend
     depends_on:
-      - db
       - redis
+      - game_logic
+      - game_manager
+      - authentication
 
   redis:
     image: redis:latest # Based on debian:bookworm-slim
@@ -68,8 +65,7 @@ services:
     environment:
     - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.9
+      - backend
 
   game_logic:
     image: game_logic_service # Based on debian:bookworm-slim
@@ -79,14 +75,11 @@ services:
       - ./backend/game_logic_service:/code
       - ./static:/usr/share/static
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.6
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    expose:
-      - "8002"
     depends_on:
       - db
 
@@ -98,14 +91,11 @@ services:
       - ./backend/game_manager_service:/code
       - ./static:/usr/share/static
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.8
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    expose:
-      - "8004"
     depends_on:
       - db
 
@@ -117,20 +107,14 @@ services:
       - ./backend/authentication_service:/code
       - ./static:/usr/share/static
     networks:
-      pong_network:
-        ipv4_address: 172.20.0.7
+      - backend
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    expose: 
-      - "8003"
     depends_on:
       - db
 
 networks:
-  pong_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+  frontend:
+  backend:

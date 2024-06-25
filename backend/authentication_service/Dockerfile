@@ -23,4 +23,4 @@ COPY . /code/
 CMD	python manage.py collectstatic --noinput && \
 	python manage.py makemigrations authentication && \
 	python manage.py migrate authentication && \
-	gunicorn --workers 3 --bind 0.0.0.0:8003 authentication.wsgi:application
+	gunicorn --workers 3 --bind 0.0.0.0 authentication.wsgi:application
