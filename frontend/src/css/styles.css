@@ -8,10 +8,7 @@
 
 /* Set canvas dimensions */
 	#bg {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 80%;
+		width: 100%;
 		/* height: calc(80% - 48px); Adjust for the space taken by other elements */
 		height: 80%;
 		position: relative;

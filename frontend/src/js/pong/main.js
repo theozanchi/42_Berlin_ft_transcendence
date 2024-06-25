@@ -165,7 +165,7 @@ function init() {
     renderer = new THREE.WebGLRenderer({ canvas: canvas });
     renderer.setSize(canvas.width, canvas.height);
     // document.body.appendChild(renderer.domElement);
-    container.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement); // PLACING GAME IN PARENT CONTAINER INSTEAD OF PAGE
 
     // Create the cube
     let geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
@@ -293,7 +293,10 @@ function init() {
     scoreDisplay.style.left = '10px';
     scoreDisplay.style.color = 'white';
     scoreDisplay.style.fontSize = '20px';
+
     document.body.appendChild(scoreDisplay);
+    // newcontainer = getElementById('meta-column')
+	// newcontainer.appendChild(scoreDisplay);
 
     updateScore();
 
