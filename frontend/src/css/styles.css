@@ -6,6 +6,23 @@
 	max-height: 100%;
 }
 
+/* Set canvas dimensions */
+	#bg {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 100%;
+		/* height: calc(80% - 48px); Adjust for the space taken by other elements */
+		height: 100%;
+		position: relative;
+		/* top: 48px; Adjust to account for the height of other elements */
+		background-color: #4AB62C;
+		border: 1px solid red;
+	}
+	/* .col {
+		position: relative;
+	} */
+
 /* Custom colors for the theme */
 .ppg-blue {
 	background-color: #33ACE3;
@@ -26,7 +43,6 @@
 .ppg-green {
 	background-color: #4AB62C;
 }
-
 
 .ppg-green-light {
 	background-color: #81CB71;
