@@ -152,7 +152,7 @@ export function initializeWebSocket(url){
 
 function init() {
 
-    const url = `wss://${window.location.host}/ws/socket-server/`;
+    const url = `wss://${window.location.host}/ws/local/`;
     initializeWebSocket(url);
     // Create the scene
     scene = new THREE.Scene();

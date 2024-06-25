@@ -16,7 +16,7 @@ GAME_MANAGER_URL = 'http://game_manager:8002'
 GAME_LOGIC_URL = 'http://game_logic:8003'
 GAME_LOBBY_URL = 'http://game_lobby:8004'
 
-GAME_LOGIC_WS_URL = 'ws://game_logic:8003/ws/'
+GAME_LOGIC_WS_URL = 'ws://172.20.0.6:8002/ws/'
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -51,7 +51,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
             'start-game': self.start_game,
-            'update-state': self.update_state,
+            'game_state': self.update_state,
         }
         return switcher.get(type)
 
