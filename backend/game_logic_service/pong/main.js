@@ -22,7 +22,7 @@ let targetFace = null;
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 const cubeSize = 2; // Size of the cube
-let playerTurn = true; // Player starts
+let playerTurn = false; // Player starts
 let playerScore = 0;
 let aiScore = 0;
 let wallHits = 0;
@@ -35,11 +35,12 @@ let isTransitioning2 = false;
 let ballIsHeld = true;
 let aimingAngle = 0;
 let player1Turn = true; // Player 1 starts
-let singlePlayer = false; // Set to false for two-player game
+let singlePlayer = true; // Set to false for two-player game
 let gameState;
 let maxReconnectInterval = 200;
 let reconnectInterval;
 let oldGameState;
+let oldPlayerPos;
 let socket;
 let reconnectAttempts;
 let resetBall_ = false;
@@ -60,7 +61,7 @@ export function initializeWebSocket(url){
                 // Handle game state updates
                 if (data.type === 'game_state') {
                     updateGameState(data);
-                }    
+                }
             };    
     
             socket.onclose = function(event) {
@@ -98,9 +99,13 @@ export function initializeWebSocket(url){
         export function updateGameState(data) {
             if (data.type === 'game_state') {
                 // Update player positions
+                //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
                 player.position.set(data.player1.x, data.player1.y, data.player1.z);
+                player.rotation.set(data.player1.rotation.x, data.player1.rotation.y, data.player1.rotation.z);
+        
                 player2.position.set(data.player2.x, data.player2.y, data.player2.z);
-
+                player2.rotation.set(data.player2.rotation.x, data.player2.rotation.y, data.player2.rotation.z);
+        
                 // Update ball position and speed
                 ball.position.set(data.ball.x, data.ball.y, data.ball.z);
                 ballSpeed.set(data.ballSpeed.x, data.ballSpeed.y, data.ballSpeed.z);
@@ -128,8 +133,8 @@ export function initializeWebSocket(url){
             if (socket.readyState === WebSocket.OPEN) {
                 const newGameState = {
                     type: 'game_state',
-                    player1: { x: player.position.x, y: player.position.y, z: player.position.z },
-                    player2: { x: player2.position.x, y: player2.position.y, z: player2.position.z },
+                    player1: { x: player.position.x, y: player.position.y, z: player.position.z , rotation: { x: player.rotation.x , y: player.rotation.y, z: player.rotation.z }},
+                    player2: { x: player2.position.x, y: player2.position.y, z: player2.position.z , rotation: { x: player2.rotation.x , y: player2.rotation.y, z: player2.rotation.z }},
                     //ball: { x: ball.position.x, y: ball.position.y, z: ball.position.z },
                     //ballSpeed: { x: ballSpeed.x, y: ballSpeed.y, z: ballSpeed.z },
                     playerTurn: playerTurn,
@@ -142,17 +147,16 @@ export function initializeWebSocket(url){
                     reset_ball: resetBall_
 
                 };    
-        
-                if (!deepEqual(oldGameState, newGameState)) {
+                socket.send(JSON.stringify(newGameState));
+
+/*                 if (!deepEqual(oldGameState, newGameState)) {
                     socket.send(JSON.stringify(newGameState));
                     oldGameState = newGameState; // Update the old game state to the new one
-                }    
+                }   */  
             } else {
                 console.error('WebSocket is not open. Ready state:', socket.readyState);
             }    
-        }    
-
-
+        }  
 
     ///////////    
     
@@ -232,25 +236,6 @@ function init() {
     camera2.position.set(0, 0, cubeSize * 1.5);
     camera2.position.copy(camera.position.clone().multiplyScalar(-1));
     camera2.lookAt(0, 0, 0);
-    
-/*     // Create and position colored dots
-    const dotRadius = 0.05;
-    const dotPositions = [
-        { color: 0xff0000, position: new THREE.Vector3(0, 0, cubeSize / 2 + dotRadius) }, // Front face: red
-        { color: 0x00ff00, position: new THREE.Vector3(0, 0, -(cubeSize / 2 + dotRadius)) }, // Back face: green
-        { color: 0x0000ff, position: new THREE.Vector3(-(cubeSize / 2 + dotRadius), 0, 0) }, // Left face: blue
-        { color: 0xffff00, position: new THREE.Vector3(cubeSize / 2 + dotRadius, 0, 0) }, // Right face: yellow
-        { color: 0xff00ff, position: new THREE.Vector3(0, cubeSize / 2 + dotRadius, 0) }, // Top face: magenta
-        { color: 0x00ffff, position: new THREE.Vector3(0, -(cubeSize / 2 + dotRadius), 0) } // Bottom face: cyan
-    ];
-    
-    dotPositions.forEach(dot => {
-        const dotGeometry = new THREE.SphereGeometry(dotRadius, 16, 16);
-        const dotMaterial = new THREE.MeshBasicMaterial({ color: dot.color });
-        const dotMesh = new THREE.Mesh(dotGeometry, dotMaterial);
-        dotMesh.position.copy(dot.position);
-        scene.add(dotMesh);
-    }); */
 
     // Create player
     let playerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
@@ -259,6 +244,7 @@ function init() {
     player.material.transparent = true;
     setPlayerTransparency(0.25);
     player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6); // Initial position on the front face
+    player.rotation.set(0, 0, 0);
     scene.add(player); // Add player to the scene, not the cube
     
     // Create palyer2
@@ -271,65 +257,58 @@ function init() {
     player2.rotation.set(0, Math.PI, 0); // Initial position on the front face
     scene.add(player2); // Add player to the scene, not the cube
     
-    // Create AI player
-    if(singlePlayer){
-        let aiPlayerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
-        let aiPlayerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        aiPlayer = new THREE.Mesh(aiPlayerGeometry, aiPlayerMaterial);
-        aiPlayer.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6)); // Initial position on the back face
-        scene.add(aiPlayer); // Add AI player to the scene, not the cube
-        aiPlayer.currentFace = 1;}
-        // Create ball
-        let ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
-        let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        ball = new THREE.Mesh(ballGeometry, ballMaterial);
-        cube.add(ball);
-        
-        // Create aiming line
-        const aimingLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 ,transparent: true, opacity: 0});
-        const aimingLineGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-        aimingLine = new THREE.Line(aimingLineGeometry, aimingLineMaterial);
-        scene.add(aimingLine);
-        
-        // Create collision marker
-        const collisionMarkerGeometry = new THREE.SphereGeometry(0.05, 16, 16); // Smaller marker
-        const collisionMarkerMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
-        collisionMarker = new THREE.Mesh(collisionMarkerGeometry, collisionMarkerMaterial);
-        scene.add(collisionMarker);
-        // Set the ball at a random position on the cube's surface
-        //resetBall();
-        
-        // Add event listeners for movement and face change
-        document.addEventListener('keydown', onKeyDown);
-        document.addEventListener('keyup', onKeyUp);
-        // Request pointer lock when the canvas is clicked
-        renderer.domElement.addEventListener('click', () => {
-            renderer.domElement.requestPointerLock();
-        });
-        document.addEventListener('pointerlockchange', () => {
-            if (document.pointerLockElement === renderer.domElement) {
-                // Pointer is locked, add event listener for mouse movement
-                document.addEventListener('mousemove', onMouseMove);
-            } else {
-                // Pointer is unlocked, remove event listener for mouse movement
-                document.removeEventListener('mousemove', onMouseMove);
-            }
-        });
-        
-        // Add score display
-        let scoreDisplay = document.createElement('div');
-        scoreDisplay.id = 'scoreDisplay';
-        scoreDisplay.style.position = 'absolute';
-        scoreDisplay.style.top = '10px';
-        scoreDisplay.style.left = '10px';
-        scoreDisplay.style.color = 'white';
-        scoreDisplay.style.fontSize = '20px';
-        document.body.appendChild(scoreDisplay);
-        
-        
-        updateScore();
-        
-        animate();
+    // Create ball
+    let ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
+    let ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    ball = new THREE.Mesh(ballGeometry, ballMaterial);
+    cube.add(ball);
+    
+    // Create aiming line
+    const aimingLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 ,transparent: true, opacity: 0});
+    const aimingLineGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+    aimingLine = new THREE.Line(aimingLineGeometry, aimingLineMaterial);
+    scene.add(aimingLine);
+    
+    // Create collision marker
+    const collisionMarkerGeometry = new THREE.SphereGeometry(0.05, 16, 16); // Smaller marker
+    const collisionMarkerMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+    collisionMarker = new THREE.Mesh(collisionMarkerGeometry, collisionMarkerMaterial);
+    scene.add(collisionMarker);
+    // Set the ball at a random position on the cube's surface
+    //resetBall();
+    
+    // Add event listeners for movement and face change
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+    // Request pointer lock when the canvas is clicked
+    renderer.domElement.addEventListener('click', () => {
+        renderer.domElement.requestPointerLock();
+    });
+    document.addEventListener('pointerlockchange', () => {
+        if (document.pointerLockElement === renderer.domElement) {
+            // Pointer is locked, add event listener for mouse movement
+            document.addEventListener('mousemove', onMouseMove);
+        } else {
+            // Pointer is unlocked, remove event listener for mouse movement
+            document.removeEventListener('mousemove', onMouseMove);
+        }
+    });
+    
+
+    // Add score display
+    let scoreDisplay = document.createElement('div');
+    scoreDisplay.id = 'scoreDisplay';
+    scoreDisplay.style.position = 'absolute';
+    scoreDisplay.style.top = '10px';
+    scoreDisplay.style.left = '10px';
+    scoreDisplay.style.color = 'white';
+    scoreDisplay.style.fontSize = '20px';
+    document.body.appendChild(scoreDisplay);
+    
+    
+    updateScore();
+    
+    animate();
     }
     
     function createFace(material, size, outlineColor, position, rotation) {
@@ -375,6 +354,7 @@ function init() {
         let deltaY = -movementY * sensitivity; // Invert Y-axis as needed
 
         movePlayer(player, deltaX, deltaY);
+        sendGameState();
     }
 }
 
@@ -405,7 +385,7 @@ let keysPressed = {
 function onKeyDown(event) {
 
     keysPressed[event.key] = true;
-    console.log(keysPressed[event.key]);
+    //console.log(keysPressed[event.key]);
     if (singlePlayer){
         switch (event.key) {
             case 'w':
@@ -424,6 +404,7 @@ function onKeyDown(event) {
             if (ballIsHeld) {
                 ballIsHeld = false; // Release the ball
                 resetBall_ = true; // Reset the ball to a random position
+                sendGameState();
             }
             break;
         }
@@ -460,6 +441,7 @@ function onKeyDown(event) {
                     
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
+                    sendGameState();
                 }
             break;
         }
@@ -515,7 +497,7 @@ function switchFace(direction) {
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
         .start();
-        
+        sendGameState();
 }
 
 function updateCurrentFaceWithTargetRotation(targetRotation) {
@@ -548,6 +530,7 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     });
 
     currentFace = newCurrentFace;
+    sendGameState();
 }
 
 
@@ -578,6 +561,7 @@ function updatePlayerPositionForFace(face) {
             player.rotation.set(Math.PI / 2, 0, 0);
             break;
     }
+
 }
 
 function switchFace2(direction) {
@@ -622,7 +606,7 @@ function switchFace2(direction) {
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
         .start();
-        
+        sendGameState();
 }
 
 function updateCurrentFaceWithTargetRotation2(targetRotation) {
@@ -655,12 +639,12 @@ function updateCurrentFaceWithTargetRotation2(targetRotation) {
     });
 
     currentFace2 = newCurrentFace;
-    console.log(`Updated current face: ${currentFace2}`);
+    //console.log(`Updated current face: ${currentFace2}`);
 }
 
 
 function updatePlayerPositionForFace2(face) {
-    console.log(`Updating player position for face: ${face}`);
+    //console.log(`Updating player position for face: ${face}`);
     switch (face) {
         case 0: // Front
             player2.position.set(0, 0, cubeSize / 2 + playerSize.z / 6);
@@ -687,6 +671,7 @@ function updatePlayerPositionForFace2(face) {
             player2.rotation.set(Math.PI / 2, 0, 0);
             break;
     }
+
 }
 
 
@@ -746,8 +731,8 @@ function startBlinking(faceName) {
     if (currentBlinkingFace)
     {
         const face = faceMaterials[faceName];
-        console.log(`Current material:`, face.material);
-        console.log("Blinking face:", faceName, face);
+        //console.log(`Current material:`, face.material);
+        //console.log("Blinking face:", faceName, face);
             if (!face) {
             console.error(`Face material for ${faceName} is not defined`);
             return;
@@ -756,7 +741,7 @@ function startBlinking(faceName) {
         const currentTime = Date.now();
 
             face.material.opacity = isBlinking ? 1.0 : 0.5;
-            console.log("Blinking :", face.material.opacity);
+            //console.log("Blinking :", face.material.opacity);
             face.material.needsUpdate = true;
             isBlinking = !isBlinking;
             lastBlinkTime = currentTime;
@@ -959,104 +944,7 @@ function updateAimingLine() {
     }
     else
         aimingLine.material.opacity = 0;
-}
-
-function resetBall() {
-    if (ballIsHeld) {
-        // Place the ball at the player's position
-        ball.position.copy(playerTurn ? player.position : player2.position);
-        updateAimingLine();
-    } else {
-        // Calculate the direction based on the current face and aiming angle
-        let direction = new THREE.Vector3();
-        switch (playerTurn ? currentFace : currentFace2) {
-            case 0: // Front
-                direction.set(Math.sin(aimingAngle), 0, -Math.cos(aimingAngle));
-                break;
-            case 1: // Back
-                direction.set(Math.sin(aimingAngle), 0, Math.cos(aimingAngle));
-                break;
-            case 2: // Left
-                direction.set(-Math.cos(aimingAngle), 0, Math.sin(aimingAngle));
-                break;
-            case 3: // Right
-                direction.set(Math.cos(aimingAngle), 0, Math.sin(aimingAngle));
-                break;
-            case 4: // Top
-                direction.set(Math.sin(aimingAngle), -Math.cos(aimingAngle), 0);
-                break;
-            case 5: // Bottom
-                direction.set(Math.sin(aimingAngle), Math.cos(aimingAngle), 0);
-                break;
-        }
-
-        direction.normalize();
-
-        // Define the initial velocity magnitude (you can adjust this as needed)
-        const initialVelocityMagnitude = 0.02;
-
-        // Apply the initial velocity to the ball in the direction the player is facing
-        ballSpeed = direction.clone().multiplyScalar(initialVelocityMagnitude);
-
-        // Set the ball's position slightly in front of the player to avoid immediate collision
-        const offsetDistance = 0.1; // Adjust as needed
-        const ballStartPosition = playerTurn ? player.position.clone().add(direction.clone().multiplyScalar(offsetDistance)) : player2.position.clone().add(direction.clone().multiplyScalar(offsetDistance));
-        ball.position.copy(ballStartPosition);
-    }
-}
-
-
-function updateBall() {
-    if (!ballUpdateEnabled) return;
-    if (ballIsHeld) {
-        // Place the ball at the player's position
-        ball.position.copy(playerTurn ? player.position : player2.position);
-        return;
-    }
-
-    // Calculate the next position of the ball
-    const nextPosition = ball.position.clone().add(ballSpeed);
-
-    // Check for collisions with players
-    if (checkCollision()) {
-    } else {
-        ball.position.copy(nextPosition); // Update ball position normally
-    }
-
-    const halfCubeSize = cubeSize / 2 - ballRadius;
-
-    if (ball.position.x <= -halfCubeSize || ball.position.x >= halfCubeSize) {
-        ballSpeed.x = -ballSpeed.x;
-        wallHits++;
-        console.log(wallHits);
-    }
-    if (ball.position.y <= -halfCubeSize || ball.position.y >= halfCubeSize) {
-        ballSpeed.y = -ballSpeed.y;
-        wallHits++;
-        console.log(wallHits);
-    }
-    if (ball.position.z <= -halfCubeSize || ball.position.z >= halfCubeSize) {
-        ballSpeed.z = -ballSpeed.z;
-        wallHits++;
-        console.log(wallHits);
-    }
-
-    // Score handling
-    if (wallHits >= 2) {
-        if (!playerTurn) {
-            playerScore++;
-        } else {
-            aiScore++;
-        }
-        playerTurn != playerTurn
-        wallHits = 0;
-        ballIsHeld = true;
-        updateScore();
-        resetBall();
-    }
-
-    // Update the collision marker position
-    updateCollisionMarker();
+    sendGameState();
 }
 
 let keyMoveSpeed = 0.05;
@@ -1079,6 +967,8 @@ function gameLoop() {
         }
     
         movePlayer(player, deltaX, deltaY);
+        sendGameState();
+
     } else {
         if (keysPressed.i) {
         deltaY += keyMoveSpeed;
@@ -1094,6 +984,8 @@ function gameLoop() {
         }
     
         movePlayer(player, deltaX, deltaY);
+        sendGameState();
+
         
         deltaX = 0;
         deltaY = 0;
@@ -1112,10 +1004,12 @@ function gameLoop() {
         }
     
         movePlayer2(player2, deltaX, deltaY);
-}
+        sendGameState();
 
 }
-  
+
+
+}
 
 
 function updateScore() {
@@ -1123,118 +1017,35 @@ function updateScore() {
     scoreDisplay.innerHTML = `Player: ${playerScore} | Player_2: ${aiScore}`;
 }
 
-function checkCollision() {
-    if(ballIsHeld) return;
-    if (ballSpeed.length() === 0) {
-        return false;
-    }
-
-
-    const ballPosition = ball.getWorldPosition(new THREE.Vector3());
-    const nextPosition = ballPosition.clone().add(ballSpeed);
-    
-    // Create a bounding box that encompasses the ball's start and end points
-    const ballBox = new THREE.Box3().setFromCenterAndSize(
-        ballPosition.clone().add(nextPosition).multiplyScalar(0.5),
-        new THREE.Vector3(ballRadius * 2, ballRadius * 2, ballRadius * 2).add(ballSpeed.clone().set(Math.abs(ballSpeed.x), Math.abs(ballSpeed.y), Math.abs(ballSpeed.z)))
-        );
-        
-        const playerBox = new THREE.Box3().setFromObject(player);
-        const aiPlayerBox = new THREE.Box3().setFromObject(singlePlayer ? aiPlayer : player2);
-        // Check if the ball is colliding with the player or AI player
-        if ((playerTurn && ballBox.intersectsBox(playerBox)) || (!playerTurn && ballBox.intersectsBox(aiPlayerBox))) {
-            // Place collision marker at the intersection point for debugging
-            collisionMarker.position.copy(ballPosition);
-            
-            console.log('Collision Detected:', playerTurn ? 'Player' : 'AI Player');
-            
-            // Get the paddle involved in the collision
-            const paddle = playerTurn ? player : singlePlayer ? aiPlayer : player2;
-            const paddlePosition = paddle.getWorldPosition(new THREE.Vector3());
-            const paddleScale = paddle.scale;
-            
-            // Calculate the relative collision point on the paddle
-            const relativeCollisionPoint = ballPosition.clone().sub(paddlePosition);
-            
-            // Normalize the relative collision point to [-1, 1]
-            relativeCollisionPoint.x /= paddleScale.x / 2;
-            relativeCollisionPoint.y /= paddleScale.y / 2;
-            relativeCollisionPoint.z /= paddleScale.z / 2;
-            
-            // Adjust ball direction based on the relative collision point
-            const speed = ballSpeed.length();
-            let newBallSpeed = new THREE.Vector3();
-            
-            // Example logic to change direction dynamically
-            newBallSpeed.x = ballSpeed.x + relativeCollisionPoint.x * 0.5;
-            newBallSpeed.y = ballSpeed.y + relativeCollisionPoint.y * 0.5;
-            newBallSpeed.z = -ballSpeed.z + relativeCollisionPoint.z * 0.5; // Reversing Z for a basic bounce back effect
-            
-            // Normalize to maintain constant speed
-            newBallSpeed.setLength(speed);
-            
-            const speedIncrement = 0.02; // Adjust this value to control the speed increase rate
-            newBallSpeed.multiplyScalar(1 + speedIncrement);
-            
-            ballSpeed.copy(newBallSpeed);
-            
-            // Move the ball slightly away from the collision point to prevent immediate re-collision
-            ball.position.add(ballSpeed.clone().multiplyScalar(0.1));
-            
-            // Change player turn
-            playerTurn = !playerTurn;
-            
-            // Reset wall hits
-            wallHits = 0;
-            
-            return true;
-        }
-        
-        return false;
-    }
-    
-    
-    const cubeGraph = {
-        0: [2, 3, 4, 5], // Front face is connected to Left, Right, Top, Bottom
-        1: [2, 3, 4, 5], // Back face
-        2: [0, 1, 4, 5], // Left face
-    3: [0, 1, 4, 5], // Right face
-    4: [0, 1, 2, 3], // Top face
-    5: [0, 1, 2, 3]  // Bottom face
-};
-
-
-function updateAI() {
-    if (playerTurn || !singlePlayer) return;
-    
-    // Move AI player towards the collision marker
-    const targetPosition = collisionMarker.position.clone();
-    aiPlayer.position.lerp(targetPosition, 0.05);
-    
-    // Constrain AI player within the current face
-    const halfSize = cubeSize / 2 - playerSize.z / 2;
-    
-    switch (currentFace) {
-        case 0: // Front
-        case 1: // Back
-        aiPlayer.position.x = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.x));
-        aiPlayer.position.y = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.y));
-        break;
-        case 2: // Left
-        case 3: // Right
-        aiPlayer.position.z = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.z));
-        aiPlayer.position.y = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.y));
-        break;
-        case 4: // Top
-        case 5: // Bottom
-        aiPlayer.position.x = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.x));
-        aiPlayer.position.z = Math.max(-halfSize, Math.min(halfSize, aiPlayer.position.z));
-        break;
-    }
-}
-
 
 function animate() {
+
+    renderer.autoClear = false;
+    renderer.clear();
+    
+    if (singlePlayer) {
+        // Render the scene from the first camera
+        renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+        renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
+        renderer.setScissorTest(true);
+        renderer.render(scene, camera);
+    } else {
+        // Render the scene from the first camera
+        renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight);
+        renderer.setScissor(0, 0, window.innerWidth / 2, window.innerHeight);
+        renderer.setScissorTest(true);
+        renderer.render(scene, camera);
+        
+        // Render the scene from the second camera
+        renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
+        renderer.setScissor(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
+        renderer.setScissorTest(true);
+        renderer.render(scene, camera2);
+    }
+    
+    // Disable the scissor test after rendering
+    renderer.setScissorTest(false);
+        
     requestAnimationFrame(animate);
     TWEEN.update();
     gameLoop();
@@ -1246,29 +1057,8 @@ function animate() {
     if (currentBlinkingFace) {
         startBlinking(currentBlinkingFace);
     }
-    renderer.autoClear = false;
-    renderer.clear();
-
-    // Render the scene from the first camera
-    renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight);
-    renderer.setScissor(0, 0, window.innerWidth / 2, window.innerHeight);
-    renderer.setScissorTest(true);
-    renderer.render(scene, camera);
-
-    // Render the scene from the second camera
-    renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
-    renderer.setScissor(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
-    renderer.setScissorTest(true);
-    renderer.render(scene, camera2);
-
-    // Disable the scissor test after rendering both views
-    renderer.setScissorTest(false);
-
     // Send a request to the server to update the game state
-    socket.send(JSON.stringify({ 'type': 'update_state' }));
-
+    // socket.send(JSON.stringify({ 'type': 'update_state' }));
 }
-
-let frameCount = 0;
 
 init();

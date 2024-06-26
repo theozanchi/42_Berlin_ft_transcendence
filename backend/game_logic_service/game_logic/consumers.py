@@ -8,6 +8,8 @@ import time
 logging.basicConfig(level=logging.INFO)
 
 class PongConsumer(WebsocketConsumer):
+    clients = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.aiming_angle = 0  # Initialize aiming_angle
@@ -20,8 +22,8 @@ class PongConsumer(WebsocketConsumer):
         
 
     game_state = {
-        'player1': {'x': 0, 'y': 0, 'z': 1},
-        'player2': {'x': 0, 'y': 0, 'z': -1},
+        'player1': {'x': 0, 'y': 0, 'z': 1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
+        'player2': {'x': 0, 'y': 0, 'z': -1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
         'ball': {'x': 0, 'y': 0, 'z': 0},
         'ballSpeed': {'x': 0, 'y': 0, 'z': 0},
         'playerTurn': True,  # Initial value, assuming player 1 starts
@@ -37,43 +39,19 @@ class PongConsumer(WebsocketConsumer):
 
     def connect(self):
         self.accept()
-        self.room_group_name = 'pong_game'
-
-        # Join room group
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        # Send initial game state to the newly connected client
-        #self.reset_ball()
+        PongConsumer.clients.append(self)
+        logging.info(f"New client connected. Total clients: {len(PongConsumer.clients)}")
         self.send_game_state()
 
     def disconnect(self, close_code):
-        # Leave room group
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name,
-            self.channel_name
-        )
+        PongConsumer.clients.remove(self)
+        logging.info(f"Client disconnected. Total clients: {len(PongConsumer.clients)}")
 
     def receive(self, text_data):
         data = json.loads(text_data)
-        if data['type'] == 'player_move':
-            self.handle_player_move(data)
-        elif data['type'] == 'update_state':
+        if data['type'] == 'game_state':
             self.update_game_state(data)
-        elif data['type'] == 'game_state':
-            self.update_game_state_from_data(data)
 
-
-    def handle_player_move(self, data):
-        # Update player positions based on client input
-        self.game_state['player1'] = data['player1']
-        self.game_state['player2'] = data['player2']
-        self.game_state['current_face'] = data.get('current_face', self.game_state['current_face'])
-        self.game_state['current_face2'] = data.get('current_face2', self.game_state['current_face2'])
-        # Broadcast the updated game state
-        self.send_game_state()
 
     def update_game_state(self, data):
         # Handle ball movement and collision detection server-side
@@ -85,8 +63,10 @@ class PongConsumer(WebsocketConsumer):
         self.update_ai()
         self.send_game_state()
 
+
     def update_ball(self):
         
+        #print(f'player1 x: {self.game_state["player1"]}')
         if self.game_state['ballIsHeld']:
             if self.game_state['playerTurn']:
                 self.game_state['ball'] = self.game_state['player1'].copy()
@@ -272,9 +252,8 @@ class PongConsumer(WebsocketConsumer):
     def reset_ball(self):
 
         self.game_state['playerTurn'] = not self.game_state['playerTurn']
-        self.game_state['reset_ball'] = not self.game_state['reset_ball']
-        logging.info(f'reset_balled')
-    
+        self.game_state['reset_ball'] = False
+
         # Calcular la dirección en base a la cara actual y el ángulo de puntería
         direction = self.calculate_direction(self.game_state['playerTurn'], self.game_state['current_face'], self.game_state['current_face2'], self.game_state['aiming_angle'])
 
@@ -339,8 +318,6 @@ class PongConsumer(WebsocketConsumer):
             self.collision_marker_position = intersection_point
 
     def calculate_direction(self, player_turn, current_face, current_face2, aiming_angle):
-        logging.info(f'aiming_angle: {aiming_angle}')
-        logging.info(f'current_face: { current_face if player_turn else current_face2}') 
         direction = {'x': 0, 'y': 0, 'z': 0}
         face = current_face2 if player_turn else current_face
         if face == 0:  # Front
@@ -376,12 +353,24 @@ class PongConsumer(WebsocketConsumer):
     def update_ai(self):
         # Implement the logic to update the AI player
         pass
+    
 
     def send_game_state(self):
-        self.send(text_data=json.dumps({
+        for client in PongConsumer.clients:
+            client.send(text_data=json.dumps({
             'type': 'game_state',
-            'player1': self.game_state['player1'],
-            'player2': self.game_state['player2'],
+            'player1': {
+                'x': self.game_state['player1']['x'],
+                'y': self.game_state['player1']['y'],
+                'z': self.game_state['player1']['z'],
+                'rotation': self.game_state['player1']['rotation']
+            },
+            'player2': {
+                'x': self.game_state['player2']['x'],
+                'y': self.game_state['player2']['y'],
+                'z': self.game_state['player2']['z'],
+                'rotation': self.game_state['player2']['rotation']
+            },
             'ball': self.game_state['ball'],
             'ballSpeed': self.game_state['ballSpeed'],
             'playerTurn': self.game_state['playerTurn'],
@@ -392,24 +381,9 @@ class PongConsumer(WebsocketConsumer):
             'current_face2': self.game_state['current_face2'],
             'aiming_angle': self.game_state['aiming_angle'],
             'reset_ball': self.game_state['reset_ball']
-        }))
+            }))
 
     def game_update(self, data):
-        # Update game state based on received data
-        self.game_state['player1'] = data.get('player1', self.game_state['player1'])
-        self.game_state['player2'] = data.get('player2', self.game_state['player2'])
-        #self.game_state['ball'] = data.get('ball', self.game_state['ball'])
-       # self.game_state['ballSpeed'] = data.get('ballSpeed', self.game_state['ballSpeed'])
-        self.game_state['playerTurn'] = data.get('playerTurn', self.game_state['playerTurn'])
-        self.game_state['playerScore'] = data.get('playerScore', self.game_state['playerScore'])
-        self.game_state['aiScore'] = data.get('aiScore', self.game_state['aiScore'])
-        self.game_state['ballIsHeld'] = data.get('ballIsHeld', self.game_state['ballIsHeld'])
-        self.game_state['current_face'] = data.get('current_face', self.game_state['current_face'])
-        self.game_state['current_face2'] = data.get('current_face2', self.game_state['current_face2'])
-        self.game_state['aiming_angle'] = data.get('aiming_angle', self.game_state['aiming_angle'])
-        self.game_state['reset_ball'] = data.get('reset_ball', self.game_state['reset_ball'])
-
-    def update_game_state_from_data(self, data):
         self.game_state['player1'] = data['player1']
         self.game_state['player2'] = data['player2']
         self.game_state['playerTurn'] = data['playerTurn']
@@ -421,20 +395,4 @@ class PongConsumer(WebsocketConsumer):
         self.game_state['aiming_angle'] = data.get('aiming_angle', self.game_state['aiming_angle'])
         self.game_state['reset_ball'] = data.get('reset_ball', self.game_state['reset_ball'])
 
-        # Broadcast updated game state to the room group
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type': 'game_update',
-                'player1': self.game_state['player1'],
-                'player2': self.game_state['player2'],
-                'playerTurn': self.game_state['playerTurn'],
-                'playerScore': self.game_state['playerScore'],
-                'aiScore': self.game_state['aiScore'],
-                'ballIsHeld': self.game_state['ballIsHeld'],
-                'current_face': self.game_state['current_face'],
-                'current_face2': self.game_state['current_face2'],
-                'aiming_angle': self.game_state['aiming_angle'],
-                'reset_ball': self.game_state['reset_ball']
-            }
-        )
+        #self.send_game_state()
