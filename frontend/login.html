@@ -31,7 +31,7 @@
 
 							<div class="d-grid gap-2">
 								<div class="form-floating">
-										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email">
+										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
 										<label for="loginEmail">Email</label>
 								</div>
 								<div class="form-floating">
@@ -56,87 +56,71 @@
 								<button id="login42SSOButton" class="btn btn-lg btn-outline-dark">
 									<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
 									<span>42 Account</span></button>
+							</div>							
+						</div>
+						
+						<div id="10-signup" class="step" >		
+							<!-- <div style="display: flex; align-items: center;"> -->
+							<div class="d-flex justify-content-between align-baseline">
+								<h1>Sign up</h1>
 							</div>
-							<!-- <div style="display: flex; align-items: center; justify-content: right;">
-								<span class="align-middle">No account?</span>								
-								<a href="#" class="btn btn-link">sign up now</a>
-							</div> -->
-							
 
-
-							
-						</div>
-						
-						<div id="login-00" class="step hidden">
-							<stepper-titlebar title="Local Game"></stepper-titlebar>
-							<player-list mode ="local"></player-list>
-							<button id="generateLocalGameButton" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-						</div>
-						
-						<div id="20-remote-switch" class="step hidden">
-							<stepper-titlebar title="Remote Game"></stepper-titlebar>
-							<p></p>
-							<p>Fantastic! Nothing better than playing with friends via the internet.</p>
-							<h3>Join Game</h3>
-							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
-
-							<form class="input-group mb-3 needs-validation" novalidate>
+							<div class="d-grid gap-2">
 								<div class="form-floating">
-									<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" required>
-									<label for="searchGameID">Game-ID</label>
-									<!-- VALIDATION TBD -->
-									<!-- <div class="valid-feedback">
-									  Looks good!
-									</div>
-									<div class="invalid-feedback">
-										Please provide a valid city.
-									</div> -->
+										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
+										<label for="loginEmail">Email</label>
 								</div>
-								<button class="btn btn-primary" type="submit" id="joinRemoteGameButton">Join</button>
-							</form>
+								<div class="form-floating">
+									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<label for="loginPassword">Password</label>
+								</div>
+								<div class="form-floating">
+									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<label for="loginPassword">Confirm Password</label>
+								</div>
+								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign up</button>
+							</div>							
+						</div>
 
-							<h3>Host Game</h3>
-							<p>Do your prefer to host your own game to share it with friends?</p>
-							<button id="hostRemoteGameButton" class="btn btn-primary d-grid generate-game-button">Host Remote Game</button>
-							
-						</div>
-						
-						<div id="21-remote-join" class="step hidden">
-							<stepper-titlebar title="Remote Game ID"></stepper-titlebar>
-							<div class="input-group mb-3">
-								<span class="input-group-text" id="basic-addon1">Game ID</span>
-								<input type="search" name="game_id" class="form-control" value="FGZ6" readonly>
-								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton">Copy</button>
+						<div id="10-signup" class="step" >		
+							<!-- <div style="display: flex; align-items: center;"> -->
+							<div class="d-flex justify-content-between align-baseline">
+								<h1>Sign up</h1>
 							</div>
-							<player-list mode="join"></player-list>
+
+							<div class="d-grid gap-2">
+								<div class="form-floating">
+										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
+										<label for="loginEmail">Email</label>
+								</div>
+								<div class="form-floating">
+									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<label for="loginPassword">Password</label>
+								</div>
+								<div class="form-floating">
+									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<label for="loginPassword">Confirm Password</label>
+								</div>
+								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign up</button>
+							</div>							
 						</div>
 						
-						<div id="22-remote-host" class="step hidden">
-							<stepper-titlebar title="Host Remote Game"></stepper-titlebar>
-							<div class="input-group mb-3">
-								<span class="input-group-text" id="basic-addon1">Game ID</span>
-								<input type="search" name="game_id" class="form-control" value="FGZ6" readonly>
-								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton">Copy</button>
+						<div id="11-profilesetup" class="step" >		
+							<!-- <div style="display: flex; align-items: center;"> -->
+							<div class="d-flex justify-content-between align-baseline">
+								<h1>Create Account</h1>
 							</div>
-							<player-list mode ="host"></player-list>
-							<button id="startRemoteGameButton"  class="btn btn-primary btn-lg d-grid generate-game-button">Start Game</button>
+
+							<div class="d-grid gap-2">
+								<div class="form-floating">
+										<input type="text" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
+										<label for="loginEmail">Nickname</label>
+								</div>
+								<button id="saveProfileButton" class="btn btn-lg btn-primary disabled">Save</button>
+								<button id="LogoutProfileButton" class="btn btn-lg btn-secondary">Logout</button>
+								<button id="deleteProfileButton" class="btn btn-lg btn-danger">Delete Profile</button>
+							</div>							
 						</div>
-						
-						<div id="30-game-mode" class="step hidden">
-							<stepper-titlebar title="Game running"></stepper-titlebar>
-							<h2>Game Instructions</h2>
-							<p>To play the 3D Ponger Puff Pong, use the following keys</p>
-							<ul>
-								<li><b>IJKL</b><br>
-									Move the rackets position on active plane up, left, down or right.
-								</li>
-								<li><b>WASD</b><br>
-									Rotate the cube to switch the active plane.</li>
-								<li><b>SPACE</b><br>
-									Serve the ball if static and start the game</li>
-							</ul>
-							<button id="exitGameButton"  class="btn btn-secondary btn-lg d-grid">Exit Game</button>
-						</div>					
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
