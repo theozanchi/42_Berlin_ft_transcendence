@@ -47,6 +47,9 @@ class PlayerList extends HTMLElement {
 		let playerList = this.shadow.getElementById('list-of-players');
 
 		let newPlayer = document.createElement('player-component');
+		let separator = document.createElement('hr');
+		separator.style.margin = '6px';
+
 		// newPlayer.setAttribute('name', `${this.PongerChars[this.count]}`);
 		newPlayer.setAttribute('name', 'ThisWillChange');
 
@@ -57,11 +60,16 @@ class PlayerList extends HTMLElement {
 
 		// Add an event listener for the 'removePlayer' event
 		newPlayer.addEventListener('removePlayer', () => {
+			let separator = newPlayer.previousElementSibling;
+			if (separator) {
+				newPlayer.parentNode.removeChild(separator);
+			}
 			playerList.removeChild(newPlayer);
 			this.dec();
 			this.shadow.getElementById('playerCount').textContent = `${this.count} Players`;
 		});
 
+		playerList.appendChild(separator);
 		playerList.appendChild(newPlayer);
 
 		// Increase the count of players
@@ -92,16 +100,15 @@ class PlayerList extends HTMLElement {
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
-			<style>
-			</style>
 
 			<h3 id="playerCount"> ${this.count} Players</h3>
 			<div id="list-of-players">
 				<player-component name="USER" input></player-component>
 			</div>
+			
 			<div class="d-flex justify-content-center">
 			${this.gameMode === "local" ?
-					'<button id="addPlayerButton" class="btn btn-outline-primary d-grid">+ Add Player</button>'
+					'<button id="addPlayerButton" class="btn btn-outline-primary d-grid"><i class="bi bi-plus"></i>+ Add Player</button>'
 				:	'<div class="spinner-border" role="status">	<span class="visually-hidden">Loading...</span></div><p>Waiting for Players to join</p>'
 			}
 			</div>

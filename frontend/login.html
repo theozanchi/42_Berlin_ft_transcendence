@@ -22,23 +22,32 @@
 					<div class="spacer-48"></div>
 					<div class="d-flex row align-self-start">
 						<stepper-component></stepper-component>
-						<div id="00-login" class="step" >
-							<h1>Login</h1>
+						<div id="00-login" class="step" >		
+							<!-- <div style="display: flex; align-items: center;"> -->
+							<div class="d-flex justify-content-between align-baseline">
+								<h1>Sign in</h1>
+								<a href="#" class="btn btn-link text-decoration-none">Create account</a>
+							</div>
+
 							<div class="d-grid gap-2">
 								<div class="form-floating">
-										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="E-Mail">
-										<label for="loginEmail">E-Mail</label>
+										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email">
+										<label for="loginEmail">Email</label>
 								</div>
 								<div class="form-floating">
 									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
 									<label for="loginPassword">Password</label>
 								</div>
-								<button id="loginButton" class="btn btn-lg btn-primary disabled">Login</button>
+								<div style="display: flex; justify-content: right;">
+									<a href="#" class="btn btn-link text-decoration-none">Forgot password?</a>
+									<div class="spacer-48"></div>
+								</div>
+								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign in</button>
 							</div>
-							<div class="spacer-12"></div>
+							<div class="spacer-48"></div>
 							<div style="display: flex; align-items: center; justify-content: center;">
 								<hr style="flex-grow: 1;"/>	
-								<span style="margin: 0 10px;">Or sign in with:</span>
+								<span class="text-center" style="margin: 0 10px;">Or sign in with:</span>
 								<hr style="flex-grow: 1;"/>	
 							</div>
 							<div class="spacer-12"></div>
@@ -48,6 +57,11 @@
 									<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
 									<span>42 Account</span></button>
 							</div>
+							<!-- <div style="display: flex; align-items: center; justify-content: right;">
+								<span class="align-middle">No account?</span>								
+								<a href="#" class="btn btn-link">sign up now</a>
+							</div> -->
+							
 
 
 							
