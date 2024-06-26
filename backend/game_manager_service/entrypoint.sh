@@ -2,6 +2,7 @@
 
 python manage.py makemigrations game_manager
 python manage.py migrate
+python manage.py makemigrations --merge
 
 # Start the Gunicorn server
 echo "Starting Gunicorn"

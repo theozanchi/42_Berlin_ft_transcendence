@@ -4,10 +4,11 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from itertools import combinations
 import requests
+import uuid
 
 # Create your models here.
 class Game(models.Model):
-    game_id = models.UUIDField(primary_key=True, editable=False, unique=True)
+    game_id = models.UUIDField(primary_key=True, auto_created=True, default=uuid.uuid4, editable=False, unique=True)
     mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
 
@@ -50,9 +51,9 @@ class Game(models.Model):
                     round.winner = Player.objects.get(game=self, alias=winner)
                     round.save()
                 except Round.DoesNotExist:
-                    print(f"No round found for game {self.pk} with round number {round_number}")
+                    raise Exception(f"No round found for game {self.pk} with round number {round_number}")
                 except Player.DoesNotExist:
-                    print(f"No player found for game {self.pk} with alias {self.pk}")
+                    raise Exception(f"No player found for game {self.pk} with alias {self.pk}")
         else:
             raise ValidationError("Invalid data provided for game update.")
         
@@ -130,7 +131,7 @@ class Round(models.Model):
             self.winner = next((player for player in players if player.alias == game_data.get('winner')), None)
             
         else:
-            print(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
+            raise Exception(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
     
     def __str__(self):
         return f"Round {self.round_number} - {self.player1} vs {self.player2}"

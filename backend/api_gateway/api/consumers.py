@@ -18,11 +18,21 @@ GAME_LOGIC_REST_URL = 'http://game_logic:8002'
 GAME_LOGIC_WS_URL = 'ws://game_logic:8001/ws/'
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.game_mode = 'local'
+        self.game_id = None
+
     async def connect(self):
-        print("API: Connecting to local game")
-        # ISSUE: check if uuid is unique / store in database
-        self.game_logic_ws = None
-        self.game_id = str(uuid.uuid4())[:8] # ISSUE Request game manager for unique id
+        self.__init__()
+        # Get a unique game ID from the game manager
+        try:
+            response = await requests.post(GAME_MANAGER_REST_URL + '/create-game/', json={'game-mode': self.game_mode})
+            response.raise_for_status()
+            self.game_id = response.json()['game-id']
+        except requests.RequestException as e:
+            return({'error': str(e)})
+        
         await self.channel_layer.group_add(self.game_id, self.channel_name)
         await self.accept()
         await self.send_json({"game-id": self.game_id})
@@ -56,11 +66,11 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         else:
             await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
 
-    async def create_game(self, content, headers):
+    async def initialize_game(self, content, headers):
         content['game-mode'] = 'local'
         
         try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
+            response = await requests.post(GAME_MANAGER_REST_URL + '/initialize-game/', json=content, headers=headers)
             response.raise_for_status()
             game_content = response.json()
             return game_content
@@ -70,25 +80,19 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     
     async def start_game(self, content, headers):
         try:
-            # Establish WebSocket connection to game_logic
-            print("Getting round info...")
-            #response = requests.post(GAME_MANAGER_URL + '/play-next-round/', json=content, headers=headers)
-            #response.raise_for_status()
-            #self.current_round = response.json()
-            #print(self.current_round)
-
-            self.game_logic_ws = await websockets.connect(GAME_LOGIC_WS_URL + self.game_id + '/')
-            print("API: Connected to game logic!")
+            response = await requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=headers)
+            response.raise_for_status()
+            self.current_round = response.json()
+            print(self.current_round)
 
         except requests.RequestException as e:
-            print("API: Error connecting to game logic :(")
             return({'error': str(e)})
 
     async def game_state(self, content, headers):
         #if self.current_round['player1'] != self.alias and self.current_round['player2'] != self.alias:
         #    return({'error': 'Not your turn'})
         try:
-            response = requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=headers)
+            response = await requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=headers)
             response.raise_for_status()
             game_state = response.json()
             self.channel_layer.group_send(self.game_id, game_state)
@@ -107,6 +111,10 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         pass
 
 class   HostConsumer(LocalConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.game_mode = 'remote'
+
     async def get_type(self, type):
         return {
             'set-alias': self.set_alias,
