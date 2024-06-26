@@ -1134,7 +1134,7 @@ function animate() {
     renderer.setScissorTest(false);
 
     // Send a request to the server to update the game state
-    socket.send(JSON.stringify({ 'type': 'update_state' }));
+    //socket.send(JSON.stringify({ 'type': 'update_state' }));
 
 }
 

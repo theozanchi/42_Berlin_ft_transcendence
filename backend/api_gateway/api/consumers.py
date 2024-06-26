@@ -12,8 +12,8 @@ from asgiref.sync import async_to_sync, sync_to_async
 # Initialize Redis client
 #redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
-GAME_MANAGER_URL = 'http://game_manager'
-GAME_LOGIC_URL = 'http://game_logic'
+GAME_MANAGER_REST_URL = 'http://game_manager'
+GAME_LOGIC_REST_URL = 'http://game_logic'
 
 GAME_LOGIC_WS_URL = 'ws://game_logic:8000/ws/'
 
@@ -73,7 +73,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         content['game-mode'] = 'local'
         
         try:
-            response = requests.post(GAME_MANAGER_URL + '/create-game/', json=content, headers=headers)
+            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
             response.raise_for_status()
             game_content = response.json()
             return game_content
@@ -136,7 +136,7 @@ class   HostConsumer(LocalConsumer):
         content['host'] = self.channel_name
         
         try:
-            response = requests.post(GAME_MANAGER_URL + '/create-game/', json=content, headers=headers)
+            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
             response.raise_for_status()
             game_content = response.json()
             return game_content
