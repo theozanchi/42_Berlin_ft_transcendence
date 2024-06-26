@@ -12,7 +12,7 @@ let openPromise;
 function openSocket() {
     if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
         console.log('Opening new WebSocket');
-        newsocket = new WebSocket('wss://localhost:8443/ws/local/');
+		newsocket = new WebSocket(`wss://${window.location.host}/ws/local/`);
 
         openPromise = new Promise((resolve) => {
             newsocket.onopen = function(event) {

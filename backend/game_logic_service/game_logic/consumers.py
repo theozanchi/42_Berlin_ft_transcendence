@@ -55,7 +55,8 @@ class PongConsumer(AsyncWebsocketConsumer):
         elif data['type'] == 'update_state':
             await self.update_game_state(data)
         elif data['type'] == 'game_state':
-            await self.update_game_state_from_data(data)
+            #await self.update_game_state_from_data(data)
+            await self.update_game_state(data)
 
     async def handle_player_move(self, data):
         # Update player positions based on client input
@@ -67,7 +68,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send_game_state()
 
     async def update_game_state(self, data):
-        print("GAME LOGIC: update_game_state from type: update_state")
+        print("GAME LOGIC: received update")
         # Handle ball movement and collision detection server-side
         await self.game_update(data)
         self.update_aiming_line()
@@ -365,6 +366,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         pass
 
     async def send_game_state(self):
+        print("Publishing game state to channel ")
         self.channel_layer.group_send(
         self.game_id,
         {
@@ -383,6 +385,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def game_update(self, data):
         # Update game state based on received data
+        print("GAME LOGIC: received update from channel layer")
         self.game_state['player1'] = data.get('player1', self.game_state['player1'])
         self.game_state['player2'] = data.get('player2', self.game_state['player2'])
         #self.game_state['ball'] = data.get('ball', self.game_state['ball'])

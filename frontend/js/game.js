@@ -54,9 +54,9 @@ export function initializeWebSocket(url){
             socket.onmessage = function(event) {
                 let data = JSON.parse(event.data);
                 // Handle game state updates
-                if (data.type === 'game_state') {
+                if (data.type === 'game_update') {
                     updateGameState(data);
-                }    
+                }
             };    
     
             socket.onclose = function(event) {
@@ -92,6 +92,7 @@ export function initializeWebSocket(url){
 
 
         export function updateGameState(data) {
+            console.log('Updating game state to:', data);
             if (data.type === 'game_state') {
                 // Update player positions
                 player.position.set(data.player1.x, data.player1.y, data.player1.z);
@@ -117,24 +118,23 @@ export function initializeWebSocket(url){
 
         // Ensure WebSocket is open before sending data
         export function sendGameState() {
-            if (socket.readyState === WebSocket.OPEN) {
-                const newGameState = {
-                    type: 'game_state',
-                    player1: { x: player.position.x, y: player.position.y, z: player.position.z },
-                    player2: { x: player2.position.x, y: player2.position.y, z: player2.position.z },
-                    //ball: { x: ball.position.x, y: ball.position.y, z: ball.position.z },
-                    //ballSpeed: { x: ballSpeed.x, y: ballSpeed.y, z: ballSpeed.z },
-                    playerTurn: playerTurn,
-                    playerScore: playerScore,
-                    aiScore: aiScore,
-                    ballIsHeld: ballIsHeld,
-                    current_face: currentFace,
-                    current_face2: currentFace2,
-                    aiming_angle: aimingAngle
+            const newGameState = {
+                type: 'game_state',
+                player1: { x: player.position.x, y: player.position.y, z: player.position.z },
+                player2: { x: player2.position.x, y: player2.position.y, z: player2.position.z },
+                //ball: { x: ball.position.x, y: ball.position.y, z: ball.position.z },
+                //ballSpeed: { x: ballSpeed.x, y: ballSpeed.y, z: ballSpeed.z },
+                playerTurn: playerTurn,
+                playerScore: playerScore,
+                aiScore: aiScore,
+                ballIsHeld: ballIsHeld,
+                current_face: currentFace,
+                current_face2: currentFace2,
+                aiming_angle: aimingAngle
 
-                };    
-        
-                if (!deepEqual(oldGameState, newGameState)) {
+            };
+            if (!deepEqual(oldGameState, newGameState)) {
+                    if (socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify(newGameState));
                     oldGameState = newGameState; // Update the old game state to the new one
                 }    
@@ -1132,12 +1132,9 @@ function animate() {
 
     // Disable the scissor test after rendering both views
     renderer.setScissorTest(false);
-
-    // Send a request to the server to update the game state
-    //socket.send(JSON.stringify({ 'type': 'update_state' }));
-
 }
 
 let frameCount = 0;
 
+initializeWebSocket(`wss://${window.location.host}/ws/local/`);
 init();
