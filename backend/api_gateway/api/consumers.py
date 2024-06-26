@@ -25,26 +25,30 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         self.__init__()
+        await self.accept()
+        print('Connected')
         # Get a unique game ID from the game manager
         try:
             response = await requests.post(GAME_MANAGER_REST_URL + '/create-game/', json={'game-mode': self.game_mode})
             response.raise_for_status()
-            self.game_id = response.json()['game-id']
-        except requests.RequestException as e:
-            return({'error': str(e)})
+            self.game_id = response.json().get('game-id')
+            #await self.channel_layer.group_add(self.game_id, self.channel_name)
+            await self.send_json({"game-id": self.game_id})
         
-        await self.channel_layer.group_add(self.game_id, self.channel_name)
-        await self.accept()
-        await self.send_json({"game-id": self.game_id})
+        except requests.RequestException as e:
+            await self.send_json({'error': str(e)})
+        
+        print("GAME ID: ", self.game_id)
 
     async def disconnect(self, close_code):
         
-        await self.channel_layer.group_discard(self.game_id, self.channel_name)
+        if self.game_id:
+            await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
     
     async def get_type(self, type):
         return {
-            'create-game': self.create_game,
+            'init-game': self.init_game,
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
             'start-game': self.start_game,
@@ -66,11 +70,9 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         else:
             await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
 
-    async def initialize_game(self, content, headers):
-        content['game-mode'] = 'local'
-        
+    async def init_game(self, content, headers):
         try:
-            response = await requests.post(GAME_MANAGER_REST_URL + '/initialize-game/', json=content, headers=headers)
+            response = requests.post(GAME_MANAGER_REST_URL + '/init-game/', json=content, headers=headers)
             response.raise_for_status()
             game_content = response.json()
             return game_content
@@ -122,19 +124,6 @@ class   HostConsumer(LocalConsumer):
             'start-game': self.start_game,
             'update-game': self.update_game,
         }.get(type)
-    
-    async def create_game(self, content, headers):
-        content['game-mode'] = 'remote'
-        content['host'] = self.channel_name
-        
-        try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
-            response.raise_for_status()
-            game_content = response.json()
-            return game_content
-        
-        except requests.RequestException as e:
-            return({'error': str(e)})
     
     async def set_alias(self, content, headers):
         if content.get('alias'):

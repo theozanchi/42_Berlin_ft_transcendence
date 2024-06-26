@@ -5,10 +5,22 @@ from django.contrib.auth.models import User
 from itertools import combinations
 import requests
 import uuid
+import random
+import string
 
 # Create your models here.
+
+def generate_game_id():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+
 class Game(models.Model):
-    game_id = models.UUIDField(primary_key=True, auto_created=True, default=uuid.uuid4, editable=False, unique=True)
+    game_id = models.CharField(
+        primary_key=True,
+        default=generate_game_id,
+        editable=False,
+        unique=True,
+        max_length=8
+    )
     mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
 
