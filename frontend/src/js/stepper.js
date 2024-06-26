@@ -176,10 +176,19 @@ async function hostRemoteGame() {
 			document.getElementById('shareRemoteGameIDButton').addEventListener('click', function() {
 				// Get the input field
 				const input = this.previousElementSibling;
-			
+				// Get the span element containing the icon
+				const iconSpan = this.querySelector('span');
+
 				// Copy the input field's value to the clipboard
 				navigator.clipboard.writeText(input.value).then(function() {
 					console.log('Copying to clipboard was successful!');
+										
+					// Change the icon to bi-clipboard-check
+					iconSpan.className = 'bi bi-clipboard-check';
+					// Set a timeout to change the icon back to bi-clipboard after 3 seconds
+					setTimeout(function() {
+						iconSpan.className = 'bi bi-clipboard';
+					}, 3000);
 				}, function(err) {
 					console.error('Could not copy text: ', err);
 				});

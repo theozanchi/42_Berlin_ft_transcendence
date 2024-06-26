@@ -46,6 +46,14 @@
 }
 
 /* Spacers */
+.spacer-12 {
+	height: 12px;
+}
+
+.spacer-24 {
+	height: 24px;
+}
+
 .spacer-48 {
 	height: 48px;
 }
