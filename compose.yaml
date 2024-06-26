@@ -51,6 +51,7 @@ services:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SERVER_NAME=${SERVER_NAME}
     networks:
       - backend
     depends_on:
