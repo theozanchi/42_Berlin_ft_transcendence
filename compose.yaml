@@ -19,6 +19,8 @@ services:
     depends_on:
       - frontend
       - api_gateway
+    stop_signal: SIGINT
+    stop_grace_period: 2s
 
   frontend:
     container_name: frontend
@@ -27,18 +29,55 @@ services:
       - ./frontend:/usr/share/nginx/html:ro
     networks:
       - frontend
+    stop_signal: SIGINT
+    stop_grace_period: 2s
 
   db:
     image: postgres:latest # Based on debian:bookworm-slim
     container_name: db
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
     networks:
       - backend
     environment:
-      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_DB=postgres_db
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    stop_signal: SIGINT
+    stop_grace_period: 2s
+
+  user_mgt:
+    build: backend/user_mgt/
+    command: >
+      sh -c "
+      ./wait_for_postgres.sh db &&
+      python manage.py migrate &&
+      python create_superuser.py &&
+      gunicorn --bind 0.0.0.0:8000 user_mgt.wsgi:application
+      "
+    container_name: user_mgt
+    volumes:
+      - ./backend/user_mgt:/app
+    networks:
+      - backend
+    depends_on:
+      - db
+    environment: #update fiel names in .env
+      - POSTGRES_DB=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - USR_ADMIN=admin
+      - USR_EMAIL=admin@admin.com
+      - USR_PASSWORD=admin
+    ports:    # ports debugging:
+      - "8001:8000"
+    stop_signal: SIGINT
+    stop_grace_period: 2s
+
 
   api_gateway:
     image: api_gateway_service
@@ -57,7 +96,10 @@ services:
       - redis
       - game_logic
       - game_manager
-      - authentication
+      # - authentication
+      - user_mgt
+    stop_signal: SIGINT
+    stop_grace_period: 2s
 
   redis:
     image: redis:latest # Based on debian:bookworm-slim
@@ -66,6 +108,8 @@ services:
     - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - backend
+    stop_signal: SIGINT
+    stop_grace_period: 2s
 
   game_logic:
     image: game_logic_service # Based on debian:bookworm-slim
@@ -82,6 +126,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
+    stop_signal: SIGINT
+    stop_grace_period: 2s
 
   game_manager:
     image: game_manager_service # Based on debian:bookworm-slim
@@ -98,23 +144,28 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
+    stop_signal: SIGINT
+    stop_grace_period: 2s
 
-  authentication:
-    image: authentication_service # Based on debian:bookworm-slim
-    container_name: authentication
-    build: ./backend/authentication_service
-    volumes:
-      - ./backend/authentication_service:/code
-      - ./static:/usr/share/static
-    networks:
-      - backend
-    environment:
-      - POSTGRES_NAME=${POSTGRES_NAME}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    depends_on:
-      - db
+#  authentication:
+#    image: authentication_service # Based on debian:bookworm-slim
+#    container_name: authentication
+#    build: ./backend/authentication_service
+#    volumes:
+#      - ./backend/authentication_service:/code
+#      - ./static:/usr/share/static
+#    networks:
+#      - backend
+#    environment:
+#      - POSTGRES_NAME=${POSTGRES_NAME}
+#      - POSTGRES_USER=${POSTGRES_USER}
+#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+#    depends_on:
+#      - db
 
 networks:
   frontend:
   backend:
+
+volumes:
+  postgres_data:

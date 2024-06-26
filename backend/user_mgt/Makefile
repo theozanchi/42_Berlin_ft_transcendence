@@ -14,3 +14,6 @@ new: fclean build up
 du: down up
 
 dbu: down build up
+
+bash: up
+	docker exec -it user_mgt-web-1 bash

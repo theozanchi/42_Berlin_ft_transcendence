@@ -38,6 +38,9 @@ old_database/
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Postgres database - persitent on computer to test
+postgres_data
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
