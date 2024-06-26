@@ -16,7 +16,12 @@ RUN apt-get update && apt-get install -y zsh && \
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     postgresql \
-    postgresql-contrib
+    postgresql-contrib \
+    make \
+    docker.io \
+    curl \
+    && curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && chmod +x /usr/local/bin/docker-compose
 # service postgresql start
 # su - postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\""
 # su - postgres -c "psql -c \"CREATE DATABASE mydatabase OWNER myuser;\""
