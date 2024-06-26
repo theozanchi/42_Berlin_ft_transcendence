@@ -19,6 +19,8 @@ class PongConsumer(WebsocketConsumer):
         self.cube_size = 2
         self.ball_radius = 0.05
         self.resetting_ball = False
+        self.last_update_time = time.time()
+        self.update_interval = 1 / 60
         
 
     game_state = {
@@ -54,19 +56,22 @@ class PongConsumer(WebsocketConsumer):
 
 
     def update_game_state(self, data):
-        # Handle ball movement and collision detection server-side
+        current_time = time.time()
+            # Handle ball movement and collision detection server-side
         self.game_update(data)
         self.update_aiming_line()
-        if self.game_state['reset_ball'] and not self.game_state['ballIsHeld']:
-            self.reset_ball()
-        self.update_ball()
+        if current_time - self.last_update_time >= self.update_interval:
+            self.last_update_time = current_time
+            if self.game_state['reset_ball'] and not self.game_state['ballIsHeld']:
+                self.reset_ball()
+            self.update_ball()
         self.update_ai()
         self.send_game_state()
 
 
     def update_ball(self):
         
-        #print(f'player1 x: {self.game_state["player1"]}')
+        print(f'ballishe    ld: {self.game_state["ballIsHeld"]}')
         if self.game_state['ballIsHeld']:
             if self.game_state['playerTurn']:
                 self.game_state['ball'] = self.game_state['player1'].copy()

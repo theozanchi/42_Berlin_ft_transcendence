@@ -118,6 +118,7 @@ export function initializeWebSocket(url){
                 currentFace2 = data.current_face2;
                 aimingAngle = data.aiming_angle;
                 resetBall_ = data.reset_ball;
+                console.log("reset ball", resetBall_);
 
 
                 updateScore();
@@ -401,11 +402,11 @@ function onKeyDown(event) {
                 switchFace('right');
                 break;
             case ' ': // Space key
-            if (ballIsHeld) {
-                ballIsHeld = false; // Release the ball
-                resetBall_ = true; // Reset the ball to a random position
-                sendGameState();
-            }
+                if (ballIsHeld) {
+                    ballIsHeld = false; // Release the ball
+                    resetBall_ = true; // Reset the ball to a random position
+                    sendGameState();
+                }
             break;
         }
     }else {
