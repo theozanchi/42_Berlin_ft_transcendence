@@ -81,7 +81,8 @@ function loadLocalGame() {
     // Create and append the script
     let script = document.createElement('script');
     script.type = 'module';
-    script.src = './js/pong/main.js';
+    // script.src = './js/pong/main.js';
+    script.src = './js/game.js';
     gameArea.appendChild(script);
 
     // Create and append the canvas
