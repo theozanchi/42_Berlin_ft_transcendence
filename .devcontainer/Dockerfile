@@ -19,10 +19,10 @@ RUN apt-get update && apt-get install -y \
     postgresql-contrib \
     make \
     docker.io \
-    curl \
-    # psql \
-    # && curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    # && chmod +x /usr/local/bin/docker-compose
+    curl
+# psql \
+# && curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+# && chmod +x /usr/local/bin/docker-compose
 
 # service postgresql start
 # su - postgres -c "psql -c \"CREATE USER $(POSTGRES_USER) WITH PASSWORD $(POSTGRES_PASSWORD);\""

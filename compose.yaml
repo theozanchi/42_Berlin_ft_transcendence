@@ -40,7 +40,7 @@ services:
     networks:
       - backend
     environment:
-      - POSTGRES_DB=postgres_db
+      - POSTGRES_DB=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
@@ -60,6 +60,7 @@ services:
     container_name: user_mgt
     volumes:
       - ./backend/user_mgt:/app
+      - ./static:/usr/share/nginx/html/static
     networks:
       - backend
     depends_on:
@@ -73,8 +74,8 @@ services:
       - USR_ADMIN=admin
       - USR_EMAIL=admin@admin.com
       - USR_PASSWORD=admin
-    ports:    # ports debugging:
-      - "8001:8000"
+    #ports:    # ports debugging:
+    #  - "8001:8000"
     stop_signal: SIGINT
     stop_grace_period: 2s
 
