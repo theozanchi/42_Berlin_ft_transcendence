@@ -67,6 +67,7 @@ function generateLocalGame() {
 	openSocket('/ws/local/')
     .then(() => {
         var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
         sendJson(json);
     })
     .catch(error => {

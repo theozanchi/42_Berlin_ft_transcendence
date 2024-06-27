@@ -19,7 +19,6 @@ from django.urls import path, re_path, include
 from api import urls, routing
  
 urlpatterns = [
-    # path('api/admin/', admin.site.urls),
     path('api/', include(urls)),
     path('ws/', include(routing.websocket_urlpatterns)),
     ]

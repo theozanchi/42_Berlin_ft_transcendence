@@ -14,7 +14,6 @@ from asgiref.sync import async_to_sync, sync_to_async
 
 GAME_MANAGER_URL = 'http://game_manager'
 GAME_LOGIC_URL = 'http://game_logic'
-
 GAME_LOGIC_WS_URL = 'ws://game_logic:8000/ws/'
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
