@@ -29,7 +29,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         # Get a unique game ID from the game manager
         try:
             headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
-            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json={'game-mode': self.game_mode})
+            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json={'game-mode': self.game_mode}, headers=headers)
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
             await self.channel_layer.group_add(self.game_id, self.channel_name)
