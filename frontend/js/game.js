@@ -57,6 +57,7 @@ export function initializeWebSocket(url){
                 if (data.type === 'game_update') {
                     updateGameState(data);
                 }
+                console.log('WebSocket message received:', data);
             };    
     
             socket.onclose = function(event) {
