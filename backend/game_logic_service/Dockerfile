@@ -28,4 +28,5 @@ ENV DJANGO_SECRET_KEY python -c 'import secrets; print(secrets.token_urlsafe(50)
 CMD	python manage.py collectstatic --noinput && \
 	python manage.py makemigrations game_logic && \
 	python manage.py migrate game_logic && \
+    daphne -b 0.0.0.0 -p 8001 game_logic_service.asgi:application && \
 	gunicorn -b 0.0.0.0 game_logic_service.wsgi:application

@@ -65,6 +65,7 @@ export function initializeWebSocket(url){
                 } else if (data.type === 'game_state') {
                     updateGameState(data);
                 }
+                console.log('Received:', data);
             };    
     
             socket.onclose = function(event) {
@@ -186,7 +187,7 @@ export function initializeWebSocket(url){
                     oldGameState = newGameState; // Update the old game state to the new one
                 }   */  
             } else {
-                console.error('WebSocket is not open. Ready state:', socket.readyState);
+                //console.error('WebSocket is not open. Ready state:', socket.readyState);
             }    
         }  
 
@@ -197,7 +198,8 @@ export function initializeWebSocket(url){
 
 function init() {
     
-    const url = `wss://${window.location.host}/ws/local/`;
+    //const url = `wss://${window.location.host}/ws/local/`;
+    const url = `wss://${window.location.host}/ws/socket-server/`;
     initializeWebSocket(url);
     // Create the scene
     scene = new THREE.Scene();
@@ -1114,6 +1116,7 @@ function animate() {
         } else {
             renderer.render(scene, camera2);
         }
+    
     } else {
         // Render the scene from the first camera
         renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight);

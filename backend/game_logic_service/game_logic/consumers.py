@@ -43,6 +43,7 @@ class PongConsumer(WebsocketConsumer):
     }
 
     def connect(self):
+        print("connected game logic")
         self.accept()
         if 'player1' not in PongConsumer.clients:
             client_id = 'player1'
