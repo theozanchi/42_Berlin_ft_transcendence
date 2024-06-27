@@ -29,20 +29,19 @@ let wallHits = 0;
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
 let currentFace2 = 1;
 let pivot;
-let pivot2; 
+let pivot2;
 let isTransitioning = false;
 let isTransitioning2 = false;
 let ballIsHeld = true;
 let aimingAngle = 0;
-let player1Turn = true; // Player 1 starts
 let singlePlayer = true; // Set to false for two-player game
-let gameState;
-let maxReconnectInterval = 200;
-let reconnectInterval;
-let oldGameState;
-let oldPlayerPos;
+let maxReconnectInterval = 5;
+const initialReconnectInterval = 1000; // Initial reconnect interval in ms
+let reconnectInterval = initialReconnectInterval;
+let currentPlayer;
 let socket;
-let reconnectAttempts;
+let reconnectAttempts = 0;
+let maxReconnectAttempts = 10;
 let resetBall_ = false;
 
 export function initializeWebSocket(url){
@@ -53,32 +52,40 @@ export function initializeWebSocket(url){
             socket = new WebSocket(url);
             socket.onopen = function(event) {
                 console.log('WebSocket connection established.');
-                reconnectAttempts = 0; // Reset reconnection attempts on successful connection
+                reconnectAttempts = 0;
+                reconnectInterval = initialReconnectInterval; // Reset reconnection attempts on successful connection
             };    
     
             socket.onmessage = function(event) {
                 let data = JSON.parse(event.data);
                 // Handle game state updates
-                if (data.type === 'game_state') {
+                if (data.type === 'player_identity') {
+                    let playerId = data.player_id;
+                    currentPlayer = (playerId === 'player1') ? player : player2;
+                } else if (data.type === 'game_state') {
                     updateGameState(data);
                 }
             };    
     
             socket.onclose = function(event) {
                 console.log('WebSocket connection closed.', event);
-                if (reconnectAttempts < maxReconnectInterval) {
+                if (reconnectAttempts < maxReconnectAttempts) {
                     setTimeout(connect, reconnectInterval);
-                    reconnectInterval = Math.min(reconnectInterval * 2, maxReconnectInterval); // Exponential backoff
+                    reconnectInterval = Math.min(reconnectInterval * 2, 16000); // Exponential backoff with a cap
                     reconnectAttempts++;
                 } else {
                     console.error('Max reconnect attempts reached. Could not reconnect.');
-                }    
+                }
             };    
     
             socket.onerror = function(error) {
                 console.error('WebSocket error:', error);
-                // Optional: Handle errors such as failed connection attempts
-            };    
+                if (socket.readyState !== WebSocket.OPEN && reconnectAttempts < maxReconnectAttempts) {
+                    setTimeout(connect, reconnectInterval);
+                    reconnectAttempts++;
+                    }
+                };
+             
         }    
     
         connect();
@@ -100,12 +107,16 @@ export function initializeWebSocket(url){
             if (data.type === 'game_state') {
                 // Update player positions
                 //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
-                player.position.set(data.player1.x, data.player1.y, data.player1.z);
-                player.rotation.set(data.player1.rotation.x, data.player1.rotation.y, data.player1.rotation.z);
-        
-                player2.position.set(data.player2.x, data.player2.y, data.player2.z);
-                player2.rotation.set(data.player2.rotation.x, data.player2.rotation.y, data.player2.rotation.z);
-        
+                if (data.player1) {
+                    // Update player1 position
+                    player.position.set(data.player1.x, data.player1.y, data.player1.z);
+                    player.rotation.set(data.player1.rotation.x, data.player1.rotation.y, data.player1.rotation.z);
+                }
+                if (data.player2) {
+                    // Update player2 position
+                    player2.position.set(data.player2.x, data.player2.y, data.player2.z);
+                    player2.rotation.set(data.player2.rotation.x, data.player2.rotation.y, data.player2.rotation.z);
+                }
                 // Update ball position and speed
                 ball.position.set(data.ball.x, data.ball.y, data.ball.z);
                 ballSpeed.set(data.ballSpeed.x, data.ballSpeed.y, data.ballSpeed.z);
@@ -134,10 +145,6 @@ export function initializeWebSocket(url){
             if (socket.readyState === WebSocket.OPEN) {
                 const newGameState = {
                     type: 'game_state',
-                    player1: { x: player.position.x, y: player.position.y, z: player.position.z , rotation: { x: player.rotation.x , y: player.rotation.y, z: player.rotation.z }},
-                    player2: { x: player2.position.x, y: player2.position.y, z: player2.position.z , rotation: { x: player2.rotation.x , y: player2.rotation.y, z: player2.rotation.z }},
-                    //ball: { x: ball.position.x, y: ball.position.y, z: ball.position.z },
-                    //ballSpeed: { x: ballSpeed.x, y: ballSpeed.y, z: ballSpeed.z },
                     playerTurn: playerTurn,
                     playerScore: playerScore,
                     aiScore: aiScore,
@@ -146,8 +153,32 @@ export function initializeWebSocket(url){
                     current_face2: currentFace2,
                     aiming_angle: aimingAngle,
                     reset_ball: resetBall_
-
-                };    
+                };
+        
+                if (currentPlayer === player) {
+                    newGameState.player1 = {
+                        x: player.position.x,
+                        y: player.position.y,
+                        z: player.position.z,
+                        rotation: {
+                            x: player.rotation.x,
+                            y: player.rotation.y,
+                            z: player.rotation.z
+                        }
+                    };
+                } else {
+                    newGameState.player2 = {
+                        x: player2.position.x,
+                        y: player2.position.y,
+                        z: player2.position.z,
+                        rotation: {
+                            x: player2.rotation.x,
+                            y: player2.rotation.y,
+                            z: player2.rotation.z
+                        }
+                    };
+                }
+        
                 socket.send(JSON.stringify(newGameState));
 
 /*                 if (!deepEqual(oldGameState, newGameState)) {
@@ -352,10 +383,15 @@ function init() {
             
             // Update player position based on mouse movement
             let deltaX = movementX * sensitivity;
-        let deltaY = -movementY * sensitivity; // Invert Y-axis as needed
-
-        movePlayer(player, deltaX, deltaY);
-        sendGameState();
+            let deltaY = -movementY * sensitivity; // Invert Y-axis as needed
+        
+            if (currentPlayer == player){
+                movePlayer(player, deltaX, deltaY);
+            }
+            else {
+                movePlayer2(player2, deltaX, deltaY);
+            }
+            sendGameState();
     }
 }
 
@@ -388,26 +424,52 @@ function onKeyDown(event) {
     keysPressed[event.key] = true;
     //console.log(keysPressed[event.key]);
     if (singlePlayer){
-        switch (event.key) {
-            case 'w':
-                switchFace('up');
+        if (currentPlayer == player){
+            switch (event.key) {
+                case 'w':
+                    switchFace('up');
+                    break;
+                case 's':
+                    switchFace('down');
+                    break;
+                case 'a':
+                    switchFace('left');
+                    break;
+                case 'd':
+                    switchFace('right');
+                    break;
+                case ' ': // Space key
+                    if (ballIsHeld) {
+                        ballIsHeld = false; // Release the ball
+                        resetBall_ = true; // Reset the ball to a random position
+                        sendGameState();
+                    }
                 break;
-            case 's':
-                switchFace('down');
+            }
+        }
+        else {
+            switch (event.key) {
+                case 's':
+                    switchFace2('up');
+                    break;
+                case 'w':
+                    switchFace2('down');
+                    break;
+                case 'a':
+                    switchFace2('left');
+                    break;
+                case 'd':
+                    switchFace2('right');
+                    break;
+                case ' ': // Space key
+                    if (ballIsHeld) {
+                        ballIsHeld = false; // Release the ball
+                        resetBall_ = true; // Reset the ball to a random position
+                        sendGameState();
+                    }
                 break;
-            case 'a':
-                switchFace('left');
-                break;
-            case 'd':
-                switchFace('right');
-                break;
-            case ' ': // Space key
-                if (ballIsHeld) {
-                    ballIsHeld = false; // Release the ball
-                    resetBall_ = true; // Reset the ball to a random position
-                    sendGameState();
-                }
-            break;
+            }
+
         }
     }else {
         switch (event.key) {
@@ -500,6 +562,7 @@ function switchFace(direction) {
         .start();
         sendGameState();
 }
+
 
 function updateCurrentFaceWithTargetRotation(targetRotation) {
     // Define the reference vector representing the front direction
@@ -954,22 +1017,40 @@ function gameLoop() {
     let deltaX = 0;
     let deltaY = 0;
     if(singlePlayer){
-        if (keysPressed.ArrowUp) {
-        deltaY += keyMoveSpeed;
+        if(currentPlayer === player){
+            if (keysPressed.ArrowUp) {
+            deltaY += keyMoveSpeed;
+            }
+            if (keysPressed.ArrowDown) {
+            deltaY -= keyMoveSpeed;
+            }
+            if (keysPressed.ArrowLeft) {
+            deltaX -= keyMoveSpeed;
+            }
+            if (keysPressed.ArrowRight) {
+            deltaX += keyMoveSpeed;
+            }
+        
+            movePlayer(player, deltaX, deltaY);
+            sendGameState();
         }
-        if (keysPressed.ArrowDown) {
-        deltaY -= keyMoveSpeed;
+        else{
+            if (keysPressed.ArrowUp) {
+            deltaY += keyMoveSpeed;
+            }
+            if (keysPressed.ArrowDown) {
+            deltaY -= keyMoveSpeed;
+            }
+            if (keysPressed.ArrowLeft) {
+            deltaX -= keyMoveSpeed;
+            }
+            if (keysPressed.ArrowRight) {
+            deltaX += keyMoveSpeed;
+            }
+        
+            movePlayer2(player2, deltaX, deltaY);
+            sendGameState();
         }
-        if (keysPressed.ArrowLeft) {
-        deltaX -= keyMoveSpeed;
-        }
-        if (keysPressed.ArrowRight) {
-        deltaX += keyMoveSpeed;
-        }
-    
-        movePlayer(player, deltaX, deltaY);
-        sendGameState();
-
     } else {
         if (keysPressed.i) {
         deltaY += keyMoveSpeed;
@@ -1027,9 +1108,12 @@ function animate() {
     if (singlePlayer) {
         // Render the scene from the first camera
         renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-        renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
-        renderer.setScissorTest(true);
-        renderer.render(scene, camera);
+        renderer.setScissorTest(false);
+        if (currentPlayer === player) {
+            renderer.render(scene, camera);
+        } else {
+            renderer.render(scene, camera2);
+        }
     } else {
         // Render the scene from the first camera
         renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight);

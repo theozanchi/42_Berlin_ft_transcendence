@@ -8,7 +8,9 @@ import time
 logging.basicConfig(level=logging.INFO)
 
 class PongConsumer(WebsocketConsumer):
-    clients = []
+    clients = {}
+    player_id = 0
+    spectator_id = 0
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,6 +23,7 @@ class PongConsumer(WebsocketConsumer):
         self.resetting_ball = False
         self.last_update_time = time.time()
         self.update_interval = 1 / 60
+        self.client = None
         
 
     game_state = {
@@ -41,13 +44,33 @@ class PongConsumer(WebsocketConsumer):
 
     def connect(self):
         self.accept()
-        PongConsumer.clients.append(self)
-        logging.info(f"New client connected. Total clients: {len(PongConsumer.clients)}")
+        if 'player1' not in PongConsumer.clients:
+            client_id = 'player1'
+        elif 'player2' not in PongConsumer.clients:
+            client_id = 'player2'
+        else:
+            # Assign as a spectator
+            client_id = f'spectator{PongConsumer.spectator_id + 1}'
+            PongConsumer.spectator_id += 1
+
+        PongConsumer.clients[client_id] = self
+        #PongConsumer.player_id = (PongConsumer.player_id + 1) % 2  # Alternate between 0 and 1
+        self.scope['client_id'] = client_id
+        self.client = client_id
+
+        # Send the client its player identity
+        self.send(text_data=json.dumps({
+            'type': 'player_identity',
+            'player_id': client_id
+        }))
+        logging.info(f"New client connected. Client ID: {client_id}")
         self.send_game_state()
 
     def disconnect(self, close_code):
-        PongConsumer.clients.remove(self)
-        logging.info(f"Client disconnected. Total clients: {len(PongConsumer.clients)}")
+        client_id = self.scope.get('client_id')
+        if client_id and client_id in PongConsumer.clients:
+            PongConsumer.clients.pop(client_id, None)
+            logging.info(f"Client disconnected. Client ID: {client_id}")
 
     def receive(self, text_data):
         data = json.loads(text_data)
@@ -71,7 +94,7 @@ class PongConsumer(WebsocketConsumer):
 
     def update_ball(self):
         
-        print(f'ballishe    ld: {self.game_state["ballIsHeld"]}')
+        #print(f'ballishe    ld: {self.game_state["ballIsHeld"]}')
         if self.game_state['ballIsHeld']:
             if self.game_state['playerTurn']:
                 self.game_state['ball'] = self.game_state['player1'].copy()
@@ -120,6 +143,7 @@ class PongConsumer(WebsocketConsumer):
             self.game_state['playerTurn'] = not self.game_state['playerTurn']
             self.game_state['ballIsHeld'] = True
             self.update_score()
+            self.update_ball()
             self.reset_ball()
 
         # Update the collision marker position
@@ -361,36 +385,47 @@ class PongConsumer(WebsocketConsumer):
     
 
     def send_game_state(self):
-        for client in PongConsumer.clients:
-            client.send(text_data=json.dumps({
-            'type': 'game_state',
-            'player1': {
-                'x': self.game_state['player1']['x'],
-                'y': self.game_state['player1']['y'],
-                'z': self.game_state['player1']['z'],
-                'rotation': self.game_state['player1']['rotation']
-            },
-            'player2': {
-                'x': self.game_state['player2']['x'],
-                'y': self.game_state['player2']['y'],
-                'z': self.game_state['player2']['z'],
-                'rotation': self.game_state['player2']['rotation']
-            },
-            'ball': self.game_state['ball'],
-            'ballSpeed': self.game_state['ballSpeed'],
-            'playerTurn': self.game_state['playerTurn'],
-            'playerScore': self.game_state['playerScore'],
-            'aiScore': self.game_state['aiScore'],
-            'ballIsHeld': self.game_state['ballIsHeld'],
-            'current_face': self.game_state['current_face'],
-            'current_face2': self.game_state['current_face2'],
-            'aiming_angle': self.game_state['aiming_angle'],
-            'reset_ball': self.game_state['reset_ball']
-            }))
+        for self.client, client in PongConsumer.clients.items():
+            game_state_message = {
+                'type': 'game_state'
+            }
+
+            if self.client== 'player1':
+                game_state_message['player1'] = {
+                    'x': self.game_state['player1']['x'],
+                    'y': self.game_state['player1']['y'],
+                    'z': self.game_state['player1']['z'],
+                    'rotation': self.game_state['player1']['rotation']
+                }
+            else:
+                game_state_message['player2'] = {
+                    'x': self.game_state['player2']['x'],
+                    'y': self.game_state['player2']['y'],
+                    'z': self.game_state['player2']['z'],
+                    'rotation': self.game_state['player2']['rotation']
+                }
+
+            game_state_message.update({
+                'ball': self.game_state['ball'],
+                'ballSpeed': self.game_state['ballSpeed'],
+                'playerTurn': self.game_state['playerTurn'],
+                'playerScore': self.game_state['playerScore'],
+                'aiScore': self.game_state['aiScore'],
+                'ballIsHeld': self.game_state['ballIsHeld'],
+                'current_face': self.game_state['current_face'],
+                'current_face2': self.game_state['current_face2'],
+                'aiming_angle': self.game_state['aiming_angle'],
+                'reset_ball': self.game_state['reset_ball']
+            })
+
+            client.send(json.dumps(game_state_message))
 
     def game_update(self, data):
-        self.game_state['player1'] = data['player1']
-        self.game_state['player2'] = data['player2']
+
+        if self.client == 'player1':
+            self.game_state['player1'] = data['player1']
+        else:
+            self.game_state['player2'] = data['player2']
         self.game_state['playerTurn'] = data['playerTurn']
         self.game_state['playerScore'] = data['playerScore']
         self.game_state['aiScore'] = data['aiScore']
