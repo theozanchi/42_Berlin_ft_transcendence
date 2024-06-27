@@ -1,3 +1,4 @@
+
 class PongGame extends HTMLElement {
     constructor() {
         super();
@@ -11,7 +12,14 @@ class PongGame extends HTMLElement {
 
     render() {
         this.shadow.innerHTML = `
-            <canvas id="gameCanvas" class="game-canvas"></canvas>
+            <style>
+                canvas {
+                    border: 1px solid black;
+                    width: 100%;
+                    height: 80%;
+                }
+            </style>
+            <canvas id="gameCanvas"></canvas>
         `;
     }
 

@@ -5,8 +5,11 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
+ENV DJANGO_SETTINGS_MODULE=game_manager_service.settings
+ENV PYTHONPATH=/code:$PYTHONPATH
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+
 WORKDIR /code
 
 COPY requirements.txt /code/

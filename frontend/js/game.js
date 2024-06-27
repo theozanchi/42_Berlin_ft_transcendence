@@ -1,11 +1,10 @@
 
-import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
-import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
+import * as THREE from 'three';
+import TWEEN from '@tweenjs/tween.js';
 
 const canvas = document.getElementById('bg');
-const container = canvas.parentElement;
-canvas.width = container.clientWidth - 24;
-canvas.height = container.clientHeight - 24;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 let mouseX = 0;
 let mouseY = 0;
@@ -152,20 +151,19 @@ export function initializeWebSocket(url){
 
 function init() {
 
-    const url = `wss://${window.location.host}/ws/local/`;
+    const url = `ws://${window.location.host}/ws/socket-server/`;
     initializeWebSocket(url);
     // Create the scene
     scene = new THREE.Scene();
 
     // Set up the camera
-    camera = new THREE.PerspectiveCamera(100, (canvas.width / 2) / canvas.height, 0.1, 1000);
-    camera2 = new THREE.PerspectiveCamera(100, (canvas.width / 2) / canvas.height, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
+    camera2 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
 
     // Set up the renderer
     renderer = new THREE.WebGLRenderer({ canvas: canvas });
-    renderer.setSize(canvas.width, canvas.height);
-    // document.body.appendChild(renderer.domElement);
-    container.appendChild(renderer.domElement); // PLACING GAME IN PARENT CONTAINER INSTEAD OF PAGE
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
     // Create the cube
     let geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
@@ -173,13 +171,7 @@ function init() {
     cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
     // Create a pivot point at the cube's center
-    pivot = new THREE.Object3D();window.addEventListener('resize', () => {
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        renderer.setSize(canvas.width, canvas.height);
-        camera.aspect = canvas.width / canvas.height;
-        camera.updateProjectionMatrix();
-    });
+    pivot = new THREE.Object3D();
     cube.add(pivot);
     pivot.add(camera);
     camera.position.set(0, 0, cubeSize * 1.5);
@@ -273,17 +265,6 @@ function init() {
             document.removeEventListener('mousemove', onMouseMove);
         }
     });
-    window.addEventListener('resize', () => {
-        const computedStyle = getComputedStyle(container);
-        const width = parseInt(computedStyle.width, 10);
-        const height = parseInt(computedStyle.height, 10) - 48; // Adjust for the spacing
-    
-        canvas.width = width;
-        canvas.height = height;
-        renderer.setSize(canvas.width, canvas.height);
-        camera.aspect = canvas.width / canvas.height;
-        camera.updateProjectionMatrix();
-    });
 
     // Add score display
     let scoreDisplay = document.createElement('div');
@@ -293,10 +274,7 @@ function init() {
     scoreDisplay.style.left = '10px';
     scoreDisplay.style.color = 'white';
     scoreDisplay.style.fontSize = '20px';
-
     document.body.appendChild(scoreDisplay);
-    // newcontainer = getElementById('meta-column')
-	// newcontainer.appendChild(scoreDisplay);
 
     updateScore();
 
@@ -1119,14 +1097,14 @@ function animate() {
     renderer.clear();
 
     // Render the scene from the first camera
-    renderer.setViewport(0, 0, canvas.width / 2, canvas.height);
-    renderer.setScissor(0, 0, canvas.width / 2, canvas.height);
+    renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight);
+    renderer.setScissor(0, 0, window.innerWidth / 2, window.innerHeight);
     renderer.setScissorTest(true);
     renderer.render(scene, camera);
 
     // Render the scene from the second camera
-    renderer.setViewport(canvas.width / 2, 0, canvas.width / 2, canvas.height);
-    renderer.setScissor(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+    renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
+    renderer.setScissor(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
     renderer.setScissorTest(true);
     renderer.render(scene, camera2);
 

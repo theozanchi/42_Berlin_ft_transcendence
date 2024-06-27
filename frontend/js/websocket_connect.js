@@ -25,6 +25,8 @@ function connectWebSocket() {
 	socket.onerror = function(error) {
 		logMessage('WebSocket error: ' + error.message);
 	};
+
+	return socket;
 }
 
 function disconnectWebSocket() {
@@ -33,8 +35,7 @@ function disconnectWebSocket() {
 	}
 }
 
-function sendMessage() {
-	const message = document.getElementById('messageInput').value;
+function sendMessage(message) {
 	if (socket && socket.readyState === WebSocket.OPEN) {
 		socket.send(message);
 		logMessage('Sent: ' + message);
