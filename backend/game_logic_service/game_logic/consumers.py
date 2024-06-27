@@ -1,11 +1,17 @@
 import json
+from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import async_to_sync
 import logging
 import math
-from channels.generic.websocket import AsyncWebsocketConsumer
+import time
 
 logging.basicConfig(level=logging.INFO)
 
-class PongConsumer(AsyncWebsocketConsumer):
+class PongConsumer(WebsocketConsumer):
+    clients = {}
+    player_id = 0
+    spectator_id = 0
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.aiming_angle = 0  # Initialize aiming_angle
@@ -14,10 +20,15 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.minaiming_angle = -1.57 
         self.cube_size = 2
         self.ball_radius = 0.05
+        self.resetting_ball = False
+        self.last_update_time = time.time()
+        self.update_interval = 1 / 60
+        self.client = None
+        
 
     game_state = {
-        'player1': {'x': 0, 'y': 0, 'z': 1},
-        'player2': {'x': 0, 'y': 0, 'z': -1},
+        'player1': {'x': 0, 'y': 0, 'z': 1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
+        'player2': {'x': 0, 'y': 0, 'z': -1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
         'ball': {'x': 0, 'y': 0, 'z': 0},
         'ballSpeed': {'x': 0, 'y': 0, 'z': 0},
         'playerTurn': True,  # Initial value, assuming player 1 starts
@@ -25,60 +36,66 @@ class PongConsumer(AsyncWebsocketConsumer):
         'aiScore': 0,
         'ballIsHeld': True,  # Initial value, assuming ball is held initially
         'current_face': 0,  # Adding initial value for current face
-        'current_face2': 0,
-        'wall_hits': 0,
-        'aiming_angle': 0
+        'current_face2': 1,
+        'wall_hits' : 0,
+        'aiming_angle' : 0,
+        'reset_ball': False
     }
 
-    async def connect(self):
-        self.game_id = self.scope['url_route']['kwargs']['game_id']
+    def connect(self):
+        self.accept()
+        if 'player1' not in PongConsumer.clients:
+            client_id = 'player1'
+        elif 'player2' not in PongConsumer.clients:
+            client_id = 'player2'
+        else:
+            # Assign as a spectator
+            client_id = f'spectator{PongConsumer.spectator_id + 1}'
+            PongConsumer.spectator_id += 1
 
-        await self.channel_layer.group_add(
-            self.game_id,
-            self.channel_name
-        )
+        PongConsumer.clients[client_id] = self
+        #PongConsumer.player_id = (PongConsumer.player_id + 1) % 2  # Alternate between 0 and 1
+        self.scope['client_id'] = client_id
+        self.client = client_id
 
-        await self.accept()
-        await self.reset_ball()
-        await self.send_game_state()
+        # Send the client its player identity
+        self.send(text_data=json.dumps({
+            'type': 'player_identity',
+            'player_id': client_id
+        }))
+        logging.info(f"New client connected. Client ID: {client_id}")
+        self.send_game_state()
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.game_id,
-            self.channel_name
-        )
+    def disconnect(self, close_code):
+        client_id = self.scope.get('client_id')
+        if client_id and client_id in PongConsumer.clients:
+            PongConsumer.clients.pop(client_id, None)
+            logging.info(f"Client disconnected. Client ID: {client_id}")
 
-    async def receive(self, text_data):
+    def receive(self, text_data):
         data = json.loads(text_data)
-        if data['type'] == 'player_move':
-            await self.handle_player_move(data)
-        elif data['type'] == 'update_state':
-            await self.update_game_state(data)
-        elif data['type'] == 'game_state':
-            #await self.update_game_state_from_data(data)
-            await self.update_game_state(data)
+        if data['type'] == 'game_state':
+            self.update_game_state(data)
 
-    async def handle_player_move(self, data):
-        # Update player positions based on client input
-        self.game_state['player1'] = data['player1']
-        self.game_state['player2'] = data['player2']
-        self.game_state['current_face'] = data.get('current_face', self.game_state['current_face'])
-        self.game_state['current_face2'] = data.get('current_face2', self.game_state['current_face2'])
-        # Broadcast the updated game state
-        await self.send_game_state()
 
-    async def update_game_state(self, data):
-        print("GAME LOGIC: received update")
-        # Handle ball movement and collision detection server-side
-        await self.game_update(data)
+    def update_game_state(self, data):
+        current_time = time.time()
+            # Handle ball movement and collision detection server-side
+        self.game_update(data)
         self.update_aiming_line()
-        self.update_ball()
+        if current_time - self.last_update_time >= self.update_interval:
+            self.last_update_time = current_time
+            if self.game_state['reset_ball'] and not self.game_state['ballIsHeld']:
+                self.reset_ball()
+            self.update_ball()
         self.update_ai()
-        await self.send_game_state()
+        self.send_game_state()
 
-    async def update_ball(self):
+
+    def update_ball(self):
+        
+        #print(f'ballishe    ld: {self.game_state["ballIsHeld"]}')
         if self.game_state['ballIsHeld']:
-            # Place the ball at the player's position
             if self.game_state['playerTurn']:
                 self.game_state['ball'] = self.game_state['player1'].copy()
             else:
@@ -122,14 +139,17 @@ class PongConsumer(AsyncWebsocketConsumer):
                 self.game_state['playerScore'] += 1
             else:
                 self.game_state['aiScore'] += 1
-            self.game_state['playerTurn'] = not self.game_state['playerTurn']
             self.game_state['wall_hits'] = 0
+            self.game_state['playerTurn'] = not self.game_state['playerTurn']
             self.game_state['ballIsHeld'] = True
             self.update_score()
+            self.update_ball()
             self.reset_ball()
 
         # Update the collision marker position
         self.update_collision_marker()
+
+
 
     def check_collision(self):
         if self.game_state['ballIsHeld']:
@@ -212,15 +232,18 @@ class PongConsumer(AsyncWebsocketConsumer):
         return False
 
     def create_bounding_box(self, start, end):
+
+        margin = 0.009
+
         center = {
             'x': (start['x'] + end['x']) / 2,
             'y': (start['y'] + end['y']) / 2,
             'z': (start['z'] + end['z']) / 2
         }
         size = {
-            'x': abs(end['x'] - start['x']) + self.ball_radius * 2,
-            'y': abs(end['y'] - start['y']) + self.ball_radius * 2,
-            'z': abs(end['z'] - start['z']) + self.ball_radius * 2
+            'x': abs(end['x'] - start['x']) + self.ball_radius * 2 + margin * 2,
+            'y': abs(end['y'] - start['y']) + self.ball_radius * 2 + margin * 2,
+            'z': abs(end['z'] - start['z']) + self.ball_radius * 2 + margin * 2
         }
         return (center, size)
 
@@ -241,7 +264,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         for axis in ['x', 'y', 'z']:
             vector[axis] = vector[axis] / current_length * length
     
-    def update_score(self):
+    def  update_score(self):
     # Assuming the presence of a score display element in the client that gets updated via WebSocket message
         self.send(text_data=json.dumps({
             'type': 'update_score',
@@ -255,47 +278,42 @@ class PongConsumer(AsyncWebsocketConsumer):
     def vector_length(self, vector):
         return math.sqrt(sum(v ** 2 for v in vector.values()))
     
-    async def reset_ball(self):
-        offset_distance = 10  # Adjust as needed
+    def reset_ball(self):
 
-        if self.game_state['ballIsHeld']:
-            # Place the ball at the player's position
-            if self.game_state['playerTurn']:
-                self.game_state['ball'] = self.game_state['player1'].copy()
-            else:
-                self.game_state['ball'] = self.game_state['player2'].copy()
-            self.update_aiming_line()
-        else:
-            # Determine player position
-            if self.game_state['playerTurn']:
-                player_position = self.game_state['player1']
-            else:
-                player_position = self.game_state['player2']
+        self.game_state['playerTurn'] = not self.game_state['playerTurn']
+        self.game_state['reset_ball'] = False
 
-            # Calculate the direction based on the current face and aiming angle
-            direction = self.calculate_direction(
-                self.game_state['playerTurn'],
-                self.game_state['current_face'],
-                self.game_state['current_face2'],
-                self.game_state['aiming_angle']
-            )
+        # Calcular la dirección en base a la cara actual y el ángulo de puntería
+        direction = self.calculate_direction(self.game_state['playerTurn'], self.game_state['current_face'], self.game_state['current_face2'], self.game_state['aiming_angle'])
 
-            # Normalize the direction vector
-            direction_length = self.vector_length(direction)
+        # Normalizar la dirección para asegurarse de que sea un vector unitario
+        direction_length = self.vector_length(direction)
+        if direction_length > 0:
             direction = {k: v / direction_length for k, v in direction.items()}
 
-            # Apply the initial velocity to the ball in the direction the player is facing
-            initial_velocity_magnitude = 0.02
-            ball_speed = {k: v * initial_velocity_magnitude for k, v in direction.items()}
-            self.game_state['ballSpeed'] = ball_speed
+        # Definir la magnitud de la velocidad inicial
+        initial_velocity_magnitude = 0.02
+        self.game_state['ballSpeed'] = {k: v * initial_velocity_magnitude for k, v in direction.items()}
 
-            # Set the ball's position slightly in front of the player to avoid immediate collision
-            ball_start_position = self.clone_and_add(player_position, direction, offset_distance)
-            self.game_state['ball'] = ball_start_position
-            return 1
+        # Establecer la posición inicial de la pelota, asegurándose de que no colisione inmediatamente con el jugador
+        offset_distance = 0.3  # Ajustar según sea necesario
+        if not self.game_state['playerTurn']:
+            ball_start_position = {k: self.game_state['player1'][k] + direction[k] * offset_distance for k in direction}
+        else:
+            ball_start_position = {k: self.game_state['player2'][k] + direction[k] * offset_distance for k in direction}
 
+        # Verificar que la posición inicial esté dentro de los límites permitidos del cubo
+        half_cube_size = self.cube_size / 2 - self.ball_radius
+        for axis in ['x', 'y', 'z']:
+            if ball_start_position[axis] < -half_cube_size:
+                ball_start_position[axis] = -half_cube_size
+            if ball_start_position[axis] > half_cube_size:
+                ball_start_position[axis] = half_cube_size
 
-    async def update_collision_marker(self):
+        self.game_state['ball'] = ball_start_position.copy()
+        
+
+    def update_collision_marker(self):
         half_cube_size = self.cube_size / 2
         ball_position = self.game_state['ball']
         ball_velocity = self.game_state['ballSpeed']
@@ -330,7 +348,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     def calculate_direction(self, player_turn, current_face, current_face2, aiming_angle):
         direction = {'x': 0, 'y': 0, 'z': 0}
-        face = current_face if player_turn else current_face2
+        face = current_face2 if player_turn else current_face
         if face == 0:  # Front
             direction['x'] = math.sin(aiming_angle)
             direction['z'] = -math.cos(aiming_angle)
@@ -338,10 +356,10 @@ class PongConsumer(AsyncWebsocketConsumer):
             direction['x'] = math.sin(aiming_angle)
             direction['z'] = math.cos(aiming_angle)
         elif face == 2:  # Left
-            direction['x'] = -math.cos(aiming_angle)
+            direction['x'] = math.cos(aiming_angle)
             direction['z'] = math.sin(aiming_angle)
         elif face == 3:  # Right
-            direction['x'] = math.cos(aiming_angle)
+            direction['x'] = -math.cos(aiming_angle)
             direction['z'] = math.sin(aiming_angle)
         elif face == 4:  # Top
             direction['x'] = math.sin(aiming_angle)
@@ -364,43 +382,50 @@ class PongConsumer(AsyncWebsocketConsumer):
     def update_ai(self):
         # Implement the logic to update the AI player
         pass
+    
 
-    async def send_game_state(self):
-        print("Publishing game state to channel ")
-        self.channel_layer.group_send(
-        self.game_id,
-        {
-            'type': 'game_update',
-            'player1': self.game_state['player1'],
-            'player2': self.game_state['player2'],
-            'playerTurn': self.game_state['playerTurn'],
-            'playerScore': self.game_state['playerScore'],
-            'aiScore': self.game_state['aiScore'],
-            'ballIsHeld': self.game_state['ballIsHeld'],
-            'current_face': self.game_state['current_face'],
-            'current_face2': self.game_state['current_face2'],
-            'aiming_angle': self.game_state['aiming_angle']
-        }
-    )
+    def send_game_state(self):
+        for self.client, client in PongConsumer.clients.items():
+            game_state_message = {
+                'type': 'game_state'
+            }
 
-    async def game_update(self, data):
-        # Update game state based on received data
-        print("GAME LOGIC: received update from channel layer")
-        self.game_state['player1'] = data.get('player1', self.game_state['player1'])
-        self.game_state['player2'] = data.get('player2', self.game_state['player2'])
-        #self.game_state['ball'] = data.get('ball', self.game_state['ball'])
-       # self.game_state['ballSpeed'] = data.get('ballSpeed', self.game_state['ballSpeed'])
-        self.game_state['playerTurn'] = data.get('playerTurn', self.game_state['playerTurn'])
-        self.game_state['playerScore'] = data.get('playerScore', self.game_state['playerScore'])
-        self.game_state['aiScore'] = data.get('aiScore', self.game_state['aiScore'])
-        self.game_state['ballIsHeld'] = data.get('ballIsHeld', self.game_state['ballIsHeld'])
-        self.game_state['current_face'] = data.get('current_face', self.game_state['current_face'])
-        self.game_state['current_face2'] = data.get('current_face2', self.game_state['current_face2'])
-        self.game_state['aiming_angle'] = data.get('aiming_angle', self.game_state['aiming_angle'])
+            if self.client== 'player1':
+                game_state_message['player1'] = {
+                    'x': self.game_state['player1']['x'],
+                    'y': self.game_state['player1']['y'],
+                    'z': self.game_state['player1']['z'],
+                    'rotation': self.game_state['player1']['rotation']
+                }
+            else:
+                game_state_message['player2'] = {
+                    'x': self.game_state['player2']['x'],
+                    'y': self.game_state['player2']['y'],
+                    'z': self.game_state['player2']['z'],
+                    'rotation': self.game_state['player2']['rotation']
+                }
 
-    async def update_game_state_from_data(self, data):
-        self.game_state['player1'] = data['player1']
-        self.game_state['player2'] = data['player2']
+            game_state_message.update({
+                'ball': self.game_state['ball'],
+                'ballSpeed': self.game_state['ballSpeed'],
+                'playerTurn': self.game_state['playerTurn'],
+                'playerScore': self.game_state['playerScore'],
+                'aiScore': self.game_state['aiScore'],
+                'ballIsHeld': self.game_state['ballIsHeld'],
+                'current_face': self.game_state['current_face'],
+                'current_face2': self.game_state['current_face2'],
+                'aiming_angle': self.game_state['aiming_angle'],
+                'reset_ball': self.game_state['reset_ball']
+            })
+
+            client.send(json.dumps(game_state_message))
+
+    def game_update(self, data):
+
+        if self.client == 'player1':
+            self.game_state['player1'] = data['player1']
+        else:
+            self.game_state['player2'] = data['player2']
         self.game_state['playerTurn'] = data['playerTurn']
         self.game_state['playerScore'] = data['playerScore']
         self.game_state['aiScore'] = data['aiScore']
@@ -408,20 +433,6 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.game_state['current_face'] = data.get('current_face', self.game_state['current_face'])
         self.game_state['current_face2'] = data.get('current_face2', self.game_state['current_face2'])
         self.game_state['aiming_angle'] = data.get('aiming_angle', self.game_state['aiming_angle'])
+        self.game_state['reset_ball'] = data.get('reset_ball', self.game_state['reset_ball'])
 
-        # Broadcast updated game state to the room group
-        self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'game_update',
-                'player1': self.game_state['player1'],
-                'player2': self.game_state['player2'],
-                'playerTurn': self.game_state['playerTurn'],
-                'playerScore': self.game_state['playerScore'],
-                'aiScore': self.game_state['aiScore'],
-                'ballIsHeld': self.game_state['ballIsHeld'],
-                'current_face': self.game_state['current_face'],
-                'current_face2': self.game_state['current_face2'],
-                'aiming_angle': self.game_state['aiming_angle']
-            }
-        )
+        #self.send_game_state()
