@@ -3,7 +3,7 @@ const	baseUrl = document.location.href;
 document.addEventListener("click", (e) => {
 	const {target} = e;
 	// console.log(e);
-	if(!target.matches("nav a")) {
+	if(!target.matches("nav a", "nav button")) {
 		return;
 	}
 
@@ -13,20 +13,50 @@ document.addEventListener("click", (e) => {
 
 const urlRoutes = {
 	404: {
-		template: "/frontned/login.html",
+		template: "/frontend/404.html",
 		title: "Not found",
 		description: "",
 	},
 	"/": {
-		template: "/frontend/router.html",
+		template: "/frontend/index.html",
 		title: "Pongerpuff Girl",
+		description: "",
+	},
+	"/setup-local": {
+		template: "/frontend/setup-local.html",
+		title: "Setup",
+		description: "",
+	},
+	"/setup-remote": {
+		template: "/frontend/setup-remote.html",
+		title: "Setup",
+		description: "",
+	},
+	"/lobby": {
+		template: "/frontend/lobby.html",
+		title: "Lobby",
+		description: "",
+	},
+	"/game": {
+		template: "/frontend/setup-local.html",
+		title: "game",
+		description: "",
+	},
+	"/profile": {
+		template: "/frontend/profile.html",
+		title: "Profile",
 		description: "",
 	},
 	"/login": {
 		template: "/frontend/login.html",
 		title: "Login",
 		description: "",
-	}
+	},
+	"/signup": {
+		template: "/frontend/signup.html",
+		title: "Signup",
+		description: "",
+	},
 }
 
 const urlRoute = (event) => {
@@ -38,25 +68,32 @@ const urlRoute = (event) => {
 }
 
 const urlLocationHandler = async () => {
-	const location = window.location.pathname;
-	if (location.lenth == 0) {
-		location = "/"
-	}
-	console.log(`MY LOCATION: ${location}`);
-	console.log(`BASE LOCATION: ${baseUrl}`)
+    let location = window.location.pathname;
+    if (location.length == 0) {
+        location = "/"
+    }
+    console.log(`MY LOCATION: ${location}`);
 
-	const route = urlRoutes[location] || urlRoutes[404]
+    const route = urlRoutes[location] || urlRoutes[404]
 
-	console.log(`MY ROUTE: ${route.template}`);
-	let		imageUrl = new URL(route.template, baseUrl);
-	console.log(`MY NEW ROUTE: ${imageUrl}`)
+    console.log(`MY ROUTE: ${route.template}`);
 
-	console.log(imageUrl);
+    let imageUrl = new URL(route, baseUrl);
+    console.log(imageUrl);
 
-	const html = await fetch(route.template).then((response) =>
-	response.text());
+    const html = await fetch(route.template).then((response) => response.text());
 
-	
-	document.getElementById("content").innerHTML = html;
-	
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(html, "text/html");
+    let title = doc.querySelector('title').innerText;
+
+    document.title = title;
+    document.getElementById("content").innerHTML = html;
 };
+
+document.getElementById('backButton').addEventListener('click', goBack);
+
+
+function goBack() {
+    window.history.back();
+}

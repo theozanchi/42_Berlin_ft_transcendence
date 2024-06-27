@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Login | PongerPuff Girls</title>
+		<title>Sign up | PongerPuff Girls</title>
     	<meta charset="utf-8"/>
     	<meta name="viewport" content="width=device-width, initial-scale=1"/>
 		<link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
@@ -22,13 +22,11 @@
 					<div class="spacer-48"></div>
 					<div class="d-flex row align-self-start">
 						<stepper-component></stepper-component>
-						<div id="00-login" class="step" >		
+						
+						<div id="10-signup" class="step" >		
 							<!-- <div style="display: flex; align-items: center;"> -->
 							<div class="d-flex justify-content-between align-baseline">
-								<h1>Sign in</h1>
-								<nav>
-									<a href="/signup" class="btn btn-link text-decoration-none">Create account</a>
-								</nav>
+								<h1>Sign up</h1>
 							</div>
 
 							<div class="d-grid gap-2">
@@ -40,28 +38,13 @@
 									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
 									<label for="loginPassword">Password</label>
 								</div>
-								<div style="display: flex; justify-content: right;">
-									<a href="#" class="btn btn-link text-decoration-none">Forgot password?</a>
-									<div class="spacer-48"></div>
+								<div class="form-floating">
+									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<label for="loginPassword">Confirm Password</label>
 								</div>
-								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign in</button>
-							</div>
-							<div class="spacer-48"></div>
-							<div style="display: flex; align-items: center; justify-content: center;">
-								<hr style="flex-grow: 1;"/>	
-								<span class="text-center" style="margin: 0 10px;">Or sign in with:</span>
-								<hr style="flex-grow: 1;"/>	
-							</div>
-							<div class="spacer-12"></div>
-							<!-- <p>OR</p> -->
-							<div class="d-grid gap-2">
-								<button id="login42SSOButton" class="btn btn-lg btn-outline-dark">
-									<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
-									<span>42 Account</span></button>
+								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign up</button>
 							</div>							
 						</div>
-						
-						
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
@@ -105,5 +88,4 @@
 	<script src="js/player_list.js"></script>
 	<script src="js/player.js"></script>
 	<script src="js/static_game.js"></script>
-	<script src="js/url-router.js"></script>
 </html>

@@ -100,6 +100,7 @@ class PlayerList extends HTMLElement {
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 			<h3 id="playerCount"> ${this.count} Players</h3>
 			<div id="list-of-players">
@@ -108,7 +109,7 @@ class PlayerList extends HTMLElement {
 			
 			<div class="d-flex justify-content-center">
 			${this.gameMode === "local" ?
-					'<button id="addPlayerButton" class="btn btn-outline-primary d-grid"><i class="bi bi-plus"></i>+ Add Player</button>'
+					'<button id="addPlayerButton" class="btn btn-outline-primary d-grid"><i class="bi bi-plus"></i>Add Player</button>'
 				:	'<div class="spinner-border" role="status">	<span class="visually-hidden">Loading...</span></div><p>Waiting for Players to join</p>'
 			}
 			</div>
