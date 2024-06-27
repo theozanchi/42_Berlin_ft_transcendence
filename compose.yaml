@@ -65,15 +65,15 @@ services:
       - backend
     depends_on:
       - db
-    environment: #update fiel names in .env
+    environment:
       - POSTGRES_DB=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - USR_ADMIN=admin
-      - USR_EMAIL=admin@admin.com
-      - USR_PASSWORD=admin
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - USR_ADMIN=${DJANGO_SUPERUSER_USERNAME}
+      - USR_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+      - USR_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
     stop_signal: SIGINT
     stop_grace_period: 2s
 

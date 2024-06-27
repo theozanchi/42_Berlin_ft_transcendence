@@ -124,3 +124,10 @@ def profile(request):
 
     context = {'tournaments_data': tournaments_data}
     return render(request, 'profile.html', context)
+
+
+from django.contrib.auth.views import LoginView
+
+class CustomLoginView(LoginView):
+    def get_success_url(self):
+        return '/api/user_mgt/admin/'

@@ -49,12 +49,13 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/api/user_mgt/admin/'
 LOGOUT_REDIRECT_URL = '/'
 
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_DOMAIN = 'localhost'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
