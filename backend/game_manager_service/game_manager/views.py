@@ -11,18 +11,13 @@ from .serialize import GameSerializer
 @permission_classes([AllowAny])
 def create_game(request):
     try:
-        game = Game.objects.create(game_id = request.data.get('game-id'), mode=request.data.get('game-mode'))
-        game.add_players_to_game(request.data)
-        game.create_rounds()
-        # Game can now be played
-        #for round in game.rounds.all():
-        #    round.initialize_round()
+        game = Game.objects.create(mode=request.data.get('game-mode'))
         game.save()
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
-    except request.data.get('game-id') is None:
-        return Response({'error': 'Missing game ID.'}, status=404)
+    except KeyError as e:
+        return Response({'error': e}, status=400)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -49,6 +44,10 @@ def update_round_status(request):
     
     except Game.DoesNotExist:
         return Response({'error': 'Game not found.'}, status=404)
+    
+    except ValidationError as e:
+        return Response({'error': e}, status=400)
+    
     
 @api_view(['GET'])
 @permission_classes([AllowAny])

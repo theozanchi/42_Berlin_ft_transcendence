@@ -1,6 +1,8 @@
 FROM python:3.9-slim
 
 # Set environment variables
+ENV DJANGO_SETTINGS_MODULE=game_logic_service.settings
+ENV PYTHONPATH=/code:$PYTHONPATH
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -26,4 +28,4 @@ ENV DJANGO_SECRET_KEY python -c 'import secrets; print(secrets.token_urlsafe(50)
 CMD	python manage.py collectstatic --noinput && \
 	python manage.py makemigrations game_logic && \
 	python manage.py migrate game_logic && \
-	daphne -b 0.0.0.0 game_logic_service.asgi:application
+	gunicorn -b 0.0.0.0 game_logic_service.wsgi:application

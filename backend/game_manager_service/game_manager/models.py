@@ -4,11 +4,15 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from itertools import combinations
 import requests
+import secrets
+
+def generate_game_id():
+    return secrets.token_hex(4)
 
 # Create your models here.
 class Game(models.Model):
-    game_id = models.UUIDField(primary_key=True, editable=False, unique=True)
-    mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
+    game_id = models.CharField(primary_key=True, default=generate_game_id, editable=False, unique=True, max_length=8)   
+    mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')], blank=False, null=False)
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
 
     def clean(self):
