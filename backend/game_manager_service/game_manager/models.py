@@ -1,13 +1,17 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib.auth.models import User
 from itertools import combinations
 import requests
-import secrets
+import string
+import random
 
 def generate_game_id():
-    return secrets.token_hex(4)
+    while True:
+        game_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+        if not Game.objects.filter(game_id=game_id).exists():
+            return game_id
 
 # Create your models here.
 class Game(models.Model):

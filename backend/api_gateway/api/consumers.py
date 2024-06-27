@@ -13,7 +13,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 #redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
-GAME_LOGIC_REST_URL = 'http://game_logic'
+GAME_LOGIC_REST_URL = 'http://game_logic:8000'
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -30,10 +30,10 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json={'game-mode': self.game_mode}, headers=headers)
             response.raise_for_status()
-            self.game_id = response.json().get('game-id')
-            
+            self.game_id = response.json().get('game_id')
+
             await self.channel_layer.group_add(self.game_id, self.channel_name)
-            await self.send_json({"game-id": self.game_id})
+            await self.send_json({"game_id": self.game_id})
         
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
