@@ -19,6 +19,9 @@ def create_game(request):
     
     except KeyError as e:
         return Response({'error': e}, status=400)
+    
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

@@ -13,15 +13,15 @@ from asgiref.sync import async_to_sync, sync_to_async
 #redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
-GAME_LOGIC_REST_URL = 'http://game_logic:8002'
+GAME_LOGIC_REST_URL = 'http://game_logic:8000'
 
-GAME_LOGIC_WS_URL = 'ws://game_logic:8001/ws/'
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.game_logic_ws = None
-    
+        self.game_mode = 'local'
+        self.game_id = None
+
     async def connect(self):
         self.__init__()
         await self.accept()
@@ -29,10 +29,9 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         # Get a unique game ID from the game manager
         try:
             headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
-            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json={'game-mode': self.game_mode}, headers=headers)
+            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json={'game-mode': self.game_mode})
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
-            
             await self.channel_layer.group_add(self.game_id, self.channel_name)
             await self.send_json({"game-id": self.game_id})
         
@@ -81,7 +80,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     
     async def start_game(self, content, headers):
         try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=headers)
+            response = await requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=headers)
             response.raise_for_status()
             self.current_round = response.json()
             print(self.current_round)
@@ -93,7 +92,7 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         #if self.current_round['player1'] != self.alias and self.current_round['player2'] != self.alias:
         #    return({'error': 'Not your turn'})
         try:
-            response = requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=headers)
+            response = await requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=headers)
             response.raise_for_status()
             game_state = response.json()
             self.channel_layer.group_send(self.game_id, game_state)
@@ -136,6 +135,7 @@ class RemoteConsumer(LocalConsumer):
     async def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
         # ISSUE check if game id is valid
+        self.game_logic_ws = None
         await self.channel_layer.group_add(self.game_id, self.channel_name)
         await self.accept()
         await self.send_json({"connect": "Successful"})
