@@ -8,6 +8,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY requirements.txt /app/
+RUN pip install  -r requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 
@@ -15,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 # Make port 8000 available to the world outside this container
-EXPOSE 8000
+# EXPOSE 80
 
 # Define environment variable
 ENV PYTHONUNBUFFERED 1
@@ -29,4 +30,4 @@ CMD ["sh", "-c", " \
 	python manage.py makemigrations oauth42 && \
 	python manage.py migrate oauth42 && \
 	python create_superuser.py && \
-	gunicorn --bind 0.0.0.0:8000 user_mgt.wsgi:application"]
+	gunicorn --bind 0.0.0.0 user_mgt.wsgi:application"]

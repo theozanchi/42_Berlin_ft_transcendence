@@ -19,6 +19,5 @@
     },
         "runArgs": ["--network=host", "-v", "/var/run/docker.sock:/var/run/docker.sock"],
         "postCreateCommand": "pip install -r .devcontainer/requirements.txt",
-        "remoteUser": "root",
-        "forwardPorts": [8000]
+        "remoteUser": "root"//, "forwardPorts": [8000]
 }

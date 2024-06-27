@@ -55,7 +55,7 @@ services:
       ./wait_for_postgres.sh db &&
       python manage.py migrate &&
       python create_superuser.py &&
-      gunicorn --bind 0.0.0.0:8000 user_mgt.wsgi:application
+      gunicorn --workers 3 --bind 0.0.0.0 user_mgt.wsgi:application
       "
     container_name: user_mgt
     volumes:
@@ -74,8 +74,6 @@ services:
       - USR_ADMIN=admin
       - USR_EMAIL=admin@admin.com
       - USR_PASSWORD=admin
-    #ports:    # ports debugging:
-    #  - "8001:8000"
     stop_signal: SIGINT
     stop_grace_period: 2s
 
