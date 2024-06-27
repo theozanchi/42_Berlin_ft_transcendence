@@ -15,7 +15,7 @@ services:
       ./wait_for_postgres.sh db &&
       python manage.py migrate &&
       python create_superuser.py &&
-      gunicorn --bind 0.0.0.0:8000 user_mgt.wsgi:application
+      gunicorn --bind 0.0.0.0 user_mgt.wsgi:application
       "
     volumes:
       - .:/app

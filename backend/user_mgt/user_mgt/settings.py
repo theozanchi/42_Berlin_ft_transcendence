@@ -28,7 +28,7 @@ DEBUG = True
 
 # ALLOWED_HOSTS = ['user_mgt', 'localhost', '127.0.0.1']
 # ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['user_mgt', 'user_mgt:8000', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['user-mgt', 'user-mgt:8000', 'localhost', '127.0.0.1', '*']
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

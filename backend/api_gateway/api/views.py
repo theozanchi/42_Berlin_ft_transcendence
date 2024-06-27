@@ -12,7 +12,7 @@ from django.http import HttpResponse
 GAME_MANAGER_URL = 'http://game_manager'
 GAME_LOGIC_URL = 'http://game_logic'
 GAME_LOBBY_URL = 'http://game_lobby'
-USER_MGT_URL = 'http://user_mgt'
+USER_MGT_URL = 'http://user_mgt:8000'
 
 @api_view(['GET'])
 def get_game(self, request):
@@ -29,15 +29,26 @@ def update_game(self, request):
     response = requests.put(self.GAME_MANAGER_URL + '/update-game/', json=request.data)
     return Response(response.json(), status=response.status_code)
 
-@api_view(['GET', 'POST', 'PUT'])
+import logging
+
+# @api_view(['GET'])
 def user_mgt_proxy(request, path):
-    if request.method == 'GET':
-        response = requests.get(USER_MGT_URL + '/' + path)
-    elif request.method == 'POST':
-        response = requests.post(USER_MGT_URL + '/' + path, json=request.data)
-    elif request.method == 'PUT':
-        response = requests.put(USER_MGT_URL + '/' + path, json=request.data)
-    return HttpResponse(response.content, content_type=response.headers['Content-Type'])
+    headers = {'Host': 'user-mgt'}
+    try:
+        if request.method == 'GET':
+            response = requests.get(USER_MGT_URL + '/' + path, headers=headers)
+        elif request.method == 'POST':
+            response = requests.post(USER_MGT_URL + '/' + path, json=request.data)
+        elif request.method == 'PUT':
+            response = requests.put(USER_MGT_URL + '/' + path, json=request.data)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error connecting to the user_mgt container: {e}")
+        return HttpResponse(status=500)
+
+    if response.status_code != 200:
+        logging.error(f"Received non-200 response from user_mgt container: {response.status_code}")
+
+    return HttpResponse(response.content, content_type=response.headers.get('Content-Type', 'application/json'))
     # return Response(response.json(), status=response.status_code)
 
 #INITIATE REMOTE GAME
