@@ -14,30 +14,36 @@ function openSocket() {
         console.log('Opening new WebSocket');
 		newsocket = new WebSocket(`wss://${window.location.host}/ws/local/`);
 
-        openPromise = new Promise((resolve) => {
-            newsocket.onopen = function(event) {
-                console.log('Connected to WebSocket server.');
-                resolve();
+		openPromise = new Promise((resolve) => {
+			newsocket.onopen = function(event) {
+				console.log('Connected to WebSocket server.');
+				resolve();
+			};
+		});
+
+        messagePromise = new Promise((resolve) => {
+            newsocket.onmessage = function(event) {
+                console.log('Received: ' + event.data);
+                resolve(event.data);
             };
         });
 
-        newsocket.onmessage = function(event) {
-            console.log('Received: ' + event.data);
-        };
+		newsocket.onmessage = function(event) {
+			console.log('Received: ' + event.data);
+		};
 
-        newsocket.onclose = function(event) {
-            console.log('Disconnected from WebSocket server.');
-        };
+		newsocket.onclose = function(event) {
+			console.log('Disconnected from WebSocket server.');
+		};
 
-        newsocket.onerror = function(error) {
-            console.log('WebSocket error: ' + error.message);
-        };
+		newsocket.onerror = function(error) {
+			console.log('WebSocket error: ' + error.message);
+		};
     }
-    return openPromise;
+	return (openPromise, messagePromise);
 }
 
 async function sendJson(json) {
-    await openSocket();
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
         newsocket.send(json);
@@ -51,21 +57,55 @@ function generateLocalGame() {
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 
-	// Create data object with type key
-	let data = {type: 'start-game'}
+	// Create data object with action key
+	let data = {action: 'create-game'}
 
 	// Add players to JSON
 	data.players = playerNames;
 
-	// Convert to JSON
-	var json = JSON.stringify(data);
-
-	//OPEN SOCKET
-	openSocket();
-
-	// Send JSON VIA WEBSOCKET
-	sendJson(json);
+	openSocket('/ws/local/')
+    .then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
+
+function loadLocalGame() {
+	// Get the game area element
+    const gameArea = document.getElementById('game-column');
+
+    // Create and append the script
+    let script = document.createElement('script');
+    script.type = 'module';
+    // script.src = './js/pong/main.js';
+    script.src = './js/game.js';
+    gameArea.appendChild(script);
+
+    // Create and append the canvas
+    let canvas = document.createElement('canvas');
+    canvas.id = 'bg';
+    gameArea.appendChild(canvas);
+}
+
+function joinRemoteGame() {
+	const gameId = document.getElementById('searchGameID').value.trim(); 
+
+	uri = `/ws/join/${gameId}/`;
+	openSocket(uri);
+}
+
+async function hostRemoteGame() {
+	const { openPromise, messagePromise } = openSocket('/ws/host/');
+	await openPromise;
+    console.log('MY RESPONSE');
+    const message = await messagePromise;
+    console.log('MY RESPONSE', message);
+}
+
 
 
 	class StepperWrapper extends HTMLElement {
@@ -93,28 +133,42 @@ function generateLocalGame() {
 			});
 
 			//THIS SENDS A JSON OF ALL PLAYERS TO THE WEBSOCKET AFTER ESTABLISHING A CONNECTION
-			document.getElementById('generateLocalGameButtonWS').addEventListener('click', () => {
+/* 			document.getElementById('generateLocalGameButtonWS').addEventListener('click', () => {
 				generateLocalGame();
-			});
+			}); */
 
-			document.getElementById('generateLocalGameButton').addEventListener('click', () => {
+			document.getElementById('generateLocalGameButton').addEventListener('click', (event) => {
+				event.preventDefault();
+
 				generateLocalGame();
+				loadLocalGame();
 
-				document.getElementById('00-welcome').style.display = 'block';
+				// document.getElementById('00-welcome').style.display = 'block';
+				document.getElementById('30-game-mode').style.display = 'block';
 				document.getElementById('10-local').style.display = 'none';
+
 			});
 
-			document.getElementById('joinRemoteGameButton').addEventListener('click', () => {
-    			document.getElementById('21-remote-join').style.display = 'block';
+			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
+				event.preventDefault();
+				
+				joinRemoteGame();
+
+				document.getElementById('21-remote-join').style.display = 'block';
 				document.getElementById('20-remote-switch').style.display = 'none';
 			});
 
-			document.getElementById('hostRemoteGameButton').addEventListener('click', () => {
+			document.getElementById('hostRemoteGameButton').addEventListener('click', (event) => {
+				event
+				hostRemoteGame();
+
 				document.getElementById('20-remote-switch').style.display = 'none';
 				document.getElementById('22-remote-host').style.display = 'block';
 			});
 			
-			document.getElementById('startRemoteGameButton').addEventListener('click', () => {
+			document.getElementById('startRemoteGameButton').addEventListener('click', (event) => {
+				event.preventDefault();
+				
 				document.getElementById('00-welcome').style.display = 'block';
 				document.getElementById('22-remote-host').style.display = 'none';
 				alert(`Get Ready to Play Your Remote Game`)	
@@ -123,10 +177,19 @@ function generateLocalGame() {
 			document.getElementById('shareRemoteGameIDButton').addEventListener('click', function() {
 				// Get the input field
 				const input = this.previousElementSibling;
-			
+				// Get the span element containing the icon
+				const iconSpan = this.querySelector('span');
+
 				// Copy the input field's value to the clipboard
 				navigator.clipboard.writeText(input.value).then(function() {
 					console.log('Copying to clipboard was successful!');
+										
+					// Change the icon to bi-clipboard-check
+					iconSpan.className = 'bi bi-clipboard-check';
+					// Set a timeout to change the icon back to bi-clipboard after 3 seconds
+					setTimeout(function() {
+						iconSpan.className = 'bi bi-clipboard';
+					}, 3000);
 				}, function(err) {
 					console.error('Could not copy text: ', err);
 				});

@@ -14,25 +14,11 @@ def create_game(request):
     try:
         game = Game.objects.create(mode=request.data.get('game-mode'))
         game.save()
-        print("Game ID: ", game.game_id)
-        return Response({'game-id': game.game_id}, status=200)
-    
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
-    
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def init_game(request):
-    try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
-        game.add_players_to_game(request.data)
-        game.create_rounds()
-        game.save()
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
+    except KeyError as e:
+        return Response({'error': e}, status=400)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -59,6 +45,10 @@ def update_round_status(request):
     
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+    
+    except ValidationError as e:
+        return Response({'error': e}, status=400)
+    
     
 @api_view(['GET'])
 @permission_classes([AllowAny])

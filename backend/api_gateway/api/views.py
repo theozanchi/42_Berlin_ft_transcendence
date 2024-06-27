@@ -8,9 +8,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 import requests
 
-GAME_MANAGER_URL = 'http://game_manager:8002'
-GAME_LOGIC_URL = 'http://game_logic:8003'
-GAME_LOBBY_URL = 'http://game_lobby:8004'
+GAME_MANAGER_URL = 'http://game_manager'
+GAME_LOGIC_URL = 'http://game_logic'
 
 @api_view(['GET'])
 def get_game(self, request):
