@@ -2,6 +2,7 @@
 
 python manage.py makemigrations api
 python manage.py migrate
+django-admin createsuperuser --noinput
 
 # Start the Daphne server
 echo "Starting Daphne"

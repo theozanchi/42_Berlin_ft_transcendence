@@ -34,6 +34,7 @@ ALLOWED_HOSTS = [os.getenv('SERVER_NAME')]
 INSTALLED_APPS = [
     'rest_framework',
     'channels',
+	'api_gateway',
     'api',
     'redis',
 
