@@ -26,7 +26,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [os.getenv('SERVER_NAME')]
 
 
 # Application definition
@@ -74,7 +74,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api_gateway.wsgi.application'
-
 #REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
 CHANNEL_LAYERS = {

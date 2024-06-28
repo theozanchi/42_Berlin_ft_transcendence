@@ -1,104 +1,121 @@
 services:
   nginx:
     container_name: nginx
-    image: nginx:latest
+    image: nginx:latest # Based on debian:bookworm-slim
     entrypoint: [ "bash", "/tmp/entrypoint.sh" ]
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
+      - ./static:/usr/share/nginx/html/static
+    networks:
+      - frontend
+      - backend
     ports:
-      - "$PORT:80"
-      - "$SPORT:443"
+      - "${PORT}:80"
+      - "${SPORT}:443"
     environment:
       - NODE_ENV=${NODE_ENV}
       - SERVER_NAME=${SERVER_NAME}
     depends_on:
+      - frontend
       - api_gateway
-      - game_manager
-      - game_lobby
-      - game_logic
 
   frontend:
     container_name: frontend
-    image: nginx:latest
+    image: nginx:latest # Based on debian:bookworm-slim
     volumes:
-      - ./frontend/src:/usr/share/nginx/html:ro
-    #entrypoint: /usr/share/nginx/html/entrypoint.sh
+      - ./frontend:/usr/share/nginx/html:ro
+    networks:
+      - frontend
 
   db:
-    image: postgres:latest
+    image: postgres:latest # Based on debian:bookworm-slim
     container_name: db
     volumes:
       - ./data/db:/var/lib/postgresql/data
+    networks:
+      - backend
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-
-  redis:
-    image: redis:latest
-    container_name: redis
-    environment:
-      - REDIS_PASSWORD=redis
-    #command: ["redis-server", "--requirepass", "redis"]
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   api_gateway:
+    image: api_gateway_service
     container_name: api_gateway
     build: ./backend/api_gateway
     volumes:
       - ./backend/api_gateway:/code
-    ports:
-      - "8000:8000"
+      - ./static:/usr/share/static
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - REDIS_PASSWORD=redis
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SERVER_NAME=${SERVER_NAME}
+    networks:
+      - backend
     depends_on:
-      - db
       - redis
+      - game_logic
+      - game_manager
+      - authentication
 
-  game_manager:
-    container_name: game_manager
-    build: ./backend/game_manager_service
-    volumes:
-     - ./backend/game_manager_service:/code
-    ports:
-      - "8002:8002"
+  redis:
+    image: redis:latest # Based on debian:bookworm-slim
+    container_name: redis
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    depends_on:
-      - db
+    - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      - backend
 
   game_logic:
+    image: game_logic_service # Based on debian:bookworm-slim
     container_name: game_logic
     build: ./backend/game_logic_service
     volumes:
       - ./backend/game_logic_service:/code
-    ports:
-      - "8003:8003"
+      - ./static:/usr/share/static
+    networks:
+      - backend
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - REDIS_PASSWORD=redis
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
 
-  game_lobby:
-    container_name: game_lobby
-    build: ./backend/game_lobby_service
+  game_manager:
+    image: game_manager_service # Based on debian:bookworm-slim
+    container_name: game_manager
+    build: ./backend/game_manager_service
     volumes:
-     - ./backend/game_lobby_service:/code
-    ports:
-      - "8004:8004"
+      - ./backend/game_manager_service:/code
+      - ./static:/usr/share/static
+    networks:
+      - backend
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - REDIS_PASSWORD=redis
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
-      - redis
+
+  authentication:
+    image: authentication_service # Based on debian:bookworm-slim
+    container_name: authentication
+    build: ./backend/authentication_service
+    volumes:
+      - ./backend/authentication_service:/code
+      - ./static:/usr/share/static
+    networks:
+      - backend
+    environment:
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - db
+
+networks:
+  frontend:
+  backend:

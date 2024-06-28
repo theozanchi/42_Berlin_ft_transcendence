@@ -47,4 +47,7 @@ restart:		down up
 prune:
 				docker system prune -af
 
-.PHONY:			certs dir del_certs env up down restart prune
+auth:
+				@docker-compose up --build -d nginx authentication
+
+.PHONY:			certs dir del_certs env up down restart prune auth

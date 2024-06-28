@@ -9,7 +9,8 @@ if [ ! -f .env ]; then
 	echo "CERTS_DIR=/tmp/certs" >> .env
 	echo "POSTGRES_NAME=postgres" >> .env
 	echo "POSTGRES_USER=postgres" >> .env
-	echo "POSTGRES_PASSWORD=\"$(openssl rand -base64 32 )\"" >> .env
+	echo "POSTGRES_PASSWORD=postgres" >> .env
+	echo "REDIS_PASSWORD=redis" >> .env
 	echo "Done"
 else
 	echo "Using local .env file"
