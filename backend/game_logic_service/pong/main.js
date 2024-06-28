@@ -34,19 +34,6 @@ let index9;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 const canvas = document.getElementById('bg');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
