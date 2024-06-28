@@ -46,8 +46,17 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({'error': str(e)})
 
     async def join_game(self, content):
+        if self.game_id:
+            await self.send_json({'error': 'Already in a game'})
+            return
         self.game_id = content.get('game-id')
         await self.channel_layer.group_add(self.game_id, self.channel_name)
+
+    async def leave_game(self, content):
+        self.channel_layer.group_send(self.game_id, 
+            {'type': 'game_update', 
+            'content': {'player': self.alias, 
+            'message': 'left the game'}})
 
     async def add_players(self, content):
         try:
