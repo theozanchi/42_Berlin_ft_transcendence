@@ -74,6 +74,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             return
         self.game_id = content.get('game-id')
         await self.channel_layer.group_add(self.game_id, self.channel_name)
+        await self.channel_layer.group_send(self.game_id, {'type': 'player_joined', 'content': {'player': self.alias}})
 
     async def leave_game(self, content):
         self.channel_layer.group_send(self.game_id, 
@@ -88,28 +89,43 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             self.send_json(response.json())
         
         except requests.RequestException as e:
-            return({'error': str(e)})
+            self.send_json({'error': str(e)})
     
     async def start_game(self, content):
+        if self.host is not True:
+            return {'error': 'Only host can start game'}
         try:
             response = await requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.current_round = response.json()
+            await self.channel_layer.group_send(self.game_id, {'type': 'game-start', 'content': self.current_round})
 
         except requests.RequestException as e:
-            return({'error': str(e)})
+            self.send_json({'error': str(e)})
+    
+    def game_start(self, content):
+        if self.current_round['player1'] == self.channel_name:
+            self.player_id = 'player1'
+        elif self.current_round['player2'] == self.channel_name:
+            self.player_id = 'player2'
+        else:
+            self.player_id = 'spectator'
+        self.send_json({'type': 'init-game', 'player_id': self.player_id})
 
     async def game_state(self, content):
         #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
         #    return({'error': 'Not your turn'})
         try:
-            requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
-
+            print('game_state sending to game_logic')
+            response = await requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
+            requests.raise_for_status()
+            print(response.json())
         except Exception as e:
-            return({'error': str(e)})
+            print({'error': str(e)})
         
     async def game_update(self, content):
         print('game_update received:' + str(content))
+        
         await self.send_json(content)
         
     async def pause_game(self, content):
@@ -121,7 +137,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def set_alias(self, content):
         if content.get('alias'):
             self.alias = content.get('alias')
-            return {'alias': self.alias}
+            self.send_json({'alias': self.alias})
         else:
             return {'error': 'No alias received'}
 

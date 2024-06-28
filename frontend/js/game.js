@@ -2,6 +2,11 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
+window.addEventListener('keydown', function(e) {
+    if(e.keyCode == 32 && e.target == document.body) {
+        e.preventDefault();
+    }
+});
 
 const gifImage = document.getElementById('backgroundGif');
 const canvas = document.getElementById('bg');
@@ -62,7 +67,7 @@ export function initializeWebSocket(url){
                 if (data.type === 'player_identity') {
                     let playerId = data.player_id;
                     currentPlayer = (playerId === 'player1') ? player : player2;
-                } else if (data.type === 'game_state') {
+                } else if (data.type === 'game-state') {
                     updateGameState(data);
                 }
                 console.log('Received:', data);
@@ -179,7 +184,6 @@ export function initializeWebSocket(url){
                         }
                     };
                 }
-        
                 socket.send(JSON.stringify(newGameState));
 
 /*                 if (!deepEqual(oldGameState, newGameState)) {
