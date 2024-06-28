@@ -20,6 +20,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.game_id = None
         await self.accept()
+        await self.send_json({'message': {'channel_name': self.channel_name}})
 
     async def disconnect(self, close_code):
         if self.game_id:
@@ -54,7 +55,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
     async def leave_game(self, content):
         self.channel_layer.group_send(self.game_id, 
-            {'type': 'game_update', 
+            {'type': 'player_left', 
             'content': {'player': self.alias, 
             'message': 'left the game'}})
 
@@ -62,8 +63,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         try:
             response = requests.post(GAME_MANAGER_REST_URL + 'add-players', json=content, headers=self.get_headers())
             response.raise_for_status()
-            game_content = response.json()
-            return game_content
+            self.send_json(response.json())
         
         except requests.RequestException as e:
             return({'error': str(e)})
@@ -73,13 +73,12 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             response = await requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.current_round = response.json()
-            print(self.current_round)
 
         except requests.RequestException as e:
             return({'error': str(e)})
 
     async def game_state(self, content):
-        #if self.current_round['player1'] != self.alias and self.current_round['player2'] != self.alias:
+        #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
         #    return({'error': 'Not your turn'})
         try:
             response = await requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=self.get_headers())
@@ -87,7 +86,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             game_state = response.json()
             self.channel_layer.group_send(self.game_id, game_state)
             await self.game_update(game_state)
-            return ({'Status': 'Game state sent successfully'})
+
         except Exception as e:
             return({'error': str(e)})
         
