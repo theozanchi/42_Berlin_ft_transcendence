@@ -14,12 +14,16 @@ from asgiref.sync import async_to_sync, sync_to_async
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 GAME_LOGIC_REST_URL = 'http://game_logic:8000'
 
-GAME_LOGIC_WS_URL = 'ws://game_logic:8001/ws/socket-server/'
-
 class APIConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.game_id = None
         await self.accept()
+
+        #TEST
+        self.game_id = 'test'
+        await self.channel_layer.group_add(self.game_id, self.channel_name)
+        #
+
         await self.send_json({'message': {'channel_name': self.channel_name}})
 
     async def disconnect(self, close_code):
@@ -28,7 +32,25 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         await self.close(close_code)
     
     async def receive_json(self, content):
-        await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
+        type_to_method = {
+            'game-state': self.game_state,
+            'create-game': self.create_game,
+            'join-game': self.join_game,
+            'leave-game': self.leave_game,
+            'add-players': self.add_players,
+            'start-game': self.start_game,
+            'game-update': self.game_update,
+            'pause-game': self.pause_game,
+            'resume-game': self.resume_game,
+            'set-alias': self.set_alias
+        }
+
+        method = type_to_method.get(content.get('type'))
+
+        if method:
+            await method(content)
+        else:
+            await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
 
     def get_headers(self):
         return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
@@ -81,16 +103,13 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
         #    return({'error': 'Not your turn'})
         try:
-            response = await requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=self.get_headers())
-            response.raise_for_status()
-            game_state = response.json()
-            self.channel_layer.group_send(self.game_id, game_state)
-            await self.game_update(game_state)
+            requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
 
         except Exception as e:
             return({'error': str(e)})
         
     async def game_update(self, content):
+        print('game_update received:' + str(content))
         await self.send_json(content)
         
     async def pause_game(self, content):

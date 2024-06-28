@@ -145,7 +145,7 @@ export function initializeWebSocket(url){
         export function sendGameState() {
             if (socket.readyState === WebSocket.OPEN) {
                 const newGameState = {
-                    type: 'game_state',
+                    type: 'game-state',
                     playerTurn: playerTurn,
                     playerScore: playerScore,
                     aiScore: aiScore,
@@ -199,7 +199,7 @@ export function initializeWebSocket(url){
 function init() {
     
     //const url = `wss://${window.location.host}/ws/local/`;
-    const url = `wss://${window.location.host}/ws/socket-server/`;
+    const url = `wss://${window.location.host}/ws/`;
     initializeWebSocket(url);
     // Create the scene
     scene = new THREE.Scene();

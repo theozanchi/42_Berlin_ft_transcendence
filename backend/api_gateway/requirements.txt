@@ -2,9 +2,9 @@ Django>=3.0,<4.0
 daphne
 gunicorn
 psycopg2-binary>=2.8
-channels_redis
+redis==3.5.3
 websockets
 channels>=3.0.0,<4.0.0
-channels_redis>=3.3.0,<4.0.0
+channels_redis>=3.3.0,<4.4.0
 djangorestframework>=3.0.0,<4.0.0
 requests>=2.31.0
