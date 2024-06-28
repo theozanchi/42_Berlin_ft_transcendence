@@ -19,6 +19,22 @@ def create_game(request):
     except KeyError as e:
         return Response({'error': e}, status=400)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def join_game(request):
+    try:
+        game = Game.objects.get(pk=request.data.get('game-id'))
+        game.add_players_to_game(request.data)
+        game.save()
+        serializer = GameSerializer(game)
+        return Response(serializer.data, status=200)
+    
+    except Game.DoesNotExist:
+        return Response({'error': 'Game not found.'}, status=404)
+    
+    except KeyError as e:
+        return Response({'error': e}, status=400)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_game(request):

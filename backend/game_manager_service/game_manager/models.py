@@ -16,7 +16,7 @@ def generate_game_id():
 # Create your models here.
 class Game(models.Model):
     game_id = models.CharField(primary_key=True, default=generate_game_id, editable=False, unique=True, max_length=8)   
-    mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')], blank=False, null=False)
+    mode = models.CharField(max_length=6, choices=[('local', 'local'), ('remote', 'Remote')], blank=False, null=False)
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
 
     def clean(self):

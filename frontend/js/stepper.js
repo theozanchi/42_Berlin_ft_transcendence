@@ -41,12 +41,11 @@ function openSocket(path) {
 			console.log('WebSocket error: ' + error.message);
 		};
     }
-	return (openPromise, messagePromise);
+	return (openPromise);
 }
 
 async function sendJson(json) {
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-        console.log(`Sending json to server: ${json}`);
         newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
@@ -58,8 +57,8 @@ function generateLocalGame() {
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 
-	// Create data object with action key
-	let data = {action: 'create-game'}
+	// Create data object with type key
+	let data = {type: 'create-game'}
 
 	// Add players to JSON
 	data.players = playerNames;

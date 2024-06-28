@@ -20,7 +20,8 @@ from game_manager import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('create-game/', views.create_game)
+    path('create-game/', views.create_game),
+    path('join-game/', views.join_game),
 ]
 
 
