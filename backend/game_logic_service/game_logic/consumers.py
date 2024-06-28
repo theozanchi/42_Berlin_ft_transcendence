@@ -7,6 +7,9 @@ import time
 
 logging.basicConfig(level=logging.INFO)
 
+from channels.layers import get_channel_layer
+channel_layer = get_channel_layer()
+
 class PongConsumer(WebsocketConsumer):
     clients = {}
     player_id = 0
