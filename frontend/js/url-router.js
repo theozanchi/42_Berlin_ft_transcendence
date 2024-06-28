@@ -13,47 +13,47 @@ document.addEventListener("click", (e) => {
 
 const urlRoutes = {
 	404: {
-		template: "/frontend/404.html",
+		template: "/404.html",
 		title: "Not found",
 		description: "",
 	},
 	"/": {
-		template: "/frontend/index.html",
+		template: "/index.html",
 		title: "Pongerpuff Girl",
 		description: "",
 	},
 	"/setup-local": {
-		template: "/frontend/setup-local.html",
+		template: "/setup-local.html",
 		title: "Setup",
 		description: "",
 	},
 	"/setup-remote": {
-		template: "/frontend/setup-remote.html",
+		template: "/setup-remote.html",
 		title: "Setup",
 		description: "",
 	},
 	"/lobby": {
-		template: "/frontend/lobby.html",
+		template: "/lobby.html",
 		title: "Lobby",
 		description: "",
 	},
 	"/game": {
-		template: "/frontend/setup-local.html",
+		template: "/setup-local.html",
 		title: "game",
 		description: "",
 	},
 	"/profile": {
-		template: "/frontend/profile.html",
+		template: "/profile.html",
 		title: "Profile",
 		description: "",
 	},
 	"/login": {
-		template: "/frontend/login.html",
+		template: "/login.html",
 		title: "Login",
 		description: "",
 	},
 	"/signup": {
-		template: "/frontend/signup.html",
+		template: "/signup.html",
 		title: "Signup",
 		description: "",
 	},
@@ -61,9 +61,10 @@ const urlRoutes = {
 
 const urlRoute = (event) => {
 	event = event || window.event;
+	console.log("HELLO");
 	event.preventDefault();
 	window.history.pushState({}, "", event.target.href);
-	// console.log(event.target.href);
+	console.log(event.target.href);
 	urlLocationHandler();
 }
 
@@ -90,6 +91,7 @@ const urlLocationHandler = async () => {
     let doc = parser.parseFromString(html, "text/html");
     let title = doc.querySelector('title').innerText;
 
+	//WRITE NEW TITLE TO BROWSER TAB
     document.title = title;
     document.getElementById("content").innerHTML = html;
 };
