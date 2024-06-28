@@ -1,12 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Login | PongerPuff Girls</title>
+		<title>PongerPuff Girls</title>
     	<meta charset="utf-8"/>
     	<meta name="viewport" content="width=device-width, initial-scale=1"/>
 		<link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 		<link rel="stylesheet" href="css/styles.css"/>
 
   	</head>
@@ -17,46 +18,26 @@
 					<div class="spacer-48"></div>
 					<div class="d-flex row align-self-start">
 						<stepper-component></stepper-component>
-						<div id="00-login" class="step" >		
-							<!-- <div style="display: flex; align-items: center;"> -->
-							<div class="d-flex justify-content-between align-baseline">
-								<h1>Sign in</h1>
-								<nav>
-									<a href="/signup" class="btn btn-link text-decoration-none">Create account</a>
-								</nav>
-							</div>
+						<div id="00-welcome" class="step" >
+							<h1>WELCOME</h1>
+							<p>to our ponger puff girl. There are a lot of things to do in this app.
+							Do you want to play locally or remotely with friends?</p>
 
-							<div class="d-grid gap-2">
-								<div class="form-floating">
-										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
-										<label for="loginEmail">Email</label>
-								</div>
-								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
-									<label for="loginPassword">Password</label>
-								</div>
-								<div style="display: flex; justify-content: right;">
-									<a href="#" class="btn btn-link text-decoration-none">Forgot password?</a>
-									<div class="spacer-48"></div>
-								</div>
-								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign in</button>
-							</div>
-							<div class="spacer-48"></div>
-							<div style="display: flex; align-items: center; justify-content: center;">
-								<hr style="flex-grow: 1;"/>	
-								<span class="text-center" style="margin: 0 10px;">Or sign in with:</span>
-								<hr style="flex-grow: 1;"/>	
-							</div>
-							<div class="spacer-12"></div>
-							<!-- <p>OR</p> -->
-							<div class="d-grid gap-2">
-								<button id="login42SSOButton" class="btn btn-lg btn-outline-dark">
-									<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
-									<span>42 Account</span></button>
-							</div>							
+							<h2>Play Pong</h2>
+							<!-- <nav class="d-flex align-items-stretch gap-2 d-md-block"> -->
+							<nav class="d-grid gap-2 d-md-block">
+								<a href="/setup-local" id="localGameButton" class="btn btn-primary btn-lg">Local</a>
+								<a href="/setup-remote" id="remoteGameButton" class="btn btn-secondary btn-lg">Remote</a>
+							</nav>
+
+							<hr>
+							
+							<p>You have an Account? Here you can login</p>
+							<nav class="d-grid gap-2 d-md-block">
+								<a href="/login" id="login42Button" class="btn btn-lg btn-outline-primary">Login</a>
+								<a href="/signup" class="btn btn-link text-decoration-none">Create account</a>
+							</nav>
 						</div>
-						
-						
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
@@ -72,7 +53,7 @@
 				</div>
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
 					<div class="spacer-48"></div>
-					<h2>WebSocket Client</h2>
+					<h2>Playground</h2>
 					<!-- <div id="ws-local" class="step">
 						<stepper-titlebar title="Local Game"></stepper-titlebar>
 						<player-list mode ="local"></player-list>
@@ -94,11 +75,11 @@
 		</div>
 	</body>
     <!-- custom JS -->
+	<script src="js/url-router.js"></script>
 	<script src="js/websocket_connect.js"></script>
 	<script src="js/stepper.js"></script>
 	<script src="js/stepper_titlebar.js"></script>
 	<script src="js/player_list.js"></script>
 	<script src="js/player.js"></script>
-	<script src="js/static_game.js"></script>
-	<script src="js/url-router.js"></script>
+	
 </html>

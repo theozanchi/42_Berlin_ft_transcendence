@@ -41,10 +41,11 @@ function openSocket(path) {
 			console.log('WebSocket error: ' + error.message);
 		};
     }
-	return (openPromise, messagePromise);
+	return (openPromise);
 }
 
 async function sendJson(json) {
+	console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
         newsocket.send(json);
@@ -54,6 +55,8 @@ async function sendJson(json) {
 }
 
 function generateLocalGame() {
+
+	console.log("GENERATING LOCAL GAME");
 
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
@@ -66,7 +69,9 @@ function generateLocalGame() {
 
 	openSocket('/ws/local/')
     .then(() => {
+		console.log("PREPARING JSON");
         var json = JSON.stringify(data);
+		console.log(json);
         sendJson(json);
     })
     .catch(error => {
@@ -85,10 +90,13 @@ function loadLocalGame() {
     script.src = './js/game.js';
     gameArea.appendChild(script);
 
+	console.log('Creating Game');
+
     // Create and append the canvas
     let canvas = document.createElement('canvas');
     canvas.id = 'bg';
     gameArea.appendChild(canvas);
+
 }
 
 function joinRemoteGame() {
@@ -117,60 +125,29 @@ async function hostRemoteGame() {
 		connectedCallback() {
 			// console.log("rendering stepper form");
 
-			document.getElementById('localGameButton').addEventListener('click', () => {
-				// Get the current step from the URL
-				// const urlParams = new URLSearchParams(window.location.search);
-
-				document.getElementById('00-welcome').style.display = 'none';
-    			document.getElementById('10-local').style.display = 'block';
-				// history.pushState({ currentStep }, `Step ${step}`, `?step=${step}`);
-			});
-
-			document.getElementById('remoteGameButton').addEventListener('click', () => {
-				document.getElementById('00-welcome').style.display = 'none';
-    			document.getElementById('20-remote-switch').style.display = 'block';
-				
-			});
-
-			//THIS SENDS A JSON OF ALL PLAYERS TO THE WEBSOCKET AFTER ESTABLISHING A CONNECTION
-/* 			document.getElementById('generateLocalGameButtonWS').addEventListener('click', () => {
-				generateLocalGame();
-			}); */
-
 			document.getElementById('generateLocalGameButton').addEventListener('click', (event) => {
 				event.preventDefault();
 
 				generateLocalGame();
+				console.log("heyhey");
 				loadLocalGame();
-
-				// document.getElementById('00-welcome').style.display = 'block';
-				document.getElementById('30-game-mode').style.display = 'block';
-				document.getElementById('10-local').style.display = 'none';
-
 			});
 
 			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
 				event.preventDefault();
 				
 				joinRemoteGame();
-
-				document.getElementById('21-remote-join').style.display = 'block';
-				document.getElementById('20-remote-switch').style.display = 'none';
 			});
 
 			document.getElementById('hostRemoteGameButton').addEventListener('click', (event) => {
 				event
 				hostRemoteGame();
 
-				document.getElementById('20-remote-switch').style.display = 'none';
-				document.getElementById('22-remote-host').style.display = 'block';
 			});
 			
 			document.getElementById('startRemoteGameButton').addEventListener('click', (event) => {
 				event.preventDefault();
 				
-				document.getElementById('00-welcome').style.display = 'block';
-				document.getElementById('22-remote-host').style.display = 'none';
 				alert(`Get Ready to Play Your Remote Game`)	
 			});
 

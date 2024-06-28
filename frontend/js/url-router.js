@@ -18,7 +18,7 @@ const urlRoutes = {
 		description: "",
 	},
 	"/": {
-		template: "/index.html",
+		template: "/home.html",
 		title: "Pongerpuff Girl",
 		description: "",
 	},
@@ -27,12 +27,12 @@ const urlRoutes = {
 		title: "Setup",
 		description: "",
 	},
-	"/setup-remote": {
-		template: "/setup-remote.html",
+	"/host-remote": {
+		template: "/host.html",
 		title: "Setup",
 		description: "",
 	},
-	"/lobby": {
+	"/setup-remote": {
 		template: "/lobby.html",
 		title: "Lobby",
 		description: "",
@@ -54,6 +54,11 @@ const urlRoutes = {
 	},
 	"/signup": {
 		template: "/signup.html",
+		title: "Signup",
+		description: "",
+	},
+	"/game": {
+		template: "/game.html",
 		title: "Signup",
 		description: "",
 	},

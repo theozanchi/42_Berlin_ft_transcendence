@@ -115,3 +115,12 @@
 .align-baseline {
 	align-items: baseline;
 }
+
+.player-component {
+    height: var(--player-img-height);
+    margin-right: var(--player-element-margin);
+}
+
+.nav {
+	z-index: 1;
+}
