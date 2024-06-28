@@ -109,7 +109,7 @@ class PlayerList extends HTMLElement {
 			
 			<div class="d-flex justify-content-center">
 			${this.gameMode === "local" ?
-					'<button id="addPlayerButton" class="btn btn-outline-primary d-grid"><i class="bi bi-plus"></i>Add Player</button>'
+					'<button id="addPlayerButton" class="btn btn-outline-primary d-flex"><i class="bi bi-plus-lg"></i>Add Player</button>'
 				:	'<div class="spinner-border" role="status">	<span class="visually-hidden">Loading...</span></div><p>Waiting for Players to join</p>'
 			}
 			</div>

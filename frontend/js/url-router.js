@@ -6,7 +6,7 @@ document.addEventListener("click", (e) => {
 	if(!target.matches("nav a", "nav button")) {
 		return;
 	}
-
+	
 	e.preventDefault();
 	urlRoute();
 })
@@ -65,7 +65,7 @@ const urlRoutes = {
 }
 
 const urlRoute = (event) => {
-	event = event || window.event;
+	event = window.event || event;
 	console.log("HELLO");
 	event.preventDefault();
 	window.history.pushState({}, "", event.target.href);
@@ -106,9 +106,9 @@ window.route = urlRoute;
 
 urlLocationHandler();
 
-document.getElementById('backButton').addEventListener('click', goBack);
 
+// document.getElementById('backButton2').addEventListener('click', goBack);
 
-function goBack() {
-    window.history.back();
-}
+// function goBack() {
+// 	window.history.back();
+// }

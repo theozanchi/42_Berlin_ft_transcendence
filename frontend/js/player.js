@@ -24,18 +24,19 @@ class MyPlayer extends HTMLElement {
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 			<link rel="stylesheet" href="./css/styles.css">
 			<div class="player-component d-flex align-items-center justify-content-center">
 				<img class="player-component" src="${imageUrl}" class="col-auto player-component">
 				${hasInput 
 					? 
-						'<input type="text" class="form-control col" maxlength="30" value="' + this.getAttribute('name') + '">' 
+					'<input type="text" class="form-control col" maxlength="30" value="' + this.getAttribute('name') + '">' 
 					: 
-						`<p class="col"> ${name} </p>`
+					`<p class="col"> ${name} </p>`
 				}
 				${hasRemoveButton 
 					? 
-					'<button id="removeButton" class="btn btn-outline-danger col-auto">X</button>' 
+					'<button id="removeButton" class="btn btn-outline-danger col-auto"><i class="bi bi-x-lg"></i></button>' 
 					: 
 					''}
 			</div>
