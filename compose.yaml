@@ -7,6 +7,7 @@ services:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
       - ./static:/usr/share/nginx/html/static
+      - ./media_data:/usr/share/nginx/html/media
     networks:
       - frontend
       - backend
@@ -61,6 +62,7 @@ services:
     volumes:
       - ./backend/user_mgt:/app
       - ./static:/usr/share/nginx/html/static
+      - ./media_data:/usr/share/media
     networks:
       - backend
     depends_on:
@@ -172,3 +174,4 @@ networks:
 
 volumes:
   postgres_data:
+  media_data:

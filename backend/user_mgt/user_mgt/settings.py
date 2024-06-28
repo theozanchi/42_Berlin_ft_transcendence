@@ -31,6 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['user-mgt', 'user-mgt:8000', 'localhost', '127.0.0.1', '*']
 
 USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
@@ -49,13 +50,17 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-LOGIN_REDIRECT_URL = '/api/user_mgt/admin/'
-LOGOUT_REDIRECT_URL = '/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/usr/share/media'
+
+LOGIN_REDIRECT_URL = '/api/user_mgt'
+LOGOUT_REDIRECT_URL = '/api/user_mgt'
 
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = 'localhost'
+CSRF_TRUSTED_ORIGINS = ['localhost:8443']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

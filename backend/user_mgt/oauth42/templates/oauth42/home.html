@@ -7,8 +7,8 @@
 
     {% if user.is_authenticated %}
 	<h1>Hello {{ user.first_name|default:user.username }}!</h1>
-    {% if user.userprofile.picture_url %}
-	    <img src="{{ user.userprofile.picture_url }}" alt="User picture">
+    {% if user.userprofile.avatar %}
+	    <img src="{{ user.userprofile.avatar.url }}" alt="User picture">
     {% else %}
         <p>Image missing</p>
     {% endif %}
@@ -37,12 +37,10 @@
 	<h1>Login Status</h1>
         <p>You are not logged in.</p>
         <a href="{% url 'oauth_login' %}">Login with 42</a>
-        <a href="/api/user_mgt/oauth/login/">Login</a>
         <br>
         <a href="{% url 'login' %}">Login with email and password</a>
     {% endif %}
     <br>
     <a href="{% url 'admin:index' %}">Admin panel</a>
-    <a href="/api/user_mgt/admin">Admin panel</a>
 </body>
 </html>

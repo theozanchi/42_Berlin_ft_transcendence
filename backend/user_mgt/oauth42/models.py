@@ -7,7 +7,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     # Free to define by user
     nickname = models.CharField(max_length=50, null=True, blank=True)
-    # avatar = models.ImageField(upload_to='avatars/', null=True, blank=True) # Requires Pillow
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True) # Requires Pillow
     # Provided by 42 OAuth API, if applicable
     oauth_id = models.CharField(max_length=200, null=True, blank=True)
     picture_url = models.URLField(max_length=200, null=True, blank=True)

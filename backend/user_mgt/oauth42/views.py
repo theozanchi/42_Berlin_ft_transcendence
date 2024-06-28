@@ -12,17 +12,31 @@ from .models import UserProfile
 from django.http import HttpResponse
 import pprint
 from .forms import RegistrationForm
+from django.core.files.base import ContentFile
 
 CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8'
 CLIENT_SECRET = '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'
-REDIRECT_URI = 'http://localhost:8001/oauth/callback/'
+REDIRECT_URI = 'https://localhost:8443/api/user_mgt/oauth/callback/'
+
+
+def save_avatar_from_url(user_profile, url):
+    response = requests.get(url)
+
+    if response.status_code == 200 and 'image' in response.headers['Content-Type']:
+        image_content = ContentFile(response.content)
+        filename = url.split("/")[-1]
+        user_profile.avatar.save(filename, image_content)
+        user_profile.save()
+
 
 def home(request):
     if request.user.is_authenticated:
         return render(request, 'oauth42/home.html', {'user': request.user})
     return render(request, 'oauth42/home.html')
 
+
 def oauth_login(request):
+    print("in oauth_login")
     state = get_random_string(32)
     request.session['oauth_state'] = state
     authorization_url = (
@@ -31,6 +45,7 @@ def oauth_login(request):
     return redirect(authorization_url)
 
 def oauth_callback(request):
+    print("in oauth_callback")
     state = request.GET.get('state')
     if state != request.session.pop('oauth_state', ''):
         return redirect('/')
@@ -65,7 +80,6 @@ def oauth_callback(request):
     last_name = user_info['last_name']
     picture_url = user_info['image']['versions']['small']
 
-
     user, created = User.objects.get_or_create(
         username=username,
         defaults={'email': email,
@@ -80,6 +94,8 @@ def oauth_callback(request):
     if created:
         user.set_unusable_password()
         user.save()
+
+    save_avatar_from_url(user.userprofile, picture_url)
 
     login(request, user)
 
@@ -102,7 +118,7 @@ def register(request):
             form.save()
             return redirect("login")
     else:
-        form = RegisterForm()
+        form = RegistrationForm()
     return render(request, "register.html", {"form"})
 
 def profile(request):
@@ -130,4 +146,4 @@ from django.contrib.auth.views import LoginView
 
 class CustomLoginView(LoginView):
     def get_success_url(self):
-        return '/api/user_mgt/admin/'
+        return '/api/user_mgt'
