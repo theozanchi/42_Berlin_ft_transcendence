@@ -81,8 +81,11 @@ const urlLocationHandler = async () => {
     let imageUrl = new URL(route, baseUrl);
     console.log(imageUrl);
 
-    const html = await fetch(route.template).then((response) => response.text());
+    const html = await fetch(route.template).then((response) => 
+		response.text());
 
+
+	//PARSE ACTUAL PATH AND 
     let parser = new DOMParser();
     let doc = parser.parseFromString(html, "text/html");
     let title = doc.querySelector('title').innerText;
@@ -90,6 +93,11 @@ const urlLocationHandler = async () => {
     document.title = title;
     document.getElementById("content").innerHTML = html;
 };
+
+window.onpopstate = urlLocationHandler;
+window.route = urlRoute;
+
+urlLocationHandler();
 
 document.getElementById('backButton').addEventListener('click', goBack);
 
