@@ -124,11 +124,16 @@ class   HostConsumer(LocalConsumer):
 
 class RemoteConsumer(LocalConsumer):
     async def connect(self):
-        self.game_id = self.scope['url_route']['kwargs']['game_id']
+        # self.game_id = self.scope['url_route']['kwargs']['game_id']
         # ISSUE check if game id is valid
-        await self.channel_layer.group_add(self.game_id, self.channel_name)
+        # await self.channel_layer.group_add(self.game_id, self.channel_name)
         await self.accept()
         await self.send_json({"connect": "Successful"})
+
+    async def receive_json(self, content):
+        self.game_id = content.get('game-id')
+        if self.game_id:
+            await self.channel_layer.group_add(self.game_id, self.channel_name)
 
     async def get_type(self, type):
         return {

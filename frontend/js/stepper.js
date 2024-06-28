@@ -93,9 +93,17 @@ function loadLocalGame() {
 
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
+	let data = {type: 'join-game', 'game-id': gameId};
 
-	uri = `/ws/join/${gameId}/`;
-	openSocket(uri);
+	openSocket('/ws/join/')
+	.then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 async function hostRemoteGame() {
