@@ -5,13 +5,9 @@ import requests
 import uuid
 import json
 import asyncio
-import redis
 import websockets
 import logging
 from asgiref.sync import async_to_sync, sync_to_async
-
-# Initialize Redis client
-#redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 GAME_LOGIC_REST_URL = 'http://game_logic:8000'
@@ -19,11 +15,9 @@ GAME_LOGIC_REST_URL = 'http://game_logic:8000'
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-class LocalConsumer(AsyncJsonWebsocketConsumer):
+class APIConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.game_mode = 'local'
-        self.game_id = None
 
     async def connect(self):
         self.__init__()
@@ -43,6 +37,11 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             'start-game': self.start_game,
             'game-state': self.game_state, # Client sends an update
             'update-game': self.update_game, # Client receives an update
+            'set-alias': self.set_alias,
+            'create-game': self.create_game,
+            'start-game': self.start_game,
+            'update-game': self.update_game,
+            'join-game': self.join_game,
         }.get(type)
 
     async def receive_json(self, content):
@@ -51,7 +50,6 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
         method = await self.get_type(type)
         if method:
             headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
-            content['game-id'] = self.game_id
             response = await method(content, headers)
             
             await self.send_json({"type": type, **response})
@@ -61,7 +59,6 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
 
     async def create_game(self, content, headers):
         try:
-            content['game-mode'] = self.game_mode
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
@@ -83,8 +80,6 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
             return({'error': str(e)})
 
     async def game_state(self, content, headers):
-        #if self.current_round['player1'] != self.alias and self.current_round['player2'] != self.alias:
-        #    return({'error': 'Not your turn'})
         try:
             response = requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=headers)
             response.raise_for_status()
@@ -103,19 +98,6 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
 
     async def resume_game(self, content, headers):
         pass
-
-class   HostConsumer(LocalConsumer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.game_mode = 'remote'
-
-    async def get_type(self, type):
-        return {
-            'set-alias': self.set_alias,
-            'create-game': self.create_game,
-            'start-game': self.start_game,
-            'update-game': self.update_game,
-        }.get(type)
     
     async def set_alias(self, content, headers):
         if content.get('alias'):
@@ -124,22 +106,14 @@ class   HostConsumer(LocalConsumer):
         else:
             return {'error': 'No alias received'}
 
-
-class RemoteConsumer(LocalConsumer):
-    async def get_type(self, type):
-        return {
-			'join-game': self.join_game,
-        }.get(type)
-
     async def join_game(self, content, headers):
         try:
             response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=headers)
             response.raise_for_status()
-            response_json = response.json()
-            self.game_id = response_json.get('game-id')
-            if self.game_id:
+            if response.json().get('game-id'):
+                self.game_id = response.json().get('game-id')
                 await self.channel_layer.group_add(self.game_id, self.channel_name)
-            return response_json
+            return response.json()
         
         except requests.RequestException as e:
             return({'error': str(e)})

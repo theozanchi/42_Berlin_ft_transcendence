@@ -59,11 +59,12 @@ function generateLocalGame() {
 
 	// Create data object with type key
 	let data = {type: 'create-game'}
+	data['game-mode'] = 'local';
 
 	// Add players to JSON
 	data.players = playerNames;
 
-	openSocket('/ws/local/')
+	openSocket('/ws/')
     .then(() => {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
@@ -93,9 +94,9 @@ function loadLocalGame() {
 
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
-	let data = {type: 'join-game', 'game-id': gameId};
+	let data = {type: 'join-game', 'game-id': gameId, 'game-mode': 'remote'};
 
-	openSocket('/ws/join/')
+	openSocket('/ws/')
 	.then(() => {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
@@ -117,7 +118,7 @@ async function hostRemoteGame() {
 	let data = {type: 'create-game'}
 	data['game-mode'] = 'remote';
 
-	openSocket('/ws/host/')
+	openSocket('/ws/')
     .then(() => {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
