@@ -7,7 +7,7 @@ from django.utils.html import format_html
 class UserProfileInline(admin.TabularInline):
     model = UserProfile
     can_delete = False
-    verbose_name_plural = 'UserProfile'
+    verbose_name_plural = 'UserProfiles'
     fields = ('picture_url', 'access_token',)
     readonly_fields = ('access_token',)
 
@@ -16,7 +16,7 @@ class ParticipationInline(admin.TabularInline):
     extra = 1
 
 class UserAdmin(BaseUserAdmin):
-    inlines = (UserProfileInline,)
+    inlines = (UserProfileInline, ParticipationInline,)
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'picture_url')}),
@@ -28,7 +28,6 @@ class UserAdmin(BaseUserAdmin):
     def picture_url(self, obj):
         return format_html('<img src="{}" style="height: 100px" />', obj.userprofile.picture_url)
     picture_url.short_description = 'Picture URL'
-    inlines = (UserProfileInline, ParticipationInline,)
 
 
 class TournamentAdmin(admin.ModelAdmin):

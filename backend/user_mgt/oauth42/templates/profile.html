@@ -1,12 +1,22 @@
 <h2>Stats</h2>
-<p>Wins: {{ wins }}</p>
-<p>Losses: {{ losses }}</p>
 
-<h2>Last Tournaments</h2>
-{% for tournament in tournaments_data %}
-	<p>Start Date: {{ tournament.start_date }}</p>
-	<p>Participants: {% for participant in tournament.participants %}{{ participant.username }} {% endfor %}</p>
-	<p>Winner: {{ tournament.winner.username }}</p>
-	<p>Your Rank: {{ tournament.rank }}</p>
-	<p>Your Score: {{ tournament.score }}</p>
+
+<p>Wins: {{ player_data.total_wins }}</p>
+<p>Losses: {{ player_data.total_lost }}</p>
+<p>Total score: {{ player_data.total_score }}</p>
+<hr>
+
+<p>Nickname: {{ player_data.nickname}}</p>
+<p>Full name: {{ player_data.full_name }}</p>
+<p>joined: {{ player_data.joined }}</p>
+<hr>
+
+<h2>Last Tournaments ({{player_data.tournaments }})</h2>
+{% for game in player_data.games %}
+	<p>Start Date: {{ game.start_date }}</p>
+	<p>Participants: {% for participant in game.participants %}<a href="{% url 'profile' participant.1 %}"> {{participant.0}}</a> {% endfor %}</p>
+	<p>Winner: {{ game.winner }}</p>
+	<p>Your Rank: {{ game.own_rank }}</p>
+	<p>Your Score: {{ game.own_score }}</p>
+	<hr>
 {% endfor %}

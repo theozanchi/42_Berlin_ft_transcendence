@@ -6,6 +6,7 @@
 <body>
 
     {% if user.is_authenticated %}
+
 	<h1>Hello {{ user.first_name|default:user.username }}!</h1>
     {% if user.userprofile.avatar %}
 	    <img src="{{ user.userprofile.avatar.url }}" alt="User picture">
@@ -21,9 +22,10 @@
             <br>
 			<br>Last login: {{ user.last_login }}
 			<br>Created at: {{ user.date_joined}}
+            <br>User_id: {{ user.id }}
 		</p>
 
-        {% include 'profile.html' %}
+        <a href="{% url 'profile' user.id %}">Go to profile</a>
 
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
@@ -33,7 +35,10 @@
 			{% csrf_token %}
 			<button type="submit">Logout and Delete Cookie</button>
 		</form>
+
     {% else %}
+
+
 	<h1>Login Status</h1>
         <p>You are not logged in.</p>
         <a href="{% url 'oauth_login' %}">Login with 42</a>
@@ -42,5 +47,6 @@
     {% endif %}
     <br>
     <a href="{% url 'admin:index' %}">Admin panel</a>
+    
 </body>
 </html>

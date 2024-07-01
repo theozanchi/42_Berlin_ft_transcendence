@@ -1,20 +1,34 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Sum, Window, F
+from django.db.models.functions import DenseRank
+import pprint
+
+class UserManager(models.Manager):
+    def get_user_rankings(self):
+        return self.annotate(
+            total_score=Sum('participation__score'),
+            rank=Window(expression=DenseRank(), order_by=F('total_score').desc())
+        ).order_by('-total_score').values_list('id','rank')
+    def get_user_ranking(self, user_id):
+        rankings = list(self.get_user_rankings())
+        pprint.pprint(rankings)
+        for i, user in enumerate(rankings):
+            if user[0] == user_id:
+                return (i+1, user[1])
+        return None
 
 class UserProfile(models.Model):
-    # Extends the User model from Django with this class
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # Free to define by user
     nickname = models.CharField(max_length=50, null=True, blank=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True) # Requires Pillow
-    # Provided by 42 OAuth API, if applicable
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     oauth_id = models.CharField(max_length=200, null=True, blank=True)
     picture_url = models.URLField(max_length=200, null=True, blank=True)
-    # Required by subject
     last_login = models.DateTimeField(auto_now=True)
-    # Debugging purposes
     access_token = models.CharField(max_length=200, null=True, blank=True)
+
+User.add_to_class('rankings', UserManager())
 
 class Tournament(models.Model):
     # This could be the ID for the tournament provided
