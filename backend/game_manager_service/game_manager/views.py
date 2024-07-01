@@ -6,6 +6,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from game_manager.models import Game, Player, Round
 from .serialize import GameSerializer
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -22,6 +26,7 @@ def create_game(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def join_game(request):
+    logger.debug(f"Received join game request with data: {request.data}")
     try:
         game = Game.objects.get(pk=request.data.get('game-id'))
         game.add_players_to_game(request.data)

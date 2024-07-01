@@ -7,6 +7,7 @@ import json
 import asyncio
 import redis
 import websockets
+import logging
 from asgiref.sync import async_to_sync, sync_to_async
 
 # Initialize Redis client
@@ -14,6 +15,9 @@ from asgiref.sync import async_to_sync, sync_to_async
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 GAME_LOGIC_REST_URL = 'http://game_logic:8000'
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class LocalConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):

@@ -107,11 +107,25 @@ function joinRemoteGame() {
 }
 
 async function hostRemoteGame() {
-	const { openPromise, messagePromise } = openSocket('/ws/host/');
-	await openPromise;
-    console.log('MY RESPONSE');
-    const message = await messagePromise;
-    console.log('MY RESPONSE', message);
+	// const { openPromise, messagePromise } = openSocket('/ws/host/');
+	// await openPromise;
+    // console.log('MY RESPONSE');
+    // const message = await messagePromise;
+    // console.log('MY RESPONSE', message);
+	
+	// Create data object with type key
+	let data = {type: 'create-game'}
+	data['game-mode'] = 'remote';
+
+	openSocket('/ws/host/')
+    .then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 
