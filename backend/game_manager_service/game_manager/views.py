@@ -27,7 +27,6 @@ def create_game(request):
 @permission_classes([AllowAny])
 def join_game(request):
     try:
-        logger.debug(f"Received join game request with data: {request.data}")
         game = Game.objects.get(pk=request.data.get('game-id'))
         game.add_players_to_game(request.data)
         game.save()

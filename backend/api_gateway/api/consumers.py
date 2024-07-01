@@ -109,6 +109,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def join_game(self, content, headers):
         try:
             response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=headers)
+            if response.status_code == 404:
+                self.game_id = content.get('game-id')
+                raise ValueError(f'{self.game_id} not found.')
             response.raise_for_status()
             if response.json().get('game-id'):
                 self.game_id = response.json().get('game-id')
@@ -116,4 +119,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             return response.json()
         
         except requests.RequestException as e:
-            return({'error': str(e)})
+            await self.send_json({'error': str(e)})
+            await self.close()
+        except ValueError as e:
+            await self.send_json({'error': str(e)})
+            await self.close()
