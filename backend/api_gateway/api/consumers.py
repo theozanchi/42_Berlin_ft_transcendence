@@ -32,6 +32,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def receive_json(self, content):
         print('received json: ' + str(content))
         type_to_method = {
+            'test-game-start': self.test_game,
             'game-state': self.game_state,
             'create-game': self.create_game,
             'join-game': self.join_game,
@@ -48,11 +49,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         if method:
             await method(content)
         else:
+            print("received invalid type: ", content.get('type'))
             await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
 
     def get_headers(self):
         return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
     
+    async def test_game(self, content):
+        pass
+
     async def create_game(self, content):
         try:
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
@@ -118,7 +123,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
         #    return({'error': 'Not your turn'})
         try:
-            print('channel layer: ', self.channel_layer)
             content['game_id'] = self.game_id
             response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
             response.raise_for_status()
@@ -126,8 +130,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             print({'error': str(e)})
         
     async def game_update(self, content):
-        print('game_update received:' + str(content))
-        
         await self.send_json(content)
         
     async def pause_game(self, content):
