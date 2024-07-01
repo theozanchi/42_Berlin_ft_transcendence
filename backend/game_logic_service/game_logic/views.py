@@ -28,6 +28,7 @@ def game_update(request):
 
     game_state['type'] = 'game-update'
     async_to_sync(channel_layer.group_send(game_id, cache.get(game_id)))
+    return JsonResponse("game logic updated", safe=False)
 
 def create_new_game_state(self):
     return {

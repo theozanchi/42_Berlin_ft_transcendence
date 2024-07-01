@@ -12,7 +12,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 #redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
-GAME_LOGIC_REST_URL = 'http://game_logic:8000'
+GAME_LOGIC_REST_URL = 'http://game_logic:8001'
 
 class APIConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
@@ -95,7 +95,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         if self.host is not True:
             return {'error': 'Only host can start game'}
         try:
-            response = await requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=self.get_headers())
+            response = requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.current_round = response.json()
             await self.channel_layer.group_send(self.game_id, {'type': 'game-start', 'content': self.current_round})
@@ -116,10 +116,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
         #    return({'error': 'Not your turn'})
         try:
-            print('game_state sending to game_logic')
-            response = await requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
-            requests.raise_for_status()
-            print(response.json())
+            response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
+            response.raise_for_status()
+            print("response from game logic: ", response.json())
         except Exception as e:
             print({'error': str(e)})
         
