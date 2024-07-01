@@ -24,10 +24,9 @@ class LocalConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.__init__()
         await self.accept()
-        print('Connected')
+        await self.send_json({"connection": "success"})
 
     async def disconnect(self, close_code):
-        
         if self.game_id:
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
@@ -123,18 +122,6 @@ class   HostConsumer(LocalConsumer):
 
 
 class RemoteConsumer(LocalConsumer):
-    async def connect(self):
-        # self.game_id = self.scope['url_route']['kwargs']['game_id']
-        # ISSUE check if game id is valid
-        # await self.channel_layer.group_add(self.game_id, self.channel_name)
-        await self.accept()
-        await self.send_json({"connect": "Successful"})
-
-    async def receive_json(self, content):
-        self.game_id = content.get('game-id')
-        if self.game_id:
-            await self.channel_layer.group_add(self.game_id, self.channel_name)
-
     async def get_type(self, type):
         return {
 			'join-game': self.join_game,
@@ -144,8 +131,11 @@ class RemoteConsumer(LocalConsumer):
         try:
             response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=headers)
             response.raise_for_status()
-            game_content = response.json()
-            return game_content
+            response_json = response.json()
+            self.game_id = response_json.get('game-id')
+            if self.game_id:
+                await self.channel_layer.group_add(self.game_id, self.channel_name)
+            return response_json
         
         except requests.RequestException as e:
             return({'error': str(e)})
