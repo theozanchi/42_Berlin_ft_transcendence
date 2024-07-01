@@ -49,6 +49,18 @@ let reconnectAttempts = 0;
 let maxReconnectAttempts = 10;
 let resetBall_ = false;
 
+let gameStarted = false;
+let gameCanStart = false;
+
+async function sendJson(json) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        console.log(`Sending json to server: ${json}`);
+        socket.send(json);
+    } else {
+        console.log('WebSocket is not connected.');
+    }
+}
+
 export function initializeWebSocket(url){
     
 ///setup web socket ///
@@ -67,8 +79,17 @@ export function initializeWebSocket(url){
                 if (data.type === 'player_identity') {
                     let playerId = data.player_id;
                     currentPlayer = (playerId === 'player1') ? player : player2;
-                } else if (data.type === 'game-state') {
-                    updateGameState(data);
+                } else if (data.type === 'game_update') {
+                    if (gameStarted)
+                        updateGameState(data);
+                } else if (data.type === 'game_start') {
+                    gameStarted = true;
+                    console.log('Game started!');
+                } else if (data.type === 'player_joined') {
+                    console.log('Player joined:', data.player);
+                    if (data.player_count >= 2) {
+                        gameCanStart = true;
+                    }
                 }
                 console.log('Received:', data);
             };    
@@ -148,6 +169,9 @@ export function initializeWebSocket(url){
 
         // Ensure WebSocket is open before sending data
         export function sendGameState() {
+            if (gameStarted == false) {
+                return;
+            }
             if (socket.readyState === WebSocket.OPEN) {
                 const newGameState = {
                     type: 'game-state',
@@ -200,11 +224,54 @@ export function initializeWebSocket(url){
 
 
 
-function init() {
+async function init() {
     
-    //const url = `wss://${window.location.host}/ws/local/`;
+    // TESTING //
+    // FIRST WAIT FOR THE WEBSOCKET CONNECTION TO BE ESTABLISHED
     const url = `wss://${window.location.host}/ws/`;
-    initializeWebSocket(url);
+    initializeWebSocket(url)
+    await new Promise((resolve, reject) => {
+        if (!socket) {
+            reject('WebSocket is not initialized.');
+        } else {
+            const checkInterval = setInterval(() => {
+                if (socket.readyState === WebSocket.OPEN) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 1000);
+        }
+    });
+
+    // THEN SEND THE CREATE GAME REQUEST AND WAIT FOR ANOTHER PLAYER TO JOIN
+    let data = {type: 'create-game', players: ['me', 'pep']};
+    var json = JSON.stringify(data);
+    sendJson(json);
+
+    await new Promise((resolve, reject) => {
+        const checkInterval = setInterval(() => {
+            if (gameCanStart) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 1000);
+    });
+
+    // THEN SEND THE CREATE GAME REQUEST AND WAIT FOR THE GAME TO START
+    let moredata = {type: 'start-game'};
+    var json = JSON.stringify(moredata);
+    sendJson(json);
+
+    console.log('Initializing game...');
+    await new Promise(resolve => {
+        const checkInterval = setInterval(() => {
+            if (gameStarted) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 1000);
+    });
+
     // Create the scene
     scene = new THREE.Scene();
     
@@ -1152,5 +1219,6 @@ function animate() {
     // Send a request to the server to update the game state
     // socket.send(JSON.stringify({ 'type': 'update_state' }));
 }
+
 
 init();

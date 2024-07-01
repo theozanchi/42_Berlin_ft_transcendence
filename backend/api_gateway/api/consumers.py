@@ -24,14 +24,13 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_add(self.game_id, self.channel_name)
         #
 
-        await self.send_json({'message': {'channel_name': self.channel_name}})
-
     async def disconnect(self, close_code):
         if self.game_id:
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
     
     async def receive_json(self, content):
+        print('received json: ' + str(content))
         type_to_method = {
             'game-state': self.game_state,
             'create-game': self.create_game,
@@ -39,7 +38,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             'leave-game': self.leave_game,
             'add-players': self.add_players,
             'start-game': self.start_game,
-            'game-update': self.game_update,
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
             'set-alias': self.set_alias
@@ -61,6 +59,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             response.raise_for_status()
 
             self.game_id = response.json().get('game-id')
+            self.player_count = 1
             await self.channel_layer.group_add(self.game_id, self.channel_name)
 
             await self.send_json({"game-id": self.game_id})
@@ -73,8 +72,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({'error': 'Already in a game'})
             return
         self.game_id = content.get('game-id')
+        self.player_count += 1
         await self.channel_layer.group_add(self.game_id, self.channel_name)
-        await self.channel_layer.group_send(self.game_id, {'type': 'player_joined', 'content': {'player': self.alias}})
+        await self.channel_layer.group_send(self.game_id, {'type': 'player_joined', 'content': {'player': self.alias, 'player_count': self.player_count}})
 
     async def leave_game(self, content):
         self.channel_layer.group_send(self.game_id, 
@@ -94,6 +94,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def start_game(self, content):
         if self.host is not True:
             return {'error': 'Only host can start game'}
+        if self.player_count < 2:
+            return {'error': 'Not enough players to start game'}
         try:
             response = requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=self.get_headers())
             response.raise_for_status()
@@ -116,9 +118,10 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
         #    return({'error': 'Not your turn'})
         try:
+            print('channel layer: ', self.channel_layer)
+            content['game_id'] = self.game_id
             response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
             response.raise_for_status()
-            print("response from game logic: ", response.json())
         except Exception as e:
             print({'error': str(e)})
         

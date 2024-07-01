@@ -6,37 +6,37 @@
 
 // import { generateLocalGame } from './api_calls.js';
 
-let newsocket;
+var socket;
 let openPromise;
 
 function openSocket() {
-    if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
         console.log('Opening new WebSocket');
-		newsocket = new WebSocket(`wss://${window.location.host}/ws/local/`);
+		socket = new WebSocket(`wss://${window.location.host}/ws/`);
 
 		openPromise = new Promise((resolve) => {
-			newsocket.onopen = function(event) {
+			socket.onopen = function(event) {
 				console.log('Connected to WebSocket server.');
 				resolve();
 			};
 		});
 
         messagePromise = new Promise((resolve) => {
-            newsocket.onmessage = function(event) {
+            socket.onmessage = function(event) {
                 console.log('Received: ' + event.data);
                 resolve(event.data);
             };
         });
 
-		newsocket.onmessage = function(event) {
+		socket.onmessage = function(event) {
 			console.log('Received: ' + event.data);
 		};
 
-		newsocket.onclose = function(event) {
+		socket.onclose = function(event) {
 			console.log('Disconnected from WebSocket server.');
 		};
 
-		newsocket.onerror = function(error) {
+		socket.onerror = function(error) {
 			console.log('WebSocket error: ' + error.message);
 		};
     }
@@ -44,9 +44,9 @@ function openSocket() {
 }
 
 async function sendJson(json) {
-    if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
-        newsocket.send(json);
+        socket.send(json);
     } else {
         console.log('WebSocket is not connected.');
     }
@@ -63,15 +63,15 @@ function generateLocalGame() {
 	// Add players to JSON
 	data.players = playerNames;
 
-	openSocket('/ws/local/')
-    .then(() => {
-        var json = JSON.stringify(data);
-		console.log('Sending JSON:', data);
-        sendJson(json);
-    })
-    .catch(error => {
-        console.error('Failed to open WebSocket connection:', error);
-    });
+	openSocket() 
+		.then(() => {
+			var json = JSON.stringify(data);
+			console.log('Sending JSON:', data);
+			sendJson(json);
+		})
+		.catch(error => {
+			console.error('Failed to open WebSocket connection:', error);
+		});
 }
 
 function loadLocalGame() {
@@ -94,12 +94,20 @@ function loadLocalGame() {
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
 
-	uri = `/ws/join/${gameId}/`;
-	openSocket(uri);
+    openSocket()
+        .then(() => {
+            const data = {action: 'join-game', game_id: gameId};
+            const json = JSON.stringify(data);
+            console.log('Sending JSON:', data);
+            sendJson(json);
+        })
+        .catch(error => {
+            console.error('Failed to open WebSocket connection:', error);
+        });
 }
 
 async function hostRemoteGame() {
-	const { openPromise, messagePromise } = openSocket('/ws/host/');
+	const { openPromise, messagePromise } = openSocket();
 	await openPromise;
     console.log('MY RESPONSE');
     const message = await messagePromise;
