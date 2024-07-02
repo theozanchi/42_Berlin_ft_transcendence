@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Sum, Window, F
 from django.db.models.functions import DenseRank
@@ -21,7 +21,7 @@ class UserManager(models.Manager):
         pprint.pprint(rankings)
         for i, user in enumerate(rankings):
             if user[0] == user_id:
-                return (i+1, user[1])
+                return (i+1, user[0])
         return None
 
     def get_by_natural_key(self, username):

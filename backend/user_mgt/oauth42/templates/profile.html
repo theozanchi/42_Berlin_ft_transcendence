@@ -4,11 +4,13 @@
 <p>Wins: {{ player_data.total_wins }}</p>
 <p>Losses: {{ player_data.total_lost }}</p>
 <p>Total score: {{ player_data.total_score }}</p>
+<p>Rank: {{ player_data.rank.0 }} / {{ player_data.total_users }}</p>
 <hr>
 
 <p>Nickname: {{ player_data.nickname}}</p>
 <p>Full name: {{ player_data.full_name }}</p>
 <p>joined: {{ player_data.joined }}</p>
+<p>last seen: {{ player_data.last_login}}</p>
 <hr>
 
 <h2>Last Tournaments ({{player_data.tournaments }})</h2>

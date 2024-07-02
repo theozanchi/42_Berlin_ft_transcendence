@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 import requests
 from django.utils.crypto import get_random_string
-from .models import UserProfile
+from .models import UserProfile, UserManager
 from django.http import HttpResponseForbidden
 from .forms import RegistrationForm
 from django.core.files.base import ContentFile
@@ -125,6 +125,9 @@ def register(request):
         form = RegistrationForm()
     return render(request, "register.html", {"form": form})
 
+def ranking(request):
+        rankings = User.rankings.get_user_rankings()
+        return render(request, "ranking.html", {"rankings": rankings})
 
 def profile(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -165,6 +168,7 @@ def profile(request, user_id):
         player_data['games'] = games
         player_data['last_login'] = user.last_login
         player_data['rank'] = User.rankings.get_user_ranking(user.id)
+        player_data['total_users'] = User.objects.count()
 
     pprint.pprint(player_data)
     return render(request, 'profile.html', {'player_data': player_data})
