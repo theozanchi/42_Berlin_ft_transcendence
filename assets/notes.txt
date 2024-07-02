@@ -1,11 +1,29 @@
+BACK
 
-curl -k -b cookies.txt -d 
-'{"host": "test"}' -H 
-"Content-Type: application/json" -H 
-"X-CSRFToken: $csrf_token" https://localhost:8443/api/create_lobby/
+FRONT
+receives
+    type: player-joined
+        updates player_count
+        if game-can-start = true
+            make START button clickable for host
+    type: game-update
+            gameStarted = true #begins the game script
 
-14/06 issues:
-	Successful communication flow from client -> nginx -> api -> micro service <---|
+BACK:
+receives
+    type: start-game
+    if player_count >= 2
+        sends start game to API
+
+sends
+    type: player-joined
+        player: self.alias
+        if player_count >= 2
+            game-can-start = true
+        else 
+            game-can-start = false
+
+
 
 MICROSERVICE ARCHITECTURE
 
@@ -14,8 +32,6 @@ MICROSERVICE ARCHITECTURE
         Handles authentication, routing, and load balancing.
         Directs incoming requests to the appropriate services.        
         Manages real-time communication between clients and the game server.
-        Handles WebSocket connections for real-time updates.
-        Broadcasts game events and updates to connected clients.
   
     Game Management Service:
         Handles the creation of new games and generation of game IDs.
@@ -26,12 +42,13 @@ MICROSERVICE ARCHITECTURE
     Game Logic Service:
         Implements the game mechanics and logic.
         Updates the game state based on player actions.
+        Broadcasts game events and updates to connected clients.
         Determines game outcomes and scores.
         
-    Player/User Service:
+    User Management Service:
         Manages guest and user players.
         Handles authentication and authorization.
-        Stores player data such as guest_namees, avatars.
+        Stores user data such as usernames, avatars...
 
 
 Here's how the flow might look for a remote game setup:

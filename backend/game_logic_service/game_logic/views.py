@@ -9,13 +9,13 @@ from django.views.decorators.csrf import csrf_exempt
 from channels.layers import get_channel_layer
 from django.core.cache import cache
 from asgiref.sync import async_to_sync
+
 import json
 import time
 import math
 import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
 
 @csrf_exempt
 @async_to_sync
