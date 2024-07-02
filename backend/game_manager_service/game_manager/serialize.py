@@ -12,6 +12,7 @@ class RoundSerializer(serializers.ModelSerializer):
 
 class GameSerializer(serializers.ModelSerializer):
     rounds = RoundSerializer(many=True, read_only=True)
+    players = serializers.SlugRelatedField(slug_field='alias', many=True, queryset=Player.objects.all())
 
     class Meta:
         model = Game
