@@ -66,6 +66,7 @@ let currentPlayer;
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 10;
 let resetBall_ = false;
+let lastGameState = null;
 
 
             //////////////--------WEBSOCKET---------///////////////
@@ -89,10 +90,10 @@ export function initializeWebSocket(url){
                 if (data.type === 'player_identity') {
                     let playerId = data.player_id;
                     currentPlayer = (playerId === 'player1') ? player : player2;
-                } else if (data.type === 'game-update') {
+                } else if (data.type === 'update') {
                     updateGameState(data);
                 }
-                console.log(data);
+                //console.log(data);
             };    
     
             socket.onclose = function(event) {
@@ -132,7 +133,6 @@ export function initializeWebSocket(url){
 
 
         export function updateGameState(data) {
-            if (data.type === 'update') {
                 // Update player positions
                 //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
                 if (data.player1) {
@@ -161,7 +161,7 @@ export function initializeWebSocket(url){
 
 
                 updateScore();
-            }    
+             
         }    
 
         // Ensure WebSocket is open before sending data
@@ -178,8 +178,32 @@ export function initializeWebSocket(url){
                     aiming_angle: aimingAngle,
                     reset_ball: resetBall_
                 };
-        
-                if (currentPlayer === player) {
+                if (remote){
+                    if (currentPlayer === player) {
+                        newGameState.player1 = {
+                            x: player.position.x,
+                            y: player.position.y,
+                            z: player.position.z,
+                            rotation: {
+                                x: player.rotation.x,
+                                y: player.rotation.y,
+                                z: player.rotation.z
+                            }
+                        };
+                    } else {
+                        newGameState.player2 = {
+                            x: player2.position.x,
+                            y: player2.position.y,
+                            z: player2.position.z,
+                            rotation: {
+                                x: player2.rotation.x,
+                                y: player2.rotation.y,
+                                z: player2.rotation.z
+                            }
+                        };
+                    }
+                }
+                else {
                     newGameState.player1 = {
                         x: player.position.x,
                         y: player.position.y,
@@ -190,7 +214,6 @@ export function initializeWebSocket(url){
                             z: player.rotation.z
                         }
                     };
-                } else {
                     newGameState.player2 = {
                         x: player2.position.x,
                         y: player2.position.y,
@@ -202,7 +225,12 @@ export function initializeWebSocket(url){
                         }
                     };
                 }
-        
+
+                if (newGameState == lastGameState)
+                    return;
+                else
+                    lastGameState = newGameState;
+
                 socket.send(JSON.stringify(newGameState));
 
             } else {
@@ -682,7 +710,7 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     });
 
     currentFace = newCurrentFace;
-    sendGameState();
+
 }
 
 

@@ -25,8 +25,8 @@ def game_update(request):
     try:
         channel_layer = get_channel_layer()
 
-        data = json.loads(request.body)
-        game_id = data.get('game_id')
+        new_game_state = json.loads(request.body)
+        game_id = new_game_state.get('game_id')
 
         if game_id is None:
             return JsonResponse("Missing game-ID", status=400)
@@ -38,9 +38,9 @@ def game_update(request):
         else:
             game_state = create_new_game_state(game_id)
         
-        new_game_state = data.get('game_state')
+        #print("New data: ", new_game_state)
         
-        if new_game_state is not None:
+        if new_game_state:
             game_state.update(new_game_state)
 
         # process data with logic here
@@ -49,13 +49,14 @@ def game_update(request):
         cache.set(game_id, game_state, timeout=None)
         game_state['type'] = 'update'
 
+        #print("updated Game state: ", game_state)
         async_to_sync(channel_layer.group_send)(game_id, game_state)
 
         return JsonResponse("Updated game state", safe=False, status=200)
     
     except Exception as e:
         logging.error(f'Error updating game state: {str(e)}')
-        return JsonResponse("Error updating game state", status=500)
+        return JsonResponse("Error updating game state", status=500, safe=False)
     
 
 def create_new_game_state(game_id):
@@ -158,8 +159,8 @@ def calculate_direction(player_turn, current_face, current_face2, aiming_angle):
 def vector_length(vector):
         return (vector['x']**2 + vector['y']**2 + vector['z']**2) ** 0.5
 
-def set_vector_length(self, vector, length):
-    current_length = self.vector_length(vector)
+def set_vector_length(vector, length):
+    current_length = vector_length(vector)
     for axis in ['x', 'y', 'z']:
         vector[axis] = vector[axis] / current_length * length
         
@@ -181,7 +182,7 @@ def update_ball(game_state):
     }
 
     # Check for collisions with players
-    if check_collision():
+    if check_collision(game_state):
         pass
     else:
         game_state['ball'] = next_position  # Update ball position normally
@@ -212,12 +213,12 @@ def update_ball(game_state):
         game_state['wall_hits'] = 0
         game_state['playerTurn'] = not game_state['playerTurn']
         game_state['ballIsHeld'] = True
-        update_score()
-        update_ball()
-        reset_ball()
+        update_score(game_state)
+        update_ball(game_state)
+        reset_ball(game_state)
 
     # Update the collision marker position
-    update_collision_marker()
+    update_collision_marker(game_state)
 
 def check_collision(game_state):
     if game_state['ballIsHeld']:
@@ -236,10 +237,10 @@ def check_collision(game_state):
     }
 
     # Create a bounding box that encompasses the ball's start and end points
-    ball_box = create_bounding_box(ball_position, next_position)
+    ball_box = create_bounding_box(game_state, ball_position, next_position)
 
-    player_box = create_bounding_box(game_state['player1'], game_state['player1'])
-    ai_player_box = create_bounding_box(game_state['player2'], game_state['player2'])
+    player_box = create_bounding_box(game_state, game_state['player1'], game_state['player1'])
+    ai_player_box = create_bounding_box(game_state, game_state['player2'], game_state['player2'])
 
     # Check if the ball is colliding with the player or AI player
     if ((game_state['playerTurn'] and intersects_box(ball_box, player_box)) or
@@ -299,7 +300,7 @@ def check_collision(game_state):
 
     return False
 
-def create_bounding_box(self, start, end):
+def create_bounding_box(game_state, start, end):
 
     margin = 0.009
 
@@ -309,9 +310,9 @@ def create_bounding_box(self, start, end):
         'z': (start['z'] + end['z']) / 2
     }
     size = {
-        'x': abs(end['x'] - start['x']) + self.ball_radius * 2 + margin * 2,
-        'y': abs(end['y'] - start['y']) + self.ball_radius * 2 + margin * 2,
-        'z': abs(end['z'] - start['z']) + self.ball_radius * 2 + margin * 2
+        'x': abs(end['x'] - start['x']) + game_state['ball_radius'] * 2 + margin * 2,
+        'y': abs(end['y'] - start['y']) + game_state['ball_radius'] * 2 + margin * 2,
+        'z': abs(end['z'] - start['z']) + game_state['ball_radius'] * 2 + margin * 2
     }
     return (center, size)
 

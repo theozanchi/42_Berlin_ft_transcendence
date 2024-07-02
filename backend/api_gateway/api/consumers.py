@@ -123,6 +123,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
         #    return({'error': 'Not your turn'})
         try:
+            print('sending game state: ' + str(content))
             content['game_id'] = self.game_id
             response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
             response.raise_for_status()
