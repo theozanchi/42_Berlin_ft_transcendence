@@ -1,7 +1,7 @@
 # oauth42/views.py
 
 from .models import UserProfile, Round, Tournament, Participation
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
@@ -14,6 +14,7 @@ from .forms import RegistrationForm
 from django.core.files.base import ContentFile
 import pprint
 from django.db.models import Sum
+from django.views.generic.edit import CreateView
 
 CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8'
 CLIENT_SECRET = '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'
@@ -122,12 +123,12 @@ def register(request):
             return redirect("login")
     else:
         form = RegistrationForm()
-    return render(request, "register.html", {"form"})
+    return render(request, "register.html", {"form": form})
 
 
 def profile(request, user_id):
-    user = User.objects.get(id = user_id)
-    user_profile = UserProfile.objects.get(user=user)
+    user = get_object_or_404(User, id=user_id)
+    user_profile = get_object_or_404(UserProfile, user=user)
     participations = Participation.objects.filter(user=user)
 
     total_wins = Tournament.objects.filter(winner=user).count()
@@ -174,3 +175,10 @@ from django.contrib.auth.views import LoginView
 class CustomLoginView(LoginView):
     def get_success_url(self):
         return '/api/user_mgt'
+
+
+class RegisterView(CreateView):
+    model = User
+    form_class = RegistrationForm
+    template_name = 'register.html'
+    success_url = 'login'

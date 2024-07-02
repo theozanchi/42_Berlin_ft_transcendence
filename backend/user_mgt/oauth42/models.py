@@ -4,13 +4,18 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Sum, Window, F
 from django.db.models.functions import DenseRank
 import pprint
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+
 
 class UserManager(models.Manager):
+
     def get_user_rankings(self):
         return self.annotate(
             total_score=Sum('participation__score'),
             rank=Window(expression=DenseRank(), order_by=F('total_score').desc())
         ).order_by('-total_score').values_list('id','rank')
+
     def get_user_ranking(self, user_id):
         rankings = list(self.get_user_rankings())
         pprint.pprint(rankings)
@@ -19,7 +24,24 @@ class UserManager(models.Manager):
                 return (i+1, user[1])
         return None
 
+    def get_by_natural_key(self, username):
+            return self.get(username=username)
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    UserProfile.objects.get_or_create(user=instance)
+    instance.userprofile.save()
+
+
+
 class UserProfile(models.Model):
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     nickname = models.CharField(max_length=50, null=True, blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
@@ -30,7 +52,9 @@ class UserProfile(models.Model):
 
 User.add_to_class('rankings', UserManager())
 
+
 class Tournament(models.Model):
+
     # This could be the ID for the tournament provided
     game_id = models.AutoField(primary_key=True)
     # If this is created at the beginning, the start_date is now
@@ -43,7 +67,9 @@ class Tournament(models.Model):
     # Only one winner
     winner = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='winner')
 
+
 class Participation(models.Model): # Binds User and Tournament classes
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     score = models.IntegerField()
@@ -51,6 +77,7 @@ class Participation(models.Model): # Binds User and Tournament classes
 
 
 class Round(models.Model):
+
     game = models.ForeignKey(Tournament, related_name='rounds', on_delete=models.CASCADE)
     round_number = models.PositiveIntegerField(null=True)
     player1 = models.ForeignKey(User, related_name='player1_rounds', on_delete=models.CASCADE)
@@ -58,19 +85,3 @@ class Round(models.Model):
     winner = models.ForeignKey(User, related_name='won_rounds', null=True, on_delete=models.CASCADE)
     player1_score = models.PositiveIntegerField(default = 0, validators=[MinValueValidator(0), MaxValueValidator(10)])
     player2_score = models.PositiveIntegerField(default = 0, validators=[MinValueValidator(0), MaxValueValidator(10)])
-
-
-"""
-def get_user_participations(user):
-    participations = Participation.objects.filter(user=user)
-    return participations
-
-def get_user_tournaments(user):
-    participations = get_user_participations(user)
-    tournaments = [participation.tournament for participation in participations]
-    return tournaments
-
-def get_user_total_score(user):
-    participations = get_user_participations(user)
-    total_score = sum(participation.score for participation in participations)
-    return total_score """
