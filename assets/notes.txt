@@ -16,10 +16,6 @@ MICROSERVICE ARCHITECTURE
         Manages real-time communication between clients and the game server.
         Handles WebSocket connections for real-time updates.
         Broadcasts game events and updates to connected clients.
-
-    Game Lobby Service:
-        Responsible for managing game lobbies and sessions.
-        Keeps track of players in each game lobby and their statuses.
   
     Game Management Service:
         Handles the creation of new games and generation of game IDs.
@@ -46,13 +42,13 @@ Here's how the flow might look for a remote game setup:
     
     3. Other players join the game lobby using the provided game ID.
     
-    4. The Game Configuration Service coordinates with the Communication Service to establish connections between players.
+	4. Via WebSocket connections, the clients are notified when a new player joins.
     
     5. Once all players are connected, the host initiates the game.
     
-    6. The Game Configuration Service signals the Game Logic Service to start the game.
+    6. The Game Manager Service signals the Game Logic Service to start the game.
     
-    7. The Game Logic Service updates the game state and communicates with the Communication Service to send real-time updates to connected clients.
+    7. The Game Logic Service updates the game state and communicates with the API Service to send real-time updates to connected clients.
     
     8. Players interact with the game using their devices, and the Game Logic Service handles their inputs and updates the game accordingly.
 
