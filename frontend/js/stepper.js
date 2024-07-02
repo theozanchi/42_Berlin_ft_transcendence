@@ -40,7 +40,7 @@ function openSocket() {
 			console.log('WebSocket error: ' + error.message);
 		};
     }
-	return (openPromise, messagePromise);
+	return (openPromise);
 }
 
 async function sendJson(json) {
@@ -57,8 +57,9 @@ function generateLocalGame() {
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 
-	// Create data object with action key
-	let data = {action: 'create-game'}
+	// Create data object with type key
+	let data = {type: 'create-game'}
+	data['game-mode'] = 'local';
 
 	// Add players to JSON
 	data.players = playerNames;
@@ -93,6 +94,8 @@ function loadLocalGame() {
 
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
+	const playerAlias = 'NewPlayer';
+	let data = {type: 'join-game', 'game-id': gameId, 'game-mode': 'remote', players: [playerAlias]};
 
     openSocket()
         .then(() => {

@@ -6,13 +6,17 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from game_manager.models import Game, Player, Round
 from .serialize import GameSerializer
-from django.core.exceptions import ValidationError
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_game(request):
     try:
         game = Game.objects.create(mode=request.data.get('game-mode'))
+        game.add_players_to_game(request.data)
         game.save()
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
@@ -22,6 +26,22 @@ def create_game(request):
     
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def join_game(request):
+    try:
+        game = Game.objects.get(pk=request.data.get('game-id'))
+        game.add_players_to_game(request.data)
+        game.save()
+        serializer = GameSerializer(game)
+        return Response(serializer.data, status=200)
+    
+    except Game.DoesNotExist:
+        return Response({'error': 'Game not found.'}, status=404)
+    
+    except KeyError as e:
+        return Response({'error': e}, status=400)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
