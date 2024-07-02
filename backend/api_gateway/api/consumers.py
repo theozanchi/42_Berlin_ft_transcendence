@@ -50,7 +50,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await method(content)
         else:
             print("received invalid type: ", content.get('type'))
-            await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
+            await self.send_json({'error': 'Invalid type or missing type in json'})
 
     def get_headers(self):
         return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}

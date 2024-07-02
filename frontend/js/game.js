@@ -48,7 +48,7 @@ let keyMoveSpeed = 0.05;
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 const cubeSize = 2; // Size of the cube
-let playerTurn = false; // Player starts
+let playerTurn = true; // Player starts
 let playerScore = 0;
 let aiScore = 0;
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
@@ -89,10 +89,10 @@ export function initializeWebSocket(url){
                 if (data.type === 'player_identity') {
                     let playerId = data.player_id;
                     currentPlayer = (playerId === 'player1') ? player : player2;
-                } else if (data.type === 'game_state') {
+                } else if (data.type === 'game-update') {
                     updateGameState(data);
-                    console.log(data);
                 }
+                console.log(data);
             };    
     
             socket.onclose = function(event) {
@@ -132,7 +132,7 @@ export function initializeWebSocket(url){
 
 
         export function updateGameState(data) {
-            if (data.type === 'game_update') {
+            if (data.type === 'game-update') {
                 // Update player positions
                 //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
                 if (data.player1) {
@@ -168,7 +168,7 @@ export function initializeWebSocket(url){
         export function sendGameState() {
             if (socket.readyState === WebSocket.OPEN) {
                 const newGameState = {
-                    type: 'game_state',
+                    type: 'game-state',
                     playerTurn: playerTurn,
                     playerScore: playerScore,
                     aiScore: aiScore,

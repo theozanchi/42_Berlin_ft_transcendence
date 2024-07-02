@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from channels.layers import get_channel_layer
 from django.core.cache import cache
 from asgiref.sync import async_to_sync
+from django.views import View
 
 import json
 import time
@@ -18,23 +19,23 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 @csrf_exempt
-@async_to_sync
-async def game_update(request):
-    if request.method == 'POST':
+@api_view(['POST'])
+async def game_update(self, request):
+    try:
         channel_layer = get_channel_layer()
 
         data = json.loads(request.body)
         game_id = data.get('game_id')
 
         if game_id is None:
-            return JsonResponse("Missing game-ID", status=400, )
+            return JsonResponse("Missing game-ID", status=400)
 
         cached_game_state = cache.get(game_id)
 
         if cached_game_state is not None:
             game_state = cached_game_state
         else:
-            game_state = create_new_game_state(game_id) if new_game_state is None else new_game_state
+            game_state = create_new_game_state(game_id)
         
         new_game_state = data.get('game_state')
         
@@ -45,13 +46,15 @@ async def game_update(request):
         update_game_state(game_state)
 
         cache.set(game_id, game_state, timeout=None)
-        game_state['type'] = 'game_update'
+        game_state['type'] = 'game-update'
 
         await channel_layer.group_send(game_id, game_state)
 
         return JsonResponse("Updated game state", safe=False, status=200)
-    else:
-        return JsonResponse("Invalid request", safe=False, status=400)
+    except Exception as e:
+        logging.error(f'Error updating game state: {str(e)}')
+        return JsonResponse("Error updating game state", status=500)
+    
 
 def create_new_game_state(game_id):
     return {

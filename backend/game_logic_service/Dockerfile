@@ -13,8 +13,7 @@ WORKDIR /code
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* && \
-    redis-tools
+    rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY requirements.txt /code/
@@ -23,11 +22,9 @@ RUN pip install -r requirements.txt
 # Copy Django project files
 COPY . /code/
 
-ENV DJANGO_SECRET_KEY python -c 'import secrets; print(secrets.token_urlsafe(50))'
+# Copy the entrypoint script
+COPY entrypoint.sh /code/entrypoint.sh
+RUN chmod +x /code/entrypoint.sh
 
-# Collect static files, makemigration migrate data model and run daphne
-CMD	python manage.py collectstatic --noinput && \
-	python manage.py makemigrations game_logic && \
-	python manage.py migrate game_logic && \
-	gunicorn -b 0.0.0.0 game_logic_service.wsgi:application && \
-    #daphne -b 0.0.0.0 -p 8001 game_logic_service.asgi:application
+# Use the entrypoint script to start the application
+CMD ["/code/entrypoint.sh"]
