@@ -31,11 +31,12 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     
     async def get_type(self, type):
         return {
+            'broadcast': self.broadcast,
             'create-game': self.create_game,
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
             'start-game': self.start_game,
-            'game-status': self.game_status, # Client sends an update
+            'game-state': self.game_state, # Client sends an update
             'update-game': self.update_game, # Client receives an update
             'set-alias': self.set_alias,
             'create-game': self.create_game,
@@ -56,6 +57,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
        
         else:
             await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
+
+    async def broadcast(self, content):
+        await self.send_json(content)
 
     async def create_game(self, content, headers):
         try:
@@ -79,13 +83,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         except requests.RequestException as e:
             return({'error': str(e)})
 
-    async def game_status(self, content, headers):
+    async def game_state(self, content):
+        #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
+        #    return({'error': 'Not your turn'})
         try:
-            response = requests.get(GAME_MANAGER_REST_URL + '/game-status/', json=content, headers=headers)
+            content['game_id'] = self.game_id
+            response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
             response.raise_for_status()
-            self.channel_layer.group_send(self.game_id, response.json())
         except Exception as e:
-            return({'error': str(e)})
+            print({'error': str(e)})
         
     async def update_game(self, content):
         await self.send_json(content)
@@ -111,8 +117,16 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 raise ValueError(f'{self.game_id} not found.')
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
+
             await self.channel_layer.group_add(self.game_id, self.channel_name)
-            await self.game_status(content, headers)
+            await self.channel_layer.group_send(
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content': response.json()
+                }
+            )
+
             return response.json()
         
         except requests.RequestException as e:
