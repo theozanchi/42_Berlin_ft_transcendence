@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 def create_game(request):
     try:
         game = Game.objects.create(mode=request.data.get('game-mode'))
+        game.add_players_to_game(request.data)
         game.save()
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)

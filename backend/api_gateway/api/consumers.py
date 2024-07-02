@@ -35,7 +35,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
             'start-game': self.start_game,
-            'game-state': self.game_state, # Client sends an update
+            'game-status': self.game_status, # Client sends an update
             'update-game': self.update_game, # Client receives an update
             'set-alias': self.set_alias,
             'create-game': self.create_game,
@@ -79,14 +79,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         except requests.RequestException as e:
             return({'error': str(e)})
 
-    async def game_state(self, content, headers):
+    async def game_status(self, content, headers):
         try:
-            response = requests.post(GAME_LOGIC_REST_URL + '/game-state/', json=content, headers=headers)
+            response = requests.get(GAME_MANAGER_REST_URL + '/game-status/', json=content, headers=headers)
             response.raise_for_status()
-            game_state = response.json()
-            self.channel_layer.group_send(self.game_id, game_state)
-            await self.update_game(game_state)
-            return ({'Status': 'Game state sent successfully'})
+            self.channel_layer.group_send(self.game_id, response.json())
         except Exception as e:
             return({'error': str(e)})
         
@@ -113,9 +110,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 self.game_id = content.get('game-id')
                 raise ValueError(f'{self.game_id} not found.')
             response.raise_for_status()
-            if response.json().get('game-id'):
-                self.game_id = response.json().get('game-id')
-                await self.channel_layer.group_add(self.game_id, self.channel_name)
+            self.game_id = response.json().get('game-id')
+            await self.channel_layer.group_add(self.game_id, self.channel_name)
+            await self.game_status(content, headers)
             return response.json()
         
         except requests.RequestException as e:

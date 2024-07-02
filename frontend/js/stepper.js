@@ -94,7 +94,8 @@ function loadLocalGame() {
 
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
-	let data = {type: 'join-game', 'game-id': gameId, 'game-mode': 'remote'};
+	const playerAlias = 'NewPlayer';
+	let data = {type: 'join-game', 'game-id': gameId, 'game-mode': 'remote', players: [playerAlias]};
 
 	openSocket('/ws/')
 	.then(() => {
@@ -115,8 +116,7 @@ async function hostRemoteGame() {
     // console.log('MY RESPONSE', message);
 	
 	// Create data object with type key
-	let data = {type: 'create-game'}
-	data['game-mode'] = 'remote';
+	let data = {type: 'create-game', 'game-mode': 'remote', 'players': ['Player1']};
 
 	openSocket('/ws/')
     .then(() => {
