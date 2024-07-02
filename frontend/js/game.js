@@ -62,12 +62,14 @@ let aimingAngle = 0;
 let remote = false; // Set to false for two-player game
 const initialReconnectInterval = 1000; // Initial reconnect interval in ms
 let reconnectInterval = initialReconnectInterval;
-let currentPlayer;
+let currentPlayer = null;
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 10;
 let resetBall_ = false;
 let lastGameState = null;
 
+let playerId;
+let gameCanStart = false;
 
             //////////////--------WEBSOCKET---------///////////////
 
@@ -88,12 +90,22 @@ export function initializeWebSocket(url){
                 let data = JSON.parse(event.data);
                 // Handle game state updates
                 if (data.type === 'player_identity') {
-                    let playerId = data.player_id;
-                    currentPlayer = (playerId === 'player1') ? player : player2;
+                    if (playerId == null) {
+                        currentPlayer = player;
+                        playerId = 1;
+                        console.log("current player is 1");
+                    } else {
+                        currentPlayer = player2;
+                        playerId = 2;
+                        console.log("current player is 2");
+                    }
+                    //let playerId = data.player_id;
+                    //currentPlayer = (currentPlayer === playerId) ? player : player2;
+                    // for test
                 } else if (data.type === 'update') {
                     updateGameState(data);
                 }
-                //console.log(data);
+                // --------------------
             };    
     
             socket.onclose = function(event) {
@@ -262,6 +274,37 @@ async function init() {
             }, 1000);
         }
     });
+
+    //TEST
+    // Create a countdown element
+    let countdownElement = document.createElement('div');
+    countdownElement.id = 'countdown';
+    countdownElement.style.position = 'absolute';
+    countdownElement.style.top = '50%';
+    countdownElement.style.left = '50%';
+    countdownElement.style.transform = 'translate(-50%, -50%)';
+    countdownElement.style.fontSize = '3em';
+    document.body.appendChild(countdownElement);
+
+    // Start the countdown
+    let countdownValue = 10;
+    countdownElement.innerText = countdownValue;
+    let countdownInterval = setInterval(() => {
+        countdownValue--;
+        countdownElement.innerText = countdownValue;
+        if (countdownValue <= 0) {
+            clearInterval(countdownInterval);
+            countdownElement.remove();  // Remove the countdown element when done
+        }
+    }, 1000);
+
+    // Wait for 10 seconds
+    await new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, 10000);
+    });
+
 
     // Create the scene
     scene = new THREE.Scene();
