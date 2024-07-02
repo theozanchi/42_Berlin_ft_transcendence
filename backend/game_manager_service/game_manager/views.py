@@ -6,6 +6,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from game_manager.models import Game, Player, Round
 from .serialize import GameSerializer
+from django.core.exceptions import ValidationError
 import logging
 
 logging.basicConfig(level=logging.DEBUG)

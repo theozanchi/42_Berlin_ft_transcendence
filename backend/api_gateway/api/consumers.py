@@ -153,7 +153,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
     async def join_game(self, content, headers):
         try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=headers)
+            response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
             if response.status_code == 404:
                 self.game_id = content.get('game-id')
                 raise ValueError(f'{self.game_id} not found.')
