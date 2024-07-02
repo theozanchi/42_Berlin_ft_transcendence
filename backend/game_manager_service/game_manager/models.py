@@ -18,6 +18,7 @@ class Game(models.Model):
     game_id = models.CharField(primary_key=True, default=generate_game_id, editable=False, unique=True, max_length=8)   
     mode = models.CharField(max_length=6, choices=[('local', 'local'), ('remote', 'Remote')], blank=False, null=False)
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
+    host = models.CharField(max_length=255, null=True, blank=True)
 
     def clean(self):
         if not self.mode:
@@ -31,7 +32,7 @@ class Game(models.Model):
         player_names = data.get("players", [])
 
         for name in player_names:
-            player = Player.objects.create(game=self, alias=name)
+            player = Player.objects.create(game=self, alias=name, channel_name=data.get('channel_name'))
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -90,6 +91,7 @@ class Player(models.Model):
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, null=True, blank=True)
+    channel_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.alias

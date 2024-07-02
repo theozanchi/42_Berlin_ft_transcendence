@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 @permission_classes([AllowAny])
 def create_game(request):
     try:
-        game = Game.objects.create(mode=request.data.get('game-mode'))
+        game = Game.objects.create(mode=request.data.get('game-mode'), host=request.data.get('channel_name'))
         game.add_players_to_game(request.data)
         game.save()
         serializer = GameSerializer(game)

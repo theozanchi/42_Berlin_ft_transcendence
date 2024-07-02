@@ -31,17 +31,14 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     
     async def get_type(self, type):
         return {
-            'broadcast': self.broadcast,
-            'create-game': self.create_game,
+            'broadcast': self.broadcast, # Broadcast a JSON message to all clients in the same group
+            'create-game': self.create_game, # Create a new game tournament
             'pause-game': self.pause_game,
             'resume-game': self.resume_game,
-            'start-game': self.start_game,
+            'start-game': self.start_game, # Starts a game tournament
             'game-state': self.game_state, # Client sends an update
             'update-game': self.update_game, # Client receives an update
             'set-alias': self.set_alias,
-            'create-game': self.create_game,
-            'start-game': self.start_game,
-            'update-game': self.update_game,
             'join-game': self.join_game,
         }.get(type)
 
@@ -63,6 +60,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
     async def create_game(self, content, headers):
         try:
+            content['channel_name'] = self.channel_name
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
