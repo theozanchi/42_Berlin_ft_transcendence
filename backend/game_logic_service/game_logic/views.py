@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from channels.layers import get_channel_layer
 from django.core.cache import cache
 from asgiref.sync import async_to_sync
+from asgiref.sync import sync_to_async
 from django.views import View
 
 import json
@@ -19,7 +20,8 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 @csrf_exempt
-async def game_update(request):
+@api_view(['POST'])
+def game_update(request):
     try:
         channel_layer = get_channel_layer()
 
@@ -42,20 +44,21 @@ async def game_update(request):
             game_state.update(new_game_state)
 
         # process data with logic here
-        await update_game_state(game_state)
+        update_game_state(game_state)
 
         cache.set(game_id, game_state, timeout=None)
-        game_state['type'] = 'game-update'
+        game_state['type'] = 'update'
 
-        await channel_layer.group_send(game_id, game_state)
+        async_to_sync(channel_layer.group_send)(game_id, game_state)
 
         return JsonResponse("Updated game state", safe=False, status=200)
+    
     except Exception as e:
         logging.error(f'Error updating game state: {str(e)}')
         return JsonResponse("Error updating game state", status=500)
     
 
-async def create_new_game_state(game_id):
+def create_new_game_state(game_id):
     return {
         'game-id': game_id,
 
@@ -83,8 +86,7 @@ async def create_new_game_state(game_id):
         'aiming_angle' : 0,
         'reset_ball': False
     }
-
-async def update_game_state(game_state):
+def update_game_state(game_state):
     current_time = time.time()
         # Handle ball movement and collision detection server-side
     #game_update(data)

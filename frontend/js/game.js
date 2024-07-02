@@ -132,7 +132,7 @@ export function initializeWebSocket(url){
 
 
         export function updateGameState(data) {
-            if (data.type === 'game-update') {
+            if (data.type === 'update') {
                 // Update player positions
                 //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
                 if (data.player1) {

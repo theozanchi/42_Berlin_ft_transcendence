@@ -129,7 +129,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         except Exception as e:
             print({'error': str(e)})
         
-    async def game_update(self, content):
+    async def update(self, content):
         await self.send_json(content)
         
     async def pause_game(self, content):
