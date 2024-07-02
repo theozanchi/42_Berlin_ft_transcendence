@@ -19,8 +19,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 @csrf_exempt
-@api_view(['POST'])
-async def game_update(self, request):
+async def game_update(request):
     try:
         channel_layer = get_channel_layer()
 
@@ -43,7 +42,7 @@ async def game_update(self, request):
             game_state.update(new_game_state)
 
         # process data with logic here
-        update_game_state(game_state)
+        await update_game_state(game_state)
 
         cache.set(game_id, game_state, timeout=None)
         game_state['type'] = 'game-update'
@@ -56,7 +55,7 @@ async def game_update(self, request):
         return JsonResponse("Error updating game state", status=500)
     
 
-def create_new_game_state(game_id):
+async def create_new_game_state(game_id):
     return {
         'game-id': game_id,
 
@@ -85,7 +84,7 @@ def create_new_game_state(game_id):
         'reset_ball': False
     }
 
-def update_game_state(game_state):
+async def update_game_state(game_state):
     current_time = time.time()
         # Handle ball movement and collision detection server-side
     #game_update(data)

@@ -14,4 +14,5 @@ python manage.py makemigrations game_logic
 python manage.py migrate game_logic
 
 # Start Daphne server
-daphne -b 0.0.0.0 -p 8001 game_logic_service.asgi:application
+#daphne -b 0.0.0.0 -p 8001 game_logic_service.asgi:application
+gunicorn --workers 3 --bind 0.0.0.0:8001 game_logic_service.wsgi:application
