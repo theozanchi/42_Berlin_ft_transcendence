@@ -91,6 +91,7 @@ export function initializeWebSocket(url){
                     currentPlayer = (playerId === 'player1') ? player : player2;
                 } else if (data.type === 'game_state') {
                     updateGameState(data);
+                    console.log(data);
                 }
             };    
     
@@ -131,7 +132,7 @@ export function initializeWebSocket(url){
 
 
         export function updateGameState(data) {
-            if (data.type === 'game_state') {
+            if (data.type === 'game_update') {
                 // Update player positions
                 //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
                 if (data.player1) {
