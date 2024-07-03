@@ -25,11 +25,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if self.game_id:
+            self.channel_layer.group_send(self.game_id, 
+                {'type': 'broadcast', 
+                'content': {'player': self.alias, 
+                'message': 'left the game'}})
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
-        self.channel_layer.group_send(self.game_id, 
-            {'type': 'broadcast', 
-            'content': {'player': self.alias, 
-            'message': 'left the game'}})
         await self.close(close_code)
     
     async def receive_json(self, content):
@@ -57,10 +57,10 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         logging.debug('broadcasting: ' + str(content))
         await self.send_json(content)
 
-    async def create_game(self, content, headers):
+    async def create_game(self, content):
         try:
             content['channel_name'] = self.channel_name
-            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
+            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
             self.host = True
@@ -73,9 +73,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     
     async def start_game(self, content):
         if self.host is not True:
-            return {'error': 'Only host can start game'}
+            self.send_json({'error': 'Only host can start game'})
         if self.player_count < 2:
-            return {'error': 'Not enough players to start game'}
+            self.send_json({'error': 'Not enough players to start game'})
         try:
             response = requests.get(GAME_MANAGER_REST_URL + '/round/${self.game_id}', headers=self.get_headers())
             response.raise_for_status()
@@ -112,9 +112,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             self.alias = content.get('alias')
             self.send_json({'alias': self.alias})
         else:
-            return {'error': 'No alias received'}
+            self.send_json({'error': 'No alias received'})
 
-    async def join_game(self, content, headers):
+    async def join_game(self, content):
         try:
             response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
             if response.status_code == 404:
@@ -132,7 +132,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 }
             )
 
-            return response.json()
+            self.send_json(response.json())
         
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
