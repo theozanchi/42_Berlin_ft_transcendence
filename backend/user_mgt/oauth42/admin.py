@@ -8,7 +8,7 @@ class UserProfileInline(admin.TabularInline):
     model = UserProfile
     can_delete = False
     verbose_name_plural = 'UserProfiles'
-    fields = ('picture_url', 'access_token',)
+    fields = ('picture_url', 'access_token')
     readonly_fields = ('access_token',)
 
 class ParticipationInline(admin.TabularInline):

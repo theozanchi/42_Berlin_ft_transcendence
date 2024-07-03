@@ -29,28 +29,6 @@ def update_game(self, request):
     response = requests.put(self.GAME_MANAGER_URL + '/update-game/', json=request.data)
     return Response(response.json(), status=response.status_code)
 
-import logging
-
-# @api_view(['GET'])
-def user_mgt_proxy(request, path):
-    headers = {'Host': 'user-mgt'}
-    try:
-        if request.method == 'GET':
-            response = requests.get(USER_MGT_URL + '/' + path, headers=headers)
-        elif request.method == 'POST':
-            response = requests.post(USER_MGT_URL + '/' + path, json=request.data)
-        elif request.method == 'PUT':
-            response = requests.put(USER_MGT_URL + '/' + path, json=request.data)
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error connecting to the user_mgt container: {e}")
-        return HttpResponse(status=500)
-
-    if response.status_code != 200:
-        logging.error(f"Received non-200 response from user_mgt container: {response.status_code}")
-
-    return HttpResponse(response.content, content_type=response.headers.get('Content-Type', 'application/json'))
-    # return Response(response.json(), status=response.status_code)
-
 #INITIATE REMOTE GAME
 # MUST PASS ON WEBSOCKET ID OF ALL PLAYERS TO THE GAME LOGIC
 # MUST DELETE LOBBY OBJECT FROM DATABASE SO ONLY ACTIVE LOBBIES ARE SAVED

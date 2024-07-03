@@ -1,0 +1,23 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+	<h2>Update credentials</h2>
+	<form method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+
+		<label for="username">Username:</label>
+		<input id="username" type="text" name="username" value="{{ user.username }}">
+
+		<label for="email">Email:</label>
+		<input id="email" type="email" name="email" value="{{ user.email }}">
+
+		<label for="first_name">First Name:</label>
+		<input id="first_name" type="text" name="first_name" value="{{ user.first_name }}">
+
+		<label for="avatar">Avatar:</label>
+		<input id="avatar" type="file" name="avatar">
+
+		<button type="submit">Register</button>
+	</form>
+	<a href="{% url 'home' %}">Home</a>
+{% endblock %}

@@ -13,7 +13,7 @@
     {% else %}
         <p>Image missing</p>
     {% endif %}
-        <p>You are logged in as '{{ user.username }}' with nickname '{{ user.nickname }}'.
+        <p>You are logged in as '{{ user.username }}'.
             {% if user.userprofile.access_token %}
             <br>
                 <br>Logged in via OAuth2 from 42.fr
@@ -26,6 +26,7 @@
 		</p>
 
         <a href="{% url 'profile' user.id %}">Go to profile</a>
+        <a href="{% url 'update' %}">Update credentials</a>
 
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
@@ -47,6 +48,6 @@
     {% endif %}
     <br>
     <a href="{% url 'admin:index' %}">Admin panel</a>
-    
+
 </body>
 </html>

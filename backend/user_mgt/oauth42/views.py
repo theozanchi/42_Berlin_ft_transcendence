@@ -20,6 +20,7 @@ CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa89668
 CLIENT_SECRET = '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'
 REDIRECT_URI = 'https://localhost:8443/api/user_mgt/oauth/callback/'
 
+    # return Response(response.json(), status=response.status_code)
 
 def save_avatar_from_url(user_profile, url):
     response = requests.get(url)
@@ -128,6 +129,31 @@ def register(request):
 def ranking(request):
         rankings = User.rankings.get_user_rankings()
         return render(request, "ranking.html", {"rankings": rankings})
+
+def update(request):
+    if request.method == "GET":
+        return render(request, "update.html", {"user": request.user})
+    elif request.method == "POST":
+        user = request.user
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        avatar = request.FILES.get('avatar')
+
+        if email:
+            user.email = email
+        if first_name:
+            user.first_name = first_name
+        if username:
+            user.username = username
+        if avatar:
+            Exception("avatar upload not implemented yet")
+
+        user.save()
+        return redirect('/api/user_mgt')
+
+
+
 
 def profile(request, user_id):
     user = get_object_or_404(User, id=user_id)
