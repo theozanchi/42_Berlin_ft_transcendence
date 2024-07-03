@@ -23,7 +23,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.alias = None
 
         await self.accept()
-        self.send_json({'message': 'Connected'})
 
     async def disconnect(self, close_code):
         if self.game_id:
@@ -64,40 +63,67 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             content['channel_name'] = self.channel_name
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
-            self.game_id = response.json().get('game-id')
+            self.game_id = response.json().get('game_id')
             self.host = True
             if self.game_id:
                 await self.channel_layer.group_add(self.game_id, self.channel_name)
-            self.send_json(response.json())
+            await self.send_json(response.json())
         
         except requests.RequestException as e:
-            self.send_json({'error': str(e)})
+            await self.send_json({'error': str(e)})
+
+    async def join_game(self, content):
+        try:
+            response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
+            if response.status_code == 404:
+                self.game_id = content.get('game_id')
+                raise ValueError(f'{self.game_id} not found.')
+            response.raise_for_status()
+            self.game_id = response.json().get('game_id')
+
+            await self.channel_layer.group_add(self.game_id, self.channel_name)
+            await self.channel_layer.group_send(
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content': response.json()
+                }
+            )
+
+            await self.send_json(response.json())
+        
+        except requests.RequestException as e:
+            await self.send_json({'error': str(e)})
+            await self.close()
+        except ValueError as e:
+            await self.send_json({'error': str(e)})
+            await self.close()
     
     async def start_game(self, content):
         if self.host is not True:
-            self.send_json({'error': 'Only host can start game'})
+            await self.send_json({'error': 'Only host can start game'})
         if self.player_count < 2:
-            self.send_json({'error': 'Not enough players to start game'})
+            await self.send_json({'error': 'Not enough players to start game'})
         try:
             response = requests.get(GAME_MANAGER_REST_URL + '/round/${self.game_id}', headers=self.get_headers())
             response.raise_for_status()
             await self.channel_layer.group_send(self.game_id, {'type': 'player_id', 'content': response.json()})
 
         except requests.RequestException as e:
-            self.send_json({'error': str(e)})
+            await self.send_json({'error': str(e)})
     
-    def player_id(self, content):
+    async def player_id(self, content):
         if content['player1'] == self.channel_name:
             self.player_id = 'player1'
         elif content['player2'] == self.channel_name:
             self.player_id = 'player2'
         else:
             self.player_id = 'spectator'
-        self.send_json({'type': 'start-game', 'player_id': self.player_id})
+        await self.send_json({'type': 'start-game', 'player_id': self.player_id})
 
     async def game_state(self, content):
         if self.player_id == 'spectator':
-            self.send_json({'error': 'Not your turn'})
+            await self.send_json({'error': 'Not your turn'})
         try:
             content['game_id'] = self.game_id
             response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
@@ -111,33 +137,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def set_alias(self, content):
         if content.get('alias'):
             self.alias = content.get('alias')
-            self.send_json({'alias': self.alias})
+            await self.send_json({'alias': self.alias})
         else:
-            self.send_json({'error': 'No alias received'})
-
-    async def join_game(self, content):
-        try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
-            if response.status_code == 404:
-                self.game_id = content.get('game-id')
-                raise ValueError(f'{self.game_id} not found.')
-            response.raise_for_status()
-            self.game_id = response.json().get('game-id')
-
-            await self.channel_layer.group_add(self.game_id, self.channel_name)
-            await self.channel_layer.group_send(
-                self.game_id,
-                {
-                    'type': 'broadcast',
-                    'content': response.json()
-                }
-            )
-
-            self.send_json(response.json())
-        
-        except requests.RequestException as e:
-            await self.send_json({'error': str(e)})
-            await self.close()
-        except ValueError as e:
-            await self.send_json({'error': str(e)})
-            await self.close()
+            await self.send_json({'error': 'No alias received'})

@@ -17,7 +17,3 @@ class GameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
         fields = ['game_id', 'mode', 'winner', 'rounds', 'players', 'host']
-    
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        return {key.replace('_', '-'): value for key, value in representation.items()}

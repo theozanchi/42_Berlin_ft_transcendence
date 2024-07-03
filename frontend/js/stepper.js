@@ -31,6 +31,17 @@ function openSocket(path) {
 
 		newsocket.onmessage = function(event) {
 			console.log('Received: ' + event.data);
+                let data = JSON.parse(event.data);
+               
+				// Handle game state updates
+                if (data.type === 'game_state') {
+                    updateGameState(data);
+                }
+                if (data.type === 'start-game') {
+                    playerId = data.player_id;
+                    gameStarted = true;
+                    console.log('Game started!');
+                }
 		};
 
 		newsocket.onclose = function(event) {
@@ -95,7 +106,7 @@ function loadLocalGame() {
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
 	const playerAlias = 'NewPlayer';
-	let data = {type: 'join-game', 'game-id': gameId, 'game-mode': 'remote', players: [playerAlias]};
+	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', players: [playerAlias]};
 
 	openSocket('/ws/')
 	.then(() => {

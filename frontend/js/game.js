@@ -39,7 +39,7 @@ let gameState;
 let oldGameState;
 let gameStarted = false;
 
-let socket;
+//let socket;
 let reconnectInterval;
 let maxReconnectInterval = 200;
 let reconnectAttempts;
@@ -164,8 +164,44 @@ export function initializeWebSocket(url){
 
 function init() {
 
-    const url = `ws://${window.location.host}/ws/socket-server/`;
-    initializeWebSocket(url);
+    //const url = `ws://${window.location.host}/ws/socket-server/`;
+    //initializeWebSocket(url);
+
+    ////////////////////////////////////////////////////////////////
+
+    // Get a reference to the button
+    const startGameButton = document.getElementById('start-game-button');
+
+    // Add a click event listener to the button
+    startGameButton.addEventListener('click', function() {
+        // Send a message through the WebSocket connection
+        socket.send(JSON.stringify({ type: 'start-game' }));
+    });
+
+    // Check if the game can start
+    if (gameCanStart) {
+        startGameButton.disabled = false;
+    } else {
+        startGameButton.disabled = true;
+    }
+
+        // Create a promise that resolves when gameStarted becomes true
+    let gameStartedPromise = new Promise((resolve) => {
+        let checkInterval = setInterval(() => {
+            if (gameStarted) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100); // Check every 100ms
+    });
+
+    // Use the promise
+    gameStartedPromise.then(() => {
+        console.log('Game has started!');
+    });
+
+    /////////////////////////////////////////////////////////////////
+
     // Create the scene
     scene = new THREE.Scene();
 
