@@ -6,37 +6,38 @@
 
 // import { generateLocalGame } from './api_calls.js';
 
-var socket;
+let newsocket;
 let openPromise;
 
-function openSocket() {
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-        console.log('Opening new WebSocket');
-		socket = new WebSocket(`wss://${window.location.host}/ws/`);
+function openSocket(path) {
+	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+		console.log('Opening new WebSocket');
+		const url = `wss://${window.location.host}${path}`;
+		newsocket = new WebSocket(url);
 
 		openPromise = new Promise((resolve) => {
-			socket.onopen = function(event) {
+			newsocket.onopen = function(event) {
 				console.log('Connected to WebSocket server.');
 				resolve();
 			};
 		});
 
         messagePromise = new Promise((resolve) => {
-            socket.onmessage = function(event) {
+            newsocket.onmessage = function(event) {
                 console.log('Received: ' + event.data);
                 resolve(event.data);
             };
         });
 
-		socket.onmessage = function(event) {
+		newsocket.onmessage = function(event) {
 			console.log('Received: ' + event.data);
 		};
 
-		socket.onclose = function(event) {
+		newsocket.onclose = function(event) {
 			console.log('Disconnected from WebSocket server.');
 		};
 
-		socket.onerror = function(error) {
+		newsocket.onerror = function(error) {
 			console.log('WebSocket error: ' + error.message);
 		};
     }
@@ -44,9 +45,8 @@ function openSocket() {
 }
 
 async function sendJson(json) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        console.log(`Sending json to server: ${json}`);
-        socket.send(json);
+    if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+        newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
     }
@@ -64,15 +64,15 @@ function generateLocalGame() {
 	// Add players to JSON
 	data.players = playerNames;
 
-	openSocket() 
-		.then(() => {
-			var json = JSON.stringify(data);
-			console.log('Sending JSON:', data);
-			sendJson(json);
-		})
-		.catch(error => {
-			console.error('Failed to open WebSocket connection:', error);
-		});
+	openSocket('/ws/')
+    .then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 function loadLocalGame() {
@@ -97,24 +97,36 @@ function joinRemoteGame() {
 	const playerAlias = 'NewPlayer';
 	let data = {type: 'join-game', 'game-id': gameId, 'game-mode': 'remote', players: [playerAlias]};
 
-    openSocket()
-        .then(() => {
-            const data = {action: 'join-game', game_id: gameId};
-            const json = JSON.stringify(data);
-            console.log('Sending JSON:', data);
-            sendJson(json);
-        })
-        .catch(error => {
-            console.error('Failed to open WebSocket connection:', error);
-        });
+	openSocket('/ws/')
+	.then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 async function hostRemoteGame() {
-	const { openPromise, messagePromise } = openSocket();
-	await openPromise;
-    console.log('MY RESPONSE');
-    const message = await messagePromise;
-    console.log('MY RESPONSE', message);
+	// const { openPromise, messagePromise } = openSocket('/ws/host/');
+	// await openPromise;
+    // console.log('MY RESPONSE');
+    // const message = await messagePromise;
+    // console.log('MY RESPONSE', message);
+	
+	// Create data object with type key
+	let data = {type: 'create-game', 'game-mode': 'remote', 'players': ['Player1']};
+
+	openSocket('/ws/')
+    .then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 
