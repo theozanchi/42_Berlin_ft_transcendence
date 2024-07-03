@@ -16,34 +16,29 @@ GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 GAME_LOGIC_REST_URL = 'http://game_logic:8001'
 
 class APIConsumer(AsyncJsonWebsocketConsumer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     async def connect(self):
         self.game_id = None
-        await self.accept()
+        self.host = False
 
-        #TEST
-        self.player_id = 'player2'
-        self.game_id = 'test'
-        await self.channel_layer.group_add(self.game_id, self.channel_name)
-        await self.channel_layer.group_send(self.game_id, {'type': 'player_identity', 'content': {'sender': self.channel_name}})
-        #
+        await self.accept()
 
     async def disconnect(self, close_code):
         if self.game_id:
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
+        self.channel_layer.group_send(self.game_id, 
+            {'type': 'broadcast', 
+            'content': {'player': self.alias, 
+            'message': 'left the game'}})
         await self.close(close_code)
     
     async def receive_json(self, content):
         logging.debug('received: ' + str(content))
         type_to_method = {
             'broadcast': self.broadcast,
-            'player-identity': self.player_identity,
             'game-state': self.game_state,
             'create-game': self.create_game,
             'join-game': self.join_game,
-            'leave-game': self.leave_game,
             'start-game': self.start_game,
             'set-alias': self.set_alias
         }
@@ -60,11 +55,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     
     async def broadcast(self, content):
         logging.debug('broadcasting: ' + str(content))
-        await self.channel_layer.group_send(self.game_id, content)
-    
-    async def player_identity(self, content):
-            self.player_id = 'player1'
-            await self.send_json({'type': 'player_identity', 'playerId': self.player_id})
+        await self.send_json(content)
 
     async def create_game(self, content):
         try:
@@ -80,17 +71,12 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
 
-    async def leave_game(self, content):
-        self.channel_layer.group_send(self.game_id, 
-            {'type': 'broadcast', 
-            'content': {'player': self.alias, 
-            'message': 'left the game'}})
-
     async def create_game(self, content):
         try:
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers()) 
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
+            self.host = True
             if self.game_id:
                 await self.channel_layer.group_add(self.game_id, self.channel_name)
             return response.json()
@@ -104,22 +90,22 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         if self.player_count < 2:
             return {'error': 'Not enough players to start game'}
         try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/play-next-round/', json=content, headers=self.get_headers())
+            response = requests.get(GAME_MANAGER_REST_URL + '/round/${self.game_id}', headers=self.get_headers())
             response.raise_for_status()
             self.current_round = response.json()
-            await self.channel_layer.group_send(self.game_id, {'type': 'game-start', 'content': self.current_round})
+            await self.channel_layer.group_send(self.game_id, {'type': 'player_id', 'content': self.current_round})
 
         except requests.RequestException as e:
             self.send_json({'error': str(e)})
     
-    def game_start(self, content):
+    def player_id(self, content):
         if self.current_round['player1'] == self.channel_name:
             self.player_id = 'player1'
         elif self.current_round['player2'] == self.channel_name:
             self.player_id = 'player2'
         else:
             self.player_id = 'spectator'
-        self.send_json({'type': 'init-game', 'player_id': self.player_id})
+        self.send_json({'type': 'start-game', 'player_id': self.player_id})
 
     async def game_state(self, content):
         #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
