@@ -48,7 +48,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         if method:
             await method(content)
         else:
-            await self.send_json({'error': 'Invalid type or missing type in json'})
+            await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
 
     def get_headers(self):
         return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
@@ -57,29 +57,16 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         logging.debug('broadcasting: ' + str(content))
         await self.send_json(content)
 
-    async def create_game(self, content):
+    async def create_game(self, content, headers):
         try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
-            response.raise_for_status()
-
-            self.game_id = response.json().get('game-id')
-            self.player_count = 1
-            await self.channel_layer.group_add(self.game_id, self.channel_name)
-
-            await self.send_json({"game-id": self.game_id})
-        
-        except requests.RequestException as e:
-            await self.send_json({'error': str(e)})
-
-    async def create_game(self, content):
-        try:
-            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers()) 
+            content['channel_name'] = self.channel_name
+            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=headers)
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
             self.host = True
             if self.game_id:
                 await self.channel_layer.group_add(self.game_id, self.channel_name)
-            return response.json()
+            self.send_json(response.json())
         
         except requests.RequestException as e:
             self.send_json({'error': str(e)})
@@ -114,7 +101,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             content['game_id'] = self.game_id
             response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
             response.raise_for_status()
-            self.channel_layer.group_send(self.game_id, response.json())
         except Exception as e:
             print({'error': str(e)})
         
@@ -136,8 +122,16 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 raise ValueError(f'{self.game_id} not found.')
             response.raise_for_status()
             self.game_id = response.json().get('game-id')
+
             await self.channel_layer.group_add(self.game_id, self.channel_name)
-            await self.game_status(content, headers)
+            await self.channel_layer.group_send(
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content': response.json()
+                }
+            )
+
             return response.json()
         
         except requests.RequestException as e:
