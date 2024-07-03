@@ -8,8 +8,8 @@ class UserProfileInline(admin.TabularInline):
     model = UserProfile
     can_delete = False
     verbose_name_plural = 'UserProfiles'
-    fields = ('picture_url', 'access_token')
-    readonly_fields = ('access_token',)
+    fields = ('picture_url', 'access_token', 'id42')
+    readonly_fields = ('access_token', 'id42')
 
 class ParticipationInline(admin.TabularInline):
     model = Participation
@@ -19,15 +19,19 @@ class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline, ParticipationInline,)
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'picture_url')}),
+        (('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'id42')}),
         (('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         (('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
-    readonly_fields = ('picture_url',)
+    readonly_fields = ('picture_url', 'id42')
 
     def picture_url(self, obj):
         return format_html('<img src="{}" style="height: 100px" />', obj.userprofile.picture_url)
     picture_url.short_description = 'Picture URL'
+
+    def id42(self, obj):
+        return obj.userprofile.id42
+    id42.short_description = '42 ID'
 
 
 class TournamentAdmin(admin.ModelAdmin):

@@ -44,7 +44,9 @@
         <p>You are not logged in.</p>
         <a href="{% url 'oauth_login' %}">Login with 42</a>
         <br>
-        <a href="{% url 'login' %}">Login with email and password</a>
+        <a href="{% url 'login' %}">Login with username and password</a>
+        <br>
+        <a href="{% url 'register' %}">Register</a>
     {% endif %}
     <br>
     <a href="{% url 'admin:index' %}">Admin panel</a>

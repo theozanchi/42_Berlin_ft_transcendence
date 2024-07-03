@@ -12,11 +12,12 @@ import requests
 from django.utils.crypto import get_random_string
 from .models import UserProfile, UserManager
 from django.http import HttpResponseForbidden
-from .forms import RegistrationForm
+from .forms import RegistrationForm, UserForm
 from django.core.files.base import ContentFile
 import pprint
 from django.db.models import Sum
 from django.views.generic.edit import CreateView
+from django import forms
 
 CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8'
 CLIENT_SECRET = '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'
@@ -86,23 +87,30 @@ def oauth_callback(request):
     first_name = user_info['first_name']
     last_name = user_info['last_name']
     picture_url = user_info['image']['versions']['small']
+    id42 = user_info['campus_users'][0]['user_id']
+    print(f"--> 42 ID: {id42}")
 
-    user, created = User.objects.get_or_create(
-        username=username,
-        defaults={'email': email,
-                  'first_name': first_name,
-                  'last_name': last_name })
+    try:
+        user_profile = UserProfile.objects.get(id42=id42)
+        user = user_profile.user
+    except UserProfile.DoesNotExist:
+        user, created = User.objects.get_or_create(
+            username=username,
+            defaults={'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name })
 
-    user_profile, created = UserProfile.objects.update_or_create(
-		user=user,
-        defaults={'picture_url': picture_url,
-                  'access_token': access_token})
+        user_profile, created = UserProfile.objects.update_or_create(
+            user=user,
+            defaults={'picture_url': picture_url,
+                    'access_token': access_token,
+                    'id42': id42})
 
-    if created:
-        user.set_unusable_password()
-        user.save()
+        if created:
+            user.set_unusable_password()
+            user.save()
 
-    save_avatar_from_url(user.userprofile, picture_url)
+        save_avatar_from_url(user.userprofile, picture_url)
 
     login(request, user)
 
@@ -123,7 +131,7 @@ def register(request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("login")
+            return redirect("home")
     else:
         form = RegistrationForm()
     return render(request, "register.html", {"form": form})
@@ -132,42 +140,30 @@ def ranking(request):
         rankings = User.rankings.get_user_rankings()
         return render(request, "ranking.html", {"rankings": rankings})
 
+
+
 def update(request):
-    if request.method == "GET":
-        if request.user.userprofile.access_token:
-            return render(request, "update.html", {'user': request.user})
-        password_form = PasswordChangeForm(request.user)
-        return render(request, "update.html", {
-            "user": request.user,
-            'password_form': password_form
-            })
-    elif request.method == "POST":
-        user = request.user
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        avatar = request.FILES.get('avatar')
-
-        if email:
-            user.email = email
-        if first_name:
-            user.first_name = first_name
-        if username:
-            user.username = username
-        if avatar:
-            Exception("avatar upload not implemented yet")
-
+    if request.method == "POST":
+        form = UserForm(request.POST, request.FILES, instance=request.user)
         password_form = PasswordChangeForm(request.user, request.POST)
-        if password_form.is_valid():
-            user = password_form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, 'password updated')
-            return redirect('/api/user_mgt')
-        else:
-            messages.error(request, 'please correct error')
 
-        user.save()
-        return redirect('/api/user_mgt')
+        if form.is_valid() and password_form.is_valid():
+            user = form.save()
+            password_form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your profile was successfully updated!')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = UserForm(instance=request.user)
+        password_form = PasswordChangeForm(request.user)
+
+    return render(request, "update.html", {
+        "user": request.user,
+        'form': form,
+        'password_form': password_form
+    })
 
 
 
