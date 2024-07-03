@@ -37,14 +37,14 @@ let singlePlayer = false; // Set to false for two-player game
 let playerId;
 let gameState;
 let oldGameState;
-let gameStarted = false;
+let gameStarted = true;
 
 //let socket;
 let reconnectInterval;
 let maxReconnectInterval = 200;
 let reconnectAttempts;
 
-export function initializeWebSocket(url){
+/* export function initializeWebSocket(url){
     
 ///setup web socket ///
         function connect() {
@@ -98,7 +98,7 @@ export function initializeWebSocket(url){
         setInterval(sendKeepAlive, 30000); // Send a keep-alive message every 30 seconds
     
         return socket;
-        }
+        } */
 
 
         export function updateGameState(data) {
@@ -168,22 +168,6 @@ function init() {
     //initializeWebSocket(url);
 
     ////////////////////////////////////////////////////////////////
-
-    // Get a reference to the button
-    const startGameButton = document.getElementById('start-game-button');
-
-    // Add a click event listener to the button
-    startGameButton.addEventListener('click', function() {
-        // Send a message through the WebSocket connection
-        socket.send(JSON.stringify({ type: 'start-game' }));
-    });
-
-    // Check if the game can start
-    if (gameCanStart) {
-        startGameButton.disabled = false;
-    } else {
-        startGameButton.disabled = true;
-    }
 
         // Create a promise that resolves when gameStarted becomes true
     let gameStartedPromise = new Promise((resolve) => {

@@ -8,6 +8,7 @@
 
 let newsocket;
 let openPromise;
+let gameStarted = false;
 
 function openSocket(path) {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
@@ -40,6 +41,7 @@ function openSocket(path) {
                 if (data.type === 'start-game') {
                     playerId = data.player_id;
                     gameStarted = true;
+					loadLocalGame();
                     console.log('Game started!');
                 }
 		};
@@ -84,6 +86,16 @@ function generateLocalGame() {
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
     });
+
+	// Get a reference to the button
+	const startGameButton = document.getElementById('start-game-button');
+
+	// Add a click event listener to the button
+	startGameButton.addEventListener('click', function() {
+		// Send a message through the WebSocket connection
+		socket.send(JSON.stringify({ type: 'start-game' }));
+	});
+
 }
 
 function loadLocalGame() {
