@@ -13,10 +13,12 @@ def generate_game_id():
         if not Game.objects.filter(game_id=game_id).exists():
             return game_id
 
+# Create your models here.
 class Game(models.Model):
     game_id = models.CharField(primary_key=True, default=generate_game_id, editable=False, unique=True, max_length=8)   
     mode = models.CharField(max_length=6, choices=[('local', 'local'), ('remote', 'Remote')], blank=False, null=False)
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
+    host = models.CharField(max_length=255, null=True, blank=True)
 
     def clean(self):
         if not self.mode:
@@ -30,7 +32,7 @@ class Game(models.Model):
         player_names = data.get("players", [])
 
         for name in player_names:
-            player = Player.objects.create(game=self, alias=name)
+            player = Player.objects.create(game=self, alias=name, channel_name=data.get('channel_name'))
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -57,9 +59,9 @@ class Game(models.Model):
                     round.winner = Player.objects.get(game=self, alias=winner)
                     round.save()
                 except Round.DoesNotExist:
-                    raise Exception(f"No round found for game {self.pk} with round number {round_number}")
+                    print(f"No round found for game {self.pk} with round number {round_number}")
                 except Player.DoesNotExist:
-                    raise Exception(f"No player found for game {self.pk} with alias {self.pk}")
+                    print(f"No player found for game {self.pk} with alias {self.pk}")
         else:
             raise ValidationError("Invalid data provided for game update.")
         
@@ -89,6 +91,7 @@ class Player(models.Model):
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, null=True, blank=True)
+    channel_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.alias
@@ -137,7 +140,7 @@ class Round(models.Model):
             self.winner = next((player for player in players if player.alias == game_data.get('winner')), None)
             
         else:
-            raise Exception(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
+            print(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
     
     def __str__(self):
         return f"Round {self.round_number} - {self.player1} vs {self.player2}"
