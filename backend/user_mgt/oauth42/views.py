@@ -71,7 +71,6 @@ def oauth_callback(request):
     if token_response.status_code != 200:
         return redirect('/')
     access_token = token_json.get('access_token')
-    print(f"Access token: {access_token}")
     if not access_token:
         return redirect('/')
 
@@ -82,13 +81,12 @@ def oauth_callback(request):
         return redirect('/')
 
     user_info = user_info_response.json()
-    email = user_info['email']
-    username = user_info['login']
-    first_name = user_info['first_name']
-    last_name = user_info['last_name']
-    picture_url = user_info['image']['versions']['small']
-    id42 = user_info['campus_users'][0]['user_id']
-    print(f"--> 42 ID: {id42}")
+    email = user_info.get('email')
+    username = user_info.get('login')
+    first_name = user_info.get('first_name')
+    last_name = user_info.get('last_name')
+    picture_url = user_info.get('image', {}).get('versions', {}).get('small')
+    id42 = user_info.get('campus_users', [{}])[0].get('user_id')
 
     try:
         user_profile = UserProfile.objects.get(id42=id42)
@@ -140,29 +138,39 @@ def ranking(request):
         rankings = User.rankings.get_user_rankings()
         return render(request, "ranking.html", {"rankings": rankings})
 
+def password(request):
+    if not request.user.is_authenticated or request.user.userprofile.id42:
+        return HttpResponseForbidden
+    if request.method == "POST":
+        password_form = PasswordChangeForm(request.user, request.POST)
+        if password_form.is_valid():
+            user = password_form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Password changed')
+            return redirect('home')
+        else:
+            messages.error(request, 'please correct the error')
+    else:
+        password_form = PasswordChangeForm(request.user)
 
+    return render(request, 'password.html', {'password_form': password_form})
 
 def update(request):
     if request.method == "POST":
         form = UserForm(request.POST, request.FILES, instance=request.user)
-        password_form = PasswordChangeForm(request.user, request.POST)
 
-        if form.is_valid() and password_form.is_valid():
+        if form.is_valid():
             user = form.save()
-            password_form.save()
-            update_session_auth_hash(request, user)
             messages.success(request, 'Your profile was successfully updated!')
-            return redirect('profile')
+            return redirect('home')
         else:
             messages.error(request, 'Please correct the error below.')
     else:
         form = UserForm(instance=request.user)
-        password_form = PasswordChangeForm(request.user)
 
     return render(request, "update.html", {
         "user": request.user,
-        'form': form,
-        'password_form': password_form
+        'form': form
     })
 
 
@@ -194,8 +202,8 @@ def profile(request, user_id):
         tournaments = tournaments + 1
 
     player_data = {
-        'nickname': user_profile.nickname,
-        'full_name': user.get_full_name(),
+        'nickname': user.username,
+        'full_name': user.first_name,
         'joined': user.date_joined,
         'total_wins': total_wins,
         'total_lost': total_lost,
