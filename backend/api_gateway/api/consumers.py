@@ -9,19 +9,21 @@ import websockets
 import logging
 from asgiref.sync import async_to_sync, sync_to_async
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
-GAME_LOGIC_REST_URL = 'http://game_logic:8001'
+GAME_LOGIC_REST_URL = 'http://game_logic:8000'
 
 class APIConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         self.game_id = None
         self.host = False
+        self.alias = None
 
         await self.accept()
+        self.send_json({'message': 'Connected'})
 
     async def disconnect(self, close_code):
         if self.game_id:
@@ -79,30 +81,29 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         try:
             response = requests.get(GAME_MANAGER_REST_URL + '/round/${self.game_id}', headers=self.get_headers())
             response.raise_for_status()
-            self.current_round = response.json()
-            await self.channel_layer.group_send(self.game_id, {'type': 'player_id', 'content': self.current_round})
+            await self.channel_layer.group_send(self.game_id, {'type': 'player_id', 'content': response.json()})
 
         except requests.RequestException as e:
             self.send_json({'error': str(e)})
     
     def player_id(self, content):
-        if self.current_round['player1'] == self.channel_name:
+        if content['player1'] == self.channel_name:
             self.player_id = 'player1'
-        elif self.current_round['player2'] == self.channel_name:
+        elif content['player2'] == self.channel_name:
             self.player_id = 'player2'
         else:
             self.player_id = 'spectator'
         self.send_json({'type': 'start-game', 'player_id': self.player_id})
 
     async def game_state(self, content):
-        #if self.current_round['player1'] != self.channel_name and self.current_round['player2'] != self.channel_name:
-        #    return({'error': 'Not your turn'})
+        if self.player_id == 'spectator':
+            self.send_json({'error': 'Not your turn'})
         try:
             content['game_id'] = self.game_id
             response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
             response.raise_for_status()
         except Exception as e:
-            print({'error': str(e)})
+            logging.error({'error': str(e)})
         
     async def update(self, content):
         await self.send_json(content)

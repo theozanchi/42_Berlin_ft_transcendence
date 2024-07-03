@@ -8,7 +8,7 @@ WORKDIR /code
 
 COPY . /code/
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-install-recommends -r requirements.txt
 
 COPY entrypoint.sh /code/entrypoint.sh
 RUN chmod +x /code/entrypoint.sh

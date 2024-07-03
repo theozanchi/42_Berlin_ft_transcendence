@@ -18,6 +18,7 @@ let ballSpeed = new THREE.Vector3();
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 const cubeSize = 2; // Size of the cube
+
 let playerTurn = true; // Player starts
 let playerScore = 0;
 let aiScore = 0;
@@ -30,13 +31,17 @@ let isTransitioning = false;
 let isTransitioning2 = false;
 let ballIsHeld = true;
 let aimingAngle = 0;
+
 let player1Turn = true; // Player 1 starts
 let singlePlayer = false; // Set to false for two-player game
+let playerId;
 let gameState;
-let maxReconnectInterval = 200;
-let reconnectInterval;
 let oldGameState;
+let gameStarted = false;
+
 let socket;
+let reconnectInterval;
+let maxReconnectInterval = 200;
 let reconnectAttempts;
 
 export function initializeWebSocket(url){
@@ -52,10 +57,16 @@ export function initializeWebSocket(url){
     
             socket.onmessage = function(event) {
                 let data = JSON.parse(event.data);
+                console.log('WebSocket message received:', data);
                 // Handle game state updates
                 if (data.type === 'game_state') {
                     updateGameState(data);
-                }    
+                }
+                if (data.type === 'start-game') {
+                    playerId = data.player_id;
+                    gameStarted = true;
+                    console.log('Game started!');
+                }
             };    
     
             socket.onclose = function(event) {
@@ -116,6 +127,8 @@ export function initializeWebSocket(url){
 
         // Ensure WebSocket is open before sending data
         export function sendGameState() {
+            if (!gameStarted) return; // Do not send game state updates if the game has not started
+            if (playerId === undefined || playerId == 'spectator') return; // Do not send game state updates if the player ID is not set
             if (socket.readyState === WebSocket.OPEN) {
                 const newGameState = {
                     type: 'game_state',

@@ -17,7 +17,10 @@ import time
 import math
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+from rest_framework.parsers import JSONParser
+from .serializers import GameStateSerializer
 
 @csrf_exempt
 @api_view(['POST'])
@@ -25,7 +28,12 @@ def game_update(request):
     try:
         channel_layer = get_channel_layer()
 
-        new_game_state = json.loads(request.body)
+        data = JSONParser().parse(request)
+        serializer = GameStateSerializer(data=data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, status=400)
+
+        new_game_state = serializer.validated_data
         game_id = new_game_state.get('game_id')
 
         if game_id is None:
@@ -38,18 +46,13 @@ def game_update(request):
         else:
             game_state = create_new_game_state(game_id)
         
-        #print("New data: ", new_game_state)
-        
-        if new_game_state:
-            game_state.update(new_game_state)
+        game_state.update(new_game_state)
 
-        # process data with logic here
         update_game_state(game_state)
 
         cache.set(game_id, game_state, timeout=None)
         game_state['type'] = 'update'
 
-        #print("updated Game state: ", game_state)
         async_to_sync(channel_layer.group_send)(game_id, game_state)
 
         return JsonResponse("Updated game state", safe=False, status=200)
@@ -57,6 +60,7 @@ def game_update(request):
     except Exception as e:
         logging.error(f'Error updating game state: {str(e)}')
         return JsonResponse("Error updating game state", status=500, safe=False)
+
     
 
 def create_new_game_state(game_id):
