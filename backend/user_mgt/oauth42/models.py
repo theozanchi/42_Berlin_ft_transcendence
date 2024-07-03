@@ -43,7 +43,6 @@ def save_user_profile(sender, instance, **kwargs):
 class UserProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    nickname = models.CharField(max_length=50, null=True, blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     oauth_id = models.CharField(max_length=200, null=True, blank=True)
     picture_url = models.URLField(max_length=200, null=True, blank=True)

@@ -5,19 +5,28 @@
 	<form method="post" enctype="multipart/form-data">
 		{% csrf_token %}
 
+	<div class="input-group">
 		<label for="username">Username:</label>
 		<input id="username" type="text" name="username" value="{{ user.username }}">
-
+	</div>
+	<div class="input-group">
 		<label for="email">Email:</label>
 		<input id="email" type="email" name="email" value="{{ user.email }}">
-
+	</div>
+	<div class="input-group">
 		<label for="first_name">First Name:</label>
 		<input id="first_name" type="text" name="first_name" value="{{ user.first_name }}">
-
+	</div>
+	<div class="input-group">
 		<label for="avatar">Avatar:</label>
 		<input id="avatar" type="file" name="avatar">
+	</div>
 
-		<button type="submit">Register</button>
+	<div class="input-group">
+		{{ password_form.as_p }}
+	</div>
+
+		<button type="submit">Update</button>
 	</form>
 	<a href="{% url 'home' %}">Home</a>
 {% endblock %}

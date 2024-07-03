@@ -3,8 +3,10 @@
 from .models import UserProfile, Round, Tournament, Participation
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib import messages
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 import requests
 from django.utils.crypto import get_random_string
@@ -132,7 +134,13 @@ def ranking(request):
 
 def update(request):
     if request.method == "GET":
-        return render(request, "update.html", {"user": request.user})
+        if request.user.userprofile.access_token:
+            return render(request, "update.html", {'user': request.user})
+        password_form = PasswordChangeForm(request.user)
+        return render(request, "update.html", {
+            "user": request.user,
+            'password_form': password_form
+            })
     elif request.method == "POST":
         user = request.user
         username = request.POST.get('username')
@@ -148,6 +156,15 @@ def update(request):
             user.username = username
         if avatar:
             Exception("avatar upload not implemented yet")
+
+        password_form = PasswordChangeForm(request.user, request.POST)
+        if password_form.is_valid():
+            user = password_form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'password updated')
+            return redirect('/api/user_mgt')
+        else:
+            messages.error(request, 'please correct error')
 
         user.save()
         return redirect('/api/user_mgt')
