@@ -29,6 +29,8 @@ def create_game(request):
 def join_game(request):
     try:
         game = Game.objects.get(pk=request.data.get('game-id'))
+        if game.mode != 'remote':
+            return Response({'error': 'Game is not a remote game.'}, status=403)
         game.add_players_to_game(request.data)
         game.save()
         serializer = GameSerializer(game)
