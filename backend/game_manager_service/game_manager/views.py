@@ -27,7 +27,7 @@ def create_game(request):
 @permission_classes([AllowAny])
 def get_game(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
@@ -38,7 +38,7 @@ def get_game(request):
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
 
         game.update_game(request.data)
         game.save()
@@ -57,7 +57,7 @@ def update_round_status(request):
 @permission_classes([AllowAny])
 def play_next_round(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
         
         if round_to_play:
@@ -76,7 +76,7 @@ def play_next_round(request):
 @permission_classes([AllowAny])
 def finish_game(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         game.determine_winner()
 
         game.save()

@@ -67,6 +67,10 @@ services:
     image: redis:latest # Based on debian:bookworm-slim
     container_name: redis
     environment:
+    - REDIS_PASSWORD=${REDIS_PASSWORD}  # Set Redis password if needed
+    - REDIS_MAXCLIENTS=10000            # Example: Set maximum clients
+    - REDIS_MAXMEMORY=2GB               # Example: Set maximum memory
+    - REDIS_MAXMEMORY_POLICY=volatile-lru 
     - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - backend

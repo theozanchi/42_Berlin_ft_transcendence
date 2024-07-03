@@ -67,6 +67,7 @@ let reconnectAttempts = 0;
 let maxReconnectAttempts = 10;
 let resetBall_ = false;
 let lastGameState = null;
+let timingStarted = false;
 
 
             //////////////--------WEBSOCKET---------///////////////
@@ -133,6 +134,7 @@ export function initializeWebSocket(url){
 
 
         export function updateGameState(data) {
+                    
                 // Update player positions
                 //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
                 if (data.player1) {
@@ -226,7 +228,7 @@ export function initializeWebSocket(url){
                     };
                 }
 
-                if (newGameState == lastGameState)
+                if (JSON.stringify(newGameState) === JSON.stringify(lastGameState))
                     return;
                 else
                     lastGameState = newGameState;
@@ -534,12 +536,12 @@ function onKeyDown(event) {
                     switchFace('right');
                     break;
                 case ' ': // Space key
-                    if (ballIsHeld) {
+                    if (ballIsHeld && resetBall_ == false) {
                         ballIsHeld = false; // Release the ball
                         resetBall_ = true; // Reset the ball to a random position
-                        sendGameState();
+                        //sendGameState();
                     }
-                break;
+                    break;
             }
         }
         else {
@@ -557,16 +559,17 @@ function onKeyDown(event) {
                     switchFace2('right');
                     break;
                 case ' ': // Space key
-                    if (ballIsHeld) {
+                    if (ballIsHeld && resetBall_ == false) {
                         ballIsHeld = false; // Release the ball
                         resetBall_ = true; // Reset the ball to a random position
-                        sendGameState();
+                        //sendGameState();
                     }
-                break;
+                    break;
             }
 
         }
     }else {
+        console.log("event key", event.key);
         switch (event.key) {
             case 'w':
                 switchFace('up');
@@ -595,13 +598,13 @@ function onKeyDown(event) {
                 switchFace2('right');
                 break;
             case ' ': // Space key
-                if (ballIsHeld) {
+                if (ballIsHeld && resetBall_ == false) {
                     
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
-                    sendGameState();
+                    //sendGameState();
                 }
-            break;
+                break;
         }
     }
 }
@@ -626,7 +629,8 @@ let keysPressed = {
     '8': false,
     '5': false,
     '4': false,
-    '6': false
+    '6': false,
+    ' ': false
   };
 
     //////////////////////--------SWITCH_FACES_LOGIC_PLAYER_1--------//////////////////////

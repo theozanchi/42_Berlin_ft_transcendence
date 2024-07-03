@@ -16,6 +16,7 @@ import json
 import time
 import math
 import logging
+from .serializers import GameStateSerializer
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -28,6 +29,11 @@ def game_update(request):
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get('game_id')
 
+        #print("reset_ball: ", new_game_state.get('reset_ball'))
+        #serializer = GameStateSerializer(data=new_game_state)
+        #if not serializer.is_valid():
+        #    return JsonResponse(serializer.errors, status=400)
+ 
         if game_id is None:
             return JsonResponse("Missing game-ID", status=400)
 
@@ -38,11 +44,17 @@ def game_update(request):
         else:
             game_state = create_new_game_state(game_id)
         
+
+        if game_state.get('is_processing'):
+            return Response("Already processing", status=200)
+
+        game_state['is_processing'] = True
         #print("New data: ", new_game_state)
         
         if new_game_state:
             game_state.update(new_game_state)
 
+        game_state['is_processing'] = False
         # process data with logic here
         update_game_state(game_state)
 
@@ -61,7 +73,7 @@ def game_update(request):
 
 def create_new_game_state(game_id):
     return {
-        'game-id': game_id,
+        'game_id': game_id,
 
         'aiming_angle': 0 , # Initialize aiming_angle
         'aimingSpeed': 0.05,  # Example speed value, adjust as needed
@@ -85,7 +97,8 @@ def create_new_game_state(game_id):
         'current_face2': 1,
         'wall_hits' : 0,
         'aiming_angle' : 0,
-        'reset_ball': False
+        'reset_ball': False,
+        'is_processing': False
     }
 def update_game_state(game_state):
     current_time = time.time()
@@ -93,16 +106,18 @@ def update_game_state(game_state):
     #game_update(data)
     if current_time - game_state['last_update_time'] >= game_state['update_interval']:
         game_state['last_update_time'] = current_time
-        if game_state['reset_ball'] and not game_state['ballIsHeld']:
-            reset_ball(game_state)
-        update_ball(game_state)
+    if game_state['reset_ball'] and game_state['ballIsHeld']:
+        reset_ball(game_state)
+        game_state['reset_ball'] = False
+    update_ball(game_state)
     #update_ai(game_state)
 
 def reset_ball(game_state):
 
+    print("Resetting ball")
+
     game_state['playerTurn'] = not game_state['playerTurn']
     game_state['reset_ball'] = False
-
     # Calcular la dirección en base a la cara actual y el ángulo de puntería
     direction = calculate_direction(game_state['playerTurn'], game_state['current_face'], game_state['current_face2'], game_state['aiming_angle'])
 
@@ -129,6 +144,7 @@ def reset_ball(game_state):
             ball_start_position[axis] = -half_cube_size
         if ball_start_position[axis] > half_cube_size:
             ball_start_position[axis] = half_cube_size
+
 
     game_state['ball'] = ball_start_position.copy()
 
@@ -213,12 +229,11 @@ def update_ball(game_state):
         game_state['wall_hits'] = 0
         game_state['playerTurn'] = not game_state['playerTurn']
         game_state['ballIsHeld'] = True
-        update_score(game_state)
         update_ball(game_state)
         reset_ball(game_state)
 
     # Update the collision marker position
-    update_collision_marker(game_state)
+    #update_collision_marker(game_state)
 
 def check_collision(game_state):
     if game_state['ballIsHeld']:
@@ -357,14 +372,3 @@ def update_collision_marker(game_state):
 
     if intersection_point:
         game_state['collision_marker_position'] = intersection_point
-
-async def  update_score(game_state):
-    #ISSUE: replace aiScore with player 2
-    # Assuming the presence of a score display element in the client that gets updated via WebSocket message
-    channel_layer = get_channel_layer()
-
-    await channel_layer.group_send(game_state.game_id, text_data=json.dumps({
-        'type': 'update_score',
-        'playerScore': game_state['playerScore'],
-        'aiScore': game_state['aiScore']
-    }))
