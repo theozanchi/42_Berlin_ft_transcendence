@@ -86,9 +86,9 @@ let reconnectAttempts;
             };    
         }    
     
-        connect();
+        connect(); */
     
-        // Keep-Alive Mechanism
+/*         // Keep-Alive Mechanism
         function sendKeepAlive() {
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ type: 'keep_alive' }));
@@ -97,10 +97,8 @@ let reconnectAttempts;
     
         setInterval(sendKeepAlive, 30000); // Send a keep-alive message every 30 seconds
     
-        return socket;
-        } */
 
-
+ */
         export function updateGameState(data) {
             if (data.type === 'game_state') {
                 // Update player positions
@@ -164,28 +162,8 @@ let reconnectAttempts;
 
 function init() {
 
-    //const url = `ws://${window.location.host}/ws/socket-server/`;
-    //initializeWebSocket(url);
-
-    ////////////////////////////////////////////////////////////////
-
-        // Create a promise that resolves when gameStarted becomes true
-    let gameStartedPromise = new Promise((resolve) => {
-        let checkInterval = setInterval(() => {
-            if (gameStarted) {
-                clearInterval(checkInterval);
-                resolve();
-            }
-        }, 100); // Check every 100ms
-    });
-
-    // Use the promise
-    gameStartedPromise.then(() => {
-        console.log('Game has started!');
-    });
-
     /////////////////////////////////////////////////////////////////
-
+    console.log('INIT GAME!');
     // Create the scene
     scene = new THREE.Scene();
 

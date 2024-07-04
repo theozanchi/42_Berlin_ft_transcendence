@@ -82,7 +82,7 @@ def round(request):
             if game_id is None:
                 return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
 
-            game = Game.objects.filter(id=game_id).first()
+            game = Game.objects.filter(game_id=game_id).first()
 
             if not Round.objects.filter(game=game).exists():
                 game.create_rounds()
@@ -92,15 +92,15 @@ def round(request):
             
             if round_to_play:
                 serializer = GameSerializer(game)
-                return Response(serializer.data, status=200)
+                return JsonResponse(serializer.data, status=200)
             
             else:
-                return Response({'message': 'No rounds to play or all rounds played.'}, status=403)
+                return JsonResponse({'message': 'No rounds to play or all rounds played.'}, status=403)
 
         except Game.DoesNotExist:
-            return Response({'error': 'Game not found.'}, status=404)
+            return JsonResponse({'error': 'Game not found.'}, status=404)
         except Exception as e:
-            return Response({'error': e}, status=400)
+            return JsonResponse({'error': str(e)}, status=400)
 
     if request.method == 'POST':
         try:
@@ -111,10 +111,10 @@ def round(request):
             return Response(serializer.data, status=200)
         
         except Game.DoesNotExist:
-            return Response({'error': 'Game not found.'}, status=404)
+            return JsonResponse({'error': 'Game not found.'}, status=404)
         
         except ValidationError as e:
-            return Response({'error': e}, status=400)
+            return JsonResponse({'error': e}, status=400)
         
 
 @api_view(['GET'])

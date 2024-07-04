@@ -21,6 +21,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.game_id = None
         self.host = False
         self.alias = None
+        self.mode = None
+        self.player_id = None
 
         await self.accept()
 
@@ -41,7 +43,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             'create-game': self.create_game,
             'join-game': self.join_game,
             'start-game': self.start_game,
-            'set-alias': self.set_alias
+            'set-alias': self.set_alias,
         }
 
         method = type_to_method.get(content.get('type'))
@@ -57,6 +59,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def broadcast(self, content):
         logging.debug('broadcasting: ' + str(content))
         await self.send_json(content)
+    
+    async def keep_alive(self, content):
+        await self.send_json({'type': 'keep-alive'})
 
     async def create_game(self, content):
         try:
@@ -64,6 +69,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.game_id = response.json().get('game_id')
+            self.mode = response.json().get('mode')
             self.host = True
             if self.game_id:
                 await self.channel_layer.group_add(self.game_id, self.channel_name)
@@ -105,19 +111,22 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         try:
             response = requests.get(GAME_MANAGER_REST_URL + '/round/', params={'game_id': self.game_id}, headers=self.get_headers())
             response.raise_for_status()
-            await self.channel_layer.group_send(self.game_id, {'type': 'player_id', 'content': response.json()})
+            await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
 
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
     
-    async def player_id(self, content):
-        if content['player1'] == self.channel_name:
-            self.player_id = 'player1'
-        elif content['player2'] == self.channel_name:
-            self.player_id = 'player2'
-        else:
-            self.player_id = 'spectator'
-        await self.send_json({'type': 'start-game', 'player_id': self.player_id})
+    async def get_player_id(self, content):
+        print('player id: ', content)
+        if self.mode == 'remote':
+            if content['player1'] == self.channel_name:
+                self.player_id = 'player1'
+            elif content['player2'] == self.channel_name:
+                self.player_id = 'player2'
+            else:
+                self.player_id = 'spectator'
+
+        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id})
 
     async def game_state(self, content):
         if self.player_id == 'spectator':

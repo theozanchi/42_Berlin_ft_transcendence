@@ -6,41 +6,45 @@
 
 // import { generateLocalGame } from './api_calls.js';
 
-let newsocket;
+let socket;
 let openPromise;
 
 let gameStarted = false;
 let playerId;
+let remote = false;
 
 const startGameButton = document.getElementById('start-game-button');
 
 
 function openSocket(path) {
-	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+	if (!socket || socket.readyState !== WebSocket.OPEN) {
 		console.log('Opening new WebSocket');
 		const url = `wss://${window.location.host}${path}`;
-		newsocket = new WebSocket(url);
+		socket = new WebSocket(url);
 
 		openPromise = new Promise((resolve) => {
-			newsocket.onopen = function(event) {
+			socket.onopen = function(event) {
 				console.log('Connected to WebSocket server.');
 				resolve();
 			};
 		});
 
         messagePromise = new Promise((resolve) => {
-            newsocket.onmessage = function(event) {
+            socket.onmessage = function(event) {
                 console.log('Received: ' + event.data);
                 resolve(event.data);
             };
         });
 
-		newsocket.onmessage = function(event) {
+		socket.onmessage = function(event) {
 			console.log('Received: ' + event.data);
                 let data = JSON.parse(event.data);
                
                 if (data.type === 'start-game') {
-					playerId = data.player_id;
+					if (data.mode === 'remote') {
+						remote = true;
+						playerId = data.player_id;
+					}
                     gameStarted = true;
 					loadLocalGame();
                     console.log('Game started!');
@@ -50,20 +54,29 @@ function openSocket(path) {
 				}
 		};
 
-		newsocket.onclose = function(event) {
+		socket.onclose = function(event) {
 			console.log('Disconnected from WebSocket server.');
 		};
 
-		newsocket.onerror = function(error) {
+		socket.onerror = function(error) {
 			console.log('WebSocket error: ' + error.message);
 		};
     }
+		// Keep-Alive Mechanism
+		function sendKeepAlive() {
+			if (socket.readyState === WebSocket.OPEN) {
+				socket.send(JSON.stringify({ type: 'keep_alive' }));
+			}    
+		}    
+	
+		setInterval(sendKeepAlive, 30000); // Send a keep-alive message every 30 seconds
+	
 	return (openPromise);
 }
 
 async function sendJson(json) {
-    if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-        await newsocket.send(json);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        await socket.send(json);
     } else {
         console.log('WebSocket is not connected.');
     }
@@ -103,7 +116,6 @@ function loadLocalGame() {
     // Create and append the script
     let script = document.createElement('script');
     script.type = 'module';
-    // script.src = './js/pong/main.js';
     script.src = './js/game.js';
     gameArea.appendChild(script);
 
@@ -185,7 +197,6 @@ async function hostRemoteGame() {
 				event.preventDefault();
 
 				generateLocalGame();
-				loadLocalGame();
 
 				// document.getElementById('00-welcome').style.display = 'block';
 				document.getElementById('30-game-mode').style.display = 'block';
