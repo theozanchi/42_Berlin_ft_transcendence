@@ -4,11 +4,23 @@
 
 	<h2>Stats for {{ player_data.nickname }}</h2>
 
+{% if not user.id == player_data.user_id and user.is_authenticated %}
+	{% if player_data.user_id in player_data.requesting_user_friends_ids %}
+		<a href="{% url 'remove_friend' player_data.user_id %}">Remove friend</a>
+	{% else %}
+		<a href="{% url 'add_friend' player_data.user_id %}">Add friend</a>
+	{% endif %}
+{% endif %}
+
 	<p>Wins: {{ player_data.total_wins }}</p>
 	<p>Losses: {{ player_data.total_lost }}</p>
 	<p>Total score: {{ player_data.total_score }}</p>
 	<p>Rank: {{ player_data.rank.0 }} / {{ player_data.total_users }}</p>
 	<hr>
+	<p>Friends: {% for friend in player_data.friends %}
+		<a href="{% url 'profile' friend.1 %}"> {{friend.0}}</a>
+	{% endfor %}</p>
+
 
 	<p>Nickname: {{ player_data.nickname}}</p>
 	<p>Full name: {{ player_data.full_name }}</p>

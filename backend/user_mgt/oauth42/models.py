@@ -49,6 +49,7 @@ class UserProfile(models.Model):
     picture_url = models.URLField(max_length=200, null=True, blank=True)
     last_login = models.DateTimeField(auto_now=True)
     access_token = models.CharField(max_length=200, null=True, blank=True)
+    friends = models.ManyToManyField(User, related_name='userprofiles')
 
 User.add_to_class('rankings', UserManager())
 

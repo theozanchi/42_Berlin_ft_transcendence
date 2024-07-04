@@ -203,7 +203,14 @@ def profile(request, user_id):
         games.append(game)
         tournaments = tournaments + 1
 
+    friends = [(friend.username, friend.id) for friend in user.userprofile.friends.all()]
+    if request.user.is_authenticated and hasattr(request.user, 'userprofile'):
+        requesting_user_friends_ids = [friend.id for friend in request.user.userprofile.friends.all()]
+    else:
+        requesting_user_friends_ids = []
+
     player_data = {
+        'user_id': user.id,
         'nickname': user.username,
         'full_name': user.first_name,
         'joined': user.date_joined,
@@ -211,6 +218,7 @@ def profile(request, user_id):
         'total_lost': total_lost,
         'total_score': total_score,
         'tournaments': tournaments,
+        'requesting_user_friends_ids': requesting_user_friends_ids
         # 'games' : games,
     }
     if request.user.is_authenticated:
@@ -218,9 +226,11 @@ def profile(request, user_id):
         player_data['last_login'] = user.last_login
         player_data['rank'] = User.rankings.get_user_ranking(user.id)
         player_data['total_users'] = User.objects.count()
+    if request.user.is_authenticated and request.user.id == user.id:
+        player_data['friends'] = friends
 
     pprint.pprint(player_data)
-    return render(request, 'profile.html', {'player_data': player_data})
+    return render(request, 'profile.html', {'user': request.user, 'player_data': player_data})
 
 
 from django.contrib.auth.views import LoginView
@@ -247,3 +257,23 @@ def delete_profile(request):
     user.delete()
     messages.success(request, 'Your profile has been deleted.')
     return redirect('home')
+
+@login_required
+def add_friend(request, user_id):
+    friend = get_object_or_404(User, id=user_id)
+    user_profile = request.user.userprofile
+    if friend not in user_profile.friends.all():
+        user_profile.friends.add(friend)
+        user_profile.save()
+        print("--> user added")
+    else:
+        messages.info(request, 'This user is already your friend.')
+    return redirect('profile', user_profile.user.id)
+
+@login_required
+def remove_friend(request, user_id):
+    friend = get_object_or_404(User, id=user_id)
+    user_profile = request.user.userprofile
+    user_profile.friends.remove(friend)
+    user_profile.save()
+    return redirect('profile', user_profile.user.id)

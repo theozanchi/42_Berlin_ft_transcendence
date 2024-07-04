@@ -19,11 +19,13 @@ class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline, ParticipationInline,)
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'id42')}),
+        (('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'id42', 'list_of_friends')}),
         (('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         (('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
-    readonly_fields = ('picture_url', 'id42')
+    readonly_fields = ('picture_url', 'id42', 'list_of_friends')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'list_of_friends')
+
 
     def picture_url(self, obj):
         return format_html('<img src="{}" style="height: 100px" />', obj.userprofile.picture_url)
@@ -32,6 +34,10 @@ class UserAdmin(BaseUserAdmin):
     def id42(self, obj):
         return obj.userprofile.id42
     id42.short_description = '42 ID'
+
+    def list_of_friends(self, obj):
+        return ", ".join([str(friend.username) for friend in obj.userprofile.friends.all()])
+    list_of_friends.short_description = "Friends list"
 
 
 class TournamentAdmin(admin.ModelAdmin):
