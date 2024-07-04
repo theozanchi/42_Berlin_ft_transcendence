@@ -8,7 +8,12 @@
 
 let newsocket;
 let openPromise;
+
 let gameStarted = false;
+let playerId;
+
+const startGameButton = document.getElementById('start-game-button');
+
 
 function openSocket(path) {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
@@ -34,16 +39,15 @@ function openSocket(path) {
 			console.log('Received: ' + event.data);
                 let data = JSON.parse(event.data);
                
-				// Handle game state updates
-                if (data.type === 'game_state') {
-                    updateGameState(data);
-                }
                 if (data.type === 'start-game') {
-                    playerId = data.player_id;
+					playerId = data.player_id;
                     gameStarted = true;
 					loadLocalGame();
                     console.log('Game started!');
                 }
+				if (data.type === 'game_state') {
+					updateGameState(data);
+				}
 		};
 
 		newsocket.onclose = function(event) {
@@ -59,7 +63,7 @@ function openSocket(path) {
 
 async function sendJson(json) {
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-        newsocket.send(json);
+        await newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
     }
@@ -87,15 +91,9 @@ function generateLocalGame() {
         console.error('Failed to open WebSocket connection:', error);
     });
 
-	// Get a reference to the button
-	const startGameButton = document.getElementById('start-game-button');
-
-	// Add a click event listener to the button
 	startGameButton.addEventListener('click', function() {
-		// Send a message through the WebSocket connection
-		socket.send(JSON.stringify({ type: 'start-game' }));
+    	sendJson(JSON.stringify({ type: 'start-game' }));
 	});
-
 }
 
 function loadLocalGame() {

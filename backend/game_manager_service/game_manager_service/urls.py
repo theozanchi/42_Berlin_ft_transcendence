@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('create-game/', views.create_game),
     path('join-game/', views.join_game),
+    path('round/<str:game_id>/', views.round),
     path('game-status/', views.get_game),
 ]

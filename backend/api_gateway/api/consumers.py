@@ -102,10 +102,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def start_game(self, content):
         if self.host is not True:
             await self.send_json({'error': 'Only host can start game'})
-        if self.player_count < 2:
-            await self.send_json({'error': 'Not enough players to start game'})
         try:
-            response = requests.get(GAME_MANAGER_REST_URL + '/round/${self.game_id}', headers=self.get_headers())
+            response = requests.get(GAME_MANAGER_REST_URL + '/round/', params={'game_id': self.game_id}, headers=self.get_headers())
             response.raise_for_status()
             await self.channel_layer.group_send(self.game_id, {'type': 'player_id', 'content': response.json()})
 

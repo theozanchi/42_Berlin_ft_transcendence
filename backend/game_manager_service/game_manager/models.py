@@ -118,30 +118,6 @@ class Round(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
-    def initialize_round(self):
-        """
-        Initialize each round by making an internal API call to the game_logic service.
-        """
-        self.clean()
-
-        response = requests.post('http://game_logic_service/play_game/', json={
-            'player1': self.player1.alias,
-            'player2': self.player2.alias,
-            'game_id': self.game.pk,
-        })
-
-        if response.status_code == 200:
-            game_data = response.json()
-
-            self.player1_score = game_data.get('player1_score')
-            self.player2_score = game_data.get('player2_score')
-
-            players = self.game.players.all()
-            self.winner = next((player for player in players if player.alias == game_data.get('winner')), None)
-            
-        else:
-            print(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
-    
     def __str__(self):
         return f"Round {self.round_number} - {self.player1} vs {self.player2}"
 
