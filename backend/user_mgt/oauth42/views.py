@@ -18,6 +18,7 @@ import pprint
 from django.db.models import Sum
 from django.views.generic.edit import CreateView
 from django import forms
+from django.contrib.auth.decorators import login_required
 
 CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8'
 CLIENT_SECRET = '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'
@@ -134,6 +135,7 @@ def register(request):
         form = RegistrationForm()
     return render(request, "register.html", {"form": form})
 
+
 def ranking(request):
         rankings = User.rankings.get_user_rankings()
         return render(request, "ranking.html", {"rankings": rankings})
@@ -232,4 +234,16 @@ class RegisterView(CreateView):
     model = User
     form_class = RegistrationForm
     template_name = 'register.html'
-    success_url = 'login'
+    success_url = '/api/user_mgt'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        login(self.request, self.object)
+        return response
+
+@login_required
+def delete_profile(request):
+    user = request.user
+    user.delete()
+    messages.success(request, 'Your profile has been deleted.')
+    return redirect('home')

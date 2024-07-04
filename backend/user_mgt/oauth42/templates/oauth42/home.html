@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login Status</title>
-</head>
-<body>
+{% extends "base_generic.html" %}
 
+{% block content %}
     {% if user.is_authenticated %}
 
 	<h1>Hello {{ user.first_name|default:user.username }}!</h1>
@@ -25,31 +21,5 @@
             <br>User_id: {{ user.id }}
 		</p>
 
-        <a href="{% url 'profile' user.id %}">Go to profile</a>
-        <a href="{% url 'update' %}">Update credentials</a>
-
-        <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit">Logout</button>
-        </form>
-		<form method="post" action="{% url 'delete_cookie' %}">
-			{% csrf_token %}
-			<button type="submit">Logout and Delete Cookie</button>
-		</form>
-
-    {% else %}
-
-
-	<h1>Login Status</h1>
-        <p>You are not logged in.</p>
-        <a href="{% url 'oauth_login' %}">Login with 42</a>
-        <br>
-        <a href="{% url 'login' %}">Login with username and password</a>
-        <br>
-        <a href="{% url 'register' %}">Register</a>
     {% endif %}
-    <br>
-    <a href="{% url 'admin:index' %}">Admin panel</a>
-
-</body>
-</html>
+{% endblock %}

@@ -1,7 +1,7 @@
 # oauth42/urls.py
 
 from django.urls import path
-from .views import home, oauth_login, oauth_callback, delete_cookie, CustomLoginView, register, profile, RegisterView, ranking, update, password
+from .views import home, oauth_login, oauth_callback, delete_cookie, CustomLoginView, register, profile, RegisterView, ranking, update, password, delete_profile
 
 urlpatterns = [
     path('api/user_mgt', home, name='home'),
@@ -13,5 +13,6 @@ urlpatterns = [
     path('api/user_mgt/login/', CustomLoginView.as_view(), name = "login"),
     path('api/user_mgt/ranking/', ranking, name='ranking'),
     path('api/user_mgt/update/', update, name='update'),
-    path('api/user_mgt/password/', password, name='password')
+    path('api/user_mgt/password/', password, name='password'),
+    path('api/user_mgt/delete_profile/', delete_profile, name='delete_profile'),
 ]

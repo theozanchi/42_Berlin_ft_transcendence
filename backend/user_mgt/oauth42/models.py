@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Sum, Window, F
-from django.db.models.functions import DenseRank
+from django.db.models.functions import DenseRank, Coalesce
 import pprint
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -12,13 +12,13 @@ class UserManager(models.Manager):
 
     def get_user_rankings(self):
         return self.annotate(
-            total_score=Sum('participation__score'),
+            total_score=Coalesce(Sum('participation__score'),0),
             rank=Window(expression=DenseRank(), order_by=F('total_score').desc())
         ).order_by('-total_score').values_list('id','rank')
 
     def get_user_ranking(self, user_id):
         rankings = list(self.get_user_rankings())
-        pprint.pprint(rankings)
+        # pprint.pprint(rankings)
         for i, user in enumerate(rankings):
             if user[0] == user_id:
                 return (i+1, user[0])
@@ -85,3 +85,10 @@ class Round(models.Model):
     winner = models.ForeignKey(User, related_name='won_rounds', null=True, on_delete=models.CASCADE)
     player1_score = models.PositiveIntegerField(default = 0, validators=[MinValueValidator(0), MaxValueValidator(10)])
     player2_score = models.PositiveIntegerField(default = 0, validators=[MinValueValidator(0), MaxValueValidator(10)])
+
+
+@receiver(post_save, sender=UserProfile)
+@receiver(post_save, sender=Participation)
+@receiver(post_save, sender=Tournament)
+def update_rankings(sender, **kwargs):
+    User.rankings.get_user_rankings()
