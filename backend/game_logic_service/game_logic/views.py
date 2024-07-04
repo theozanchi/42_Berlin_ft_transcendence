@@ -48,13 +48,10 @@ def game_update(request):
         if game_state.get('is_processing'):
             return Response("Already processing", status=200)
 
-        game_state['is_processing'] = True
-        #print("New data: ", new_game_state)
         
         if new_game_state:
             game_state.update(new_game_state)
 
-        game_state['is_processing'] = False
         # process data with logic here
         update_game_state(game_state)
 
@@ -137,6 +134,7 @@ def reset_ball(game_state):
     else:
         ball_start_position = {k: game_state['player2'][k] + direction[k] * offset_distance for k in direction}
 
+    print(f"cube_size: {game_state['cube_size']}, ball_radius: {game_state['ball_radius']}")
     # Verificar que la posición inicial esté dentro de los límites permitidos del cubo
     half_cube_size = game_state['cube_size'] / 2 - game_state['ball_radius']
     for axis in ['x', 'y', 'z']:
@@ -181,8 +179,7 @@ def set_vector_length(vector, length):
         vector[axis] = vector[axis] / current_length * length
         
 def update_ball(game_state):
-        
-    #print(f'ballishe    ld: {game_state["ballIsHeld"]}')
+    print(f"Updating ball. Ball is held: {game_state['ballIsHeld']}")    
     if game_state['ballIsHeld']:
         if game_state['playerTurn']:
             game_state['ball'] = game_state['player1'].copy()
@@ -229,6 +226,7 @@ def update_ball(game_state):
         game_state['wall_hits'] = 0
         game_state['playerTurn'] = not game_state['playerTurn']
         game_state['ballIsHeld'] = True
+        print(f"Scoring update. PlayerScore: {game_state['playerScore']}, AIScore: {game_state['aiScore']}")
         update_ball(game_state)
         reset_ball(game_state)
 
@@ -250,6 +248,7 @@ def check_collision(game_state):
         'y': ball_position['y'] + game_state['ballSpeed']['y'],
         'z': ball_position['z'] + game_state['ballSpeed']['z']
     }
+    print(f"Checking collision. Next position: {next_position}")
 
     # Create a bounding box that encompasses the ball's start and end points
     ball_box = create_bounding_box(game_state, ball_position, next_position)

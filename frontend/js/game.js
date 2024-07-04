@@ -228,11 +228,6 @@ export function initializeWebSocket(url){
                     };
                 }
 
-                if (JSON.stringify(newGameState) === JSON.stringify(lastGameState))
-                    return;
-                else
-                    lastGameState = newGameState;
-
                 socket.send(JSON.stringify(newGameState));
 
             } else {
@@ -467,7 +462,7 @@ function moveLoop() {
         }
     
         movePlayer(player, deltaX, deltaY);
-        sendGameState();
+        //sendGameState();
 
         
         deltaX = 0;
@@ -512,7 +507,6 @@ function onMouseMove(event) {
         else {
             movePlayer2(player2, deltaX, deltaY);
         }
-        sendGameState();
     }
 }
 
@@ -539,7 +533,7 @@ function onKeyDown(event) {
                     if (ballIsHeld && resetBall_ == false) {
                         ballIsHeld = false; // Release the ball
                         resetBall_ = true; // Reset the ball to a random position
-                        //sendGameState();
+                        sendGameState();
                     }
                     break;
             }
@@ -562,7 +556,7 @@ function onKeyDown(event) {
                     if (ballIsHeld && resetBall_ == false) {
                         ballIsHeld = false; // Release the ball
                         resetBall_ = true; // Reset the ball to a random position
-                        //sendGameState();
+                        sendGameState();
                     }
                     break;
             }
@@ -602,7 +596,7 @@ function onKeyDown(event) {
                     
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
-                    //sendGameState();
+                    sendGameState();
                 }
                 break;
         }
@@ -714,6 +708,7 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     });
 
     currentFace = newCurrentFace;
+    sendGameState();
 
 }
 
@@ -864,6 +859,7 @@ function updateCurrentFaceWithTargetRotation2(targetRotation) {
     });
 
     currentFace2 = newCurrentFace;
+    sendGameState();
     //console.log(`Updated current face: ${currentFace2}`);
 }
 
@@ -993,10 +989,10 @@ function updateAimingLine() {
 
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
+        sendGameState();
     }
     else
         aimingLine.material.opacity = 0;
-    sendGameState();
 }
 
 function updateScore() {
