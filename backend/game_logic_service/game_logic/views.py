@@ -11,6 +11,7 @@ from django.core.cache import cache
 from asgiref.sync import async_to_sync
 from asgiref.sync import sync_to_async
 from django.views import View
+from threading import Lock
 
 import json
 import time
@@ -20,6 +21,9 @@ from .serializers import GameStateSerializer
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+game_update_lock = Lock()
+
+
 @csrf_exempt
 @api_view(['POST'])
 def game_update(request):
@@ -27,36 +31,37 @@ def game_update(request):
         channel_layer = get_channel_layer()
 
         new_game_state = json.loads(request.body)
+        #print("ballisheld: ", new_game_state.get('ballIsHeld'))
+        if (new_game_state.get('ballIsHeld') == None):
+            new_game_state['ballIsHeld'] = False
         game_id = new_game_state.get('game_id')
 
-        #print("reset_ball: ", new_game_state.get('reset_ball'))
+        #if not(new_game_state.get('ballIsHeld')) : print("ballisheld: ", new_game_state.get('ballIsHeld'))
         #serializer = GameStateSerializer(data=new_game_state)
         #if not serializer.is_valid():
         #    return JsonResponse(serializer.errors, status=400)
  
         if game_id is None:
             return JsonResponse("Missing game-ID", status=400)
+ 
+        with game_update_lock:
+            cached_game_state = cache.get(game_id)
 
-        cached_game_state = cache.get(game_id)
+            if cached_game_state is not None:
+                #logging.info(f"Using cached game state for game ID: {game_id}")
+                game_state = cached_game_state
+            else:
+                logging.info(f"Creating new game state for game ID: {game_id}")
+                game_state = create_new_game_state(game_id)
+            #print("incoming ballIsHeld: ", new_game_state.get('ballIsHeld'))
+            if new_game_state:
+                game_state.update(new_game_state)
+            # process data with logic here
+            update_game_state(game_state)
 
-        if cached_game_state is not None:
-            game_state = cached_game_state
-        else:
-            game_state = create_new_game_state(game_id)
-        
-
-        if game_state.get('is_processing'):
-            return Response("Already processing", status=200)
-
-        
-        if new_game_state:
-            game_state.update(new_game_state)
-
-        # process data with logic here
-        update_game_state(game_state)
-
-        cache.set(game_id, game_state, timeout=None)
-        game_state['type'] = 'update'
+            #print("updated ballIsHeld: ", game_state.get('ballIsHeld'))
+            cache.set(game_id, game_state, timeout=None)
+            game_state['type'] = 'update'
 
         #print("updated Game state: ", game_state)
         async_to_sync(channel_layer.group_send)(game_id, game_state)
@@ -103,9 +108,8 @@ def update_game_state(game_state):
     #game_update(data)
     if current_time - game_state['last_update_time'] >= game_state['update_interval']:
         game_state['last_update_time'] = current_time
-    if game_state['reset_ball'] and game_state['ballIsHeld']:
+    if game_state['reset_ball']:
         reset_ball(game_state)
-        game_state['reset_ball'] = False
     update_ball(game_state)
     #update_ai(game_state)
 
@@ -115,6 +119,7 @@ def reset_ball(game_state):
 
     game_state['playerTurn'] = not game_state['playerTurn']
     game_state['reset_ball'] = False
+    game_state['ballIsHeld'] = False
     # Calcular la dirección en base a la cara actual y el ángulo de puntería
     direction = calculate_direction(game_state['playerTurn'], game_state['current_face'], game_state['current_face2'], game_state['aiming_angle'])
 
@@ -128,13 +133,13 @@ def reset_ball(game_state):
     game_state['ballSpeed'] = {k: v * initial_velocity_magnitude for k, v in direction.items()}
 
     # Establecer la posición inicial de la pelota, asegurándose de que no colisione inmediatamente con el jugador
-    offset_distance = 0.3  # Ajustar según sea necesario
+    offset_distance = 0.5  # Ajustar según sea necesario
     if not game_state['playerTurn']:
         ball_start_position = {k: game_state['player1'][k] + direction[k] * offset_distance for k in direction}
     else:
         ball_start_position = {k: game_state['player2'][k] + direction[k] * offset_distance for k in direction}
 
-    print(f"cube_size: {game_state['cube_size']}, ball_radius: {game_state['ball_radius']}")
+    #print(f"cube_size: {game_state['cube_size']}, ball_radius: {game_state['ball_radius']}")
     # Verificar que la posición inicial esté dentro de los límites permitidos del cubo
     half_cube_size = game_state['cube_size'] / 2 - game_state['ball_radius']
     for axis in ['x', 'y', 'z']:
@@ -179,15 +184,15 @@ def set_vector_length(vector, length):
         vector[axis] = vector[axis] / current_length * length
         
 def update_ball(game_state):
-    print(f"Updating ball. Ball is held: {game_state['ballIsHeld']}")    
+    #print(f"Updating ball. Ball is held: {game_state['ballIsHeld']}")    
     if game_state['ballIsHeld']:
         if game_state['playerTurn']:
             game_state['ball'] = game_state['player1'].copy()
         else:
             game_state['ball'] = game_state['player2'].copy()
         return
-
     # Calculate the next position of the ball
+    print("Updating ball")
     next_position = {
         'x': game_state['ball']['x'] + game_state['ballSpeed']['x'],
         'y': game_state['ball']['y'] + game_state['ballSpeed']['y'],
@@ -196,6 +201,7 @@ def update_ball(game_state):
 
     # Check for collisions with players
     if check_collision(game_state):
+        print("Collision detected")
         pass
     else:
         game_state['ball'] = next_position  # Update ball position normally
@@ -217,6 +223,8 @@ def update_ball(game_state):
         game_state['wall_hits'] += 1
         logging.info(game_state['wall_hits'])
 
+    logging.info(game_state['wall_hits'])
+    game_state['ballIsHeld'] = False
     # Score handling
     if game_state['wall_hits'] >= 2:
         if not game_state['playerTurn']:
@@ -228,8 +236,7 @@ def update_ball(game_state):
         game_state['ballIsHeld'] = True
         print(f"Scoring update. PlayerScore: {game_state['playerScore']}, AIScore: {game_state['aiScore']}")
         update_ball(game_state)
-        reset_ball(game_state)
-
+        #reset_ball(game_state)
     # Update the collision marker position
     #update_collision_marker(game_state)
 
@@ -248,7 +255,7 @@ def check_collision(game_state):
         'y': ball_position['y'] + game_state['ballSpeed']['y'],
         'z': ball_position['z'] + game_state['ballSpeed']['z']
     }
-    print(f"Checking collision. Next position: {next_position}")
+    #print(f"Checking collision. Next position: {next_position}")
 
     # Create a bounding box that encompasses the ball's start and end points
     ball_box = create_bounding_box(game_state, ball_position, next_position)

@@ -159,7 +159,8 @@ export function initializeWebSocket(url){
                 currentFace2 = data.current_face2;
                 aimingAngle = data.aiming_angle;
                 resetBall_ = data.reset_ball;
-                console.log("reset ball", resetBall_);
+                //console.log("reset ball", resetBall_);
+                console.log("ballisheld", ballIsHeld);
 
 
                 updateScore();
@@ -169,12 +170,13 @@ export function initializeWebSocket(url){
         // Ensure WebSocket is open before sending data
         export function sendGameState() {
             if (socket.readyState === WebSocket.OPEN) {
+                
                 const newGameState = {
                     type: 'game-state',
                     playerTurn: playerTurn,
                     playerScore: playerScore,
                     aiScore: aiScore,
-                    ballIsHeld: ballIsHeld,
+                    //ballIsHeld: ballIsHeld,
                     current_face: currentFace,
                     current_face2: currentFace2,
                     aiming_angle: aimingAngle,
@@ -227,6 +229,8 @@ export function initializeWebSocket(url){
                         }
                     };
                 }
+
+                //if (!ballIsHeld) console.log("Sending new game state with ballIsHeld:", newGameState.ballIsHeld);
 
                 socket.send(JSON.stringify(newGameState));
 
@@ -428,7 +432,8 @@ function moveLoop() {
             }
         
             movePlayer(player, deltaX, deltaY);
-            sendGameState();
+            if (!resetBall_)
+                sendGameState();
         }
         else{
             if (keysPressed.ArrowUp) {
@@ -445,7 +450,8 @@ function moveLoop() {
             }
         
             movePlayer2(player2, deltaX, deltaY);
-            sendGameState();
+            if (!resetBall_)
+                sendGameState();
         }
     } else {
         if (keysPressed.i) {
@@ -462,7 +468,8 @@ function moveLoop() {
         }
     
         movePlayer(player, deltaX, deltaY);
-        //sendGameState();
+        if (!resetBall_)
+            sendGameState();
 
         
         deltaX = 0;
@@ -482,7 +489,8 @@ function moveLoop() {
         }
     
         movePlayer2(player2, deltaX, deltaY);
-        sendGameState();
+        if (!resetBall_)
+            sendGameState();
 
 }
 }
@@ -530,10 +538,11 @@ function onKeyDown(event) {
                     switchFace('right');
                     break;
                 case ' ': // Space key
-                    if (ballIsHeld && resetBall_ == false) {
+                    if (ballIsHeld && !resetBall_) {
                         ballIsHeld = false; // Release the ball
                         resetBall_ = true; // Reset the ball to a random position
                         sendGameState();
+                        ballIsHeld = false;
                     }
                     break;
             }
@@ -553,10 +562,11 @@ function onKeyDown(event) {
                     switchFace2('right');
                     break;
                 case ' ': // Space key
-                    if (ballIsHeld && resetBall_ == false) {
+                    if (ballIsHeld && !resetBall_) {
                         ballIsHeld = false; // Release the ball
                         resetBall_ = true; // Reset the ball to a random position
                         sendGameState();
+                        ballIsHeld = false;
                     }
                     break;
             }
@@ -592,12 +602,15 @@ function onKeyDown(event) {
                 switchFace2('right');
                 break;
             case ' ': // Space key
-                if (ballIsHeld && resetBall_ == false) {
+                if (ballIsHeld && !resetBall_) {
                     
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
                     sendGameState();
+                    ballIsHeld = false;
                 }
+                break;
+            default:
                 break;
         }
     }
@@ -674,7 +687,8 @@ function switchFace(direction) {
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
         .start();
-    sendGameState();
+        if (!resetBall_)
+            sendGameState();
 }
 
 
@@ -708,7 +722,8 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     });
 
     currentFace = newCurrentFace;
-    sendGameState();
+    if (!resetBall_)
+        sendGameState();
 
 }
 
@@ -740,7 +755,8 @@ function updatePlayerPositionForFace(face) {
             player.rotation.set(Math.PI / 2, 0, 0);
             break;
     }
-    sendGameState();
+    if (!resetBall_)
+        sendGameState();
 
 }
 
@@ -826,7 +842,8 @@ function switchFace2(direction) {
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
         .start();
-    sendGameState();
+        if (!resetBall_)
+            sendGameState();
 }
 
 function updateCurrentFaceWithTargetRotation2(targetRotation) {
@@ -859,7 +876,8 @@ function updateCurrentFaceWithTargetRotation2(targetRotation) {
     });
 
     currentFace2 = newCurrentFace;
-    sendGameState();
+    if (!resetBall_)
+        sendGameState();
     //console.log(`Updated current face: ${currentFace2}`);
 }
 
@@ -892,7 +910,8 @@ function updatePlayerPositionForFace2(face) {
             player2.rotation.set(Math.PI / 2, 0, 0);
             break;
     }
-    sendGameState();
+    if (!resetBall_)
+        sendGameState();
 
 }
 
@@ -989,7 +1008,8 @@ function updateAimingLine() {
 
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
-        sendGameState();
+        if (!resetBall_)
+            sendGameState();
     }
     else
         aimingLine.material.opacity = 0;
@@ -1195,7 +1215,9 @@ function animate() {
     updateCollisionMarker();
     checkPlayerPosition();
     updateScore();
-    sendGameState();
+
+    if (!resetBall_)
+        sendGameState();
     if (currentBlinkingFace) {
         startBlinking(currentBlinkingFace);
     }
