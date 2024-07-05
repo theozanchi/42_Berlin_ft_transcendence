@@ -64,12 +64,20 @@
 }
 
 /* Player component styles */
-.player-component img {
-    height: 48px;
+:root {
+	--player-img-height: 48px;
+	--player-component-margin: 6px;
+	--player-element-margin: 6px;
 }
 
-.player-component .d-flex > * {
-    margin: 6px 6px;
+.player-component {
+    margin: var(--player-component-margin);
+}
+
+.player-component img {
+    height:	48px;
+	width:	48px;
+	margin: 6px;
 }
 
 .player-avatar {
@@ -102,4 +110,17 @@
 .btn-outline-secondary {
     padding: 0;
     width: 48px; /* Adjust button width as needed */
+}
+
+.align-baseline {
+	align-items: baseline;
+}
+
+.player-component {
+    height: var(--player-img-height);
+    margin-right: var(--player-element-margin);
+}
+
+.nav {
+	z-index: 1;
 }

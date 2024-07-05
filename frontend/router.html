@@ -11,28 +11,25 @@
 
   	</head>
 	<body>
+		<h1>Let's route!</h1>
 
-		<header class="d-flex fixed-top">
-
-			<nav>
-				<a href="/">Home</a>
-				<a href="/setup-local">Setup</a>
-				<a href="/setup-remote">Lobby</a>
-				<a href="/game">Game</a>
-				<a href="/profile">Profile</a>
-				<a href="/login">Login</a>
-				<a href="/signup">Sign up</a>
-				<!-- <a id="backButton2" class="btn btn-outline-secondary col-auto"><i class="bi bi-arrow-left"></i></a> -->
-				<!-- <a href="/about">about</a> -->
-				<!-- <a href="/imprint">Imprint</a> -->
-			</nav>
-			<div class="d-flex justify-content-center header-logo">
-				<img src="/assets/logo_ppg.png" alt="Logo"></img>
+		<div class="container">
+			<div id="main">
+				<nav>
+					<a href="/">Home</a>
+					<a href="/setup">Setup</a>
+					<a href="/lobby">Lobby</a>
+					<a href="/game">Game</a>
+					<a href="/profile">Profile</a>
+					<a href="/login">Login</a>
+					<a href="/signup">Sign up</a>
+					<button id="backButton" class="btn btn-outline-secondary col-auto"><i class="bi bi-arrow-left"></i>
+					<!-- <a href="/about">about</a> -->
+					<!-- <a href="/imprint">Imprint</a> -->
+				</nav>
+				<div id="content"></div>
 			</div>
-		</header>
-
-
-		<div id="content"></div>
+		</div>
 
 	</body>
     <!-- custom JS -->
@@ -42,5 +39,5 @@
 	<script src="js/stepper_titlebar.js"></script>
 	<script src="js/player_list.js"></script>
 	<script src="js/player.js"></script>
-	
+	<script src="js/static_game.js"></script>
 </html>

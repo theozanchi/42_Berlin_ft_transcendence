@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Setup local game | PongerPuff Girls</title>
+    	<meta charset="utf-8"/>
+    	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+		<link rel="stylesheet" href="css/styles.css"/>
+
+  	</head>
+	<body>
+		<div class="container-fluid">
+			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
+				<div class="col col-lg-3 ppg-blue-light d-flex flex-column justify-content-between" style="height: 100vh;">
+					<div class="d-flex flex-column">
+						<div class="spacer-48"></div>
+						<div class="d-flex row align-self-start">
+							<stepper-component></stepper-component>
+						</div>
+						<div id="10-local" class="step">
+							<stepper-titlebar title="Local Game"></stepper-titlebar>
+							<div style="flex-grow: 1; overflow-y: auto;">
+								<player-list mode="local"></player-list>
+							</div>
+						</div>
+					</div>
+					<div class="d-grid gap-2">
+						<hr>
+						<button id="generateLocalGameButton" class="btn btn-primary btn-lg generate-game-button">Generate Game</button>
+						<div class="spacer-48"></div>
+					</div>
+				</div>
+				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
+					<!-- <div class="spacer-48"></div> -->
+					<!-- <h2>GAMING AREA</h2> -->
+					<!-- <pong-game></pong-game> -->
+
+					
+					<!-- <div>
+						<canvas id="bg"></canvas>
+						<script type="module" src="./js/pong/main.js"></script>
+					</div> -->
+				</div>
+				<div class="col col-lg-3 ppg-green-light" id="meta-column">
+					<div class="spacer-48"></div>
+					<h2>WebSocket Client</h2>
+				</div>
+			</div>
+		</div>
+	</body>
+    <!-- custom JS -->
+	<script src="js/websocket_connect.js"></script>
+	<script src="js/stepper.js"></script>
+	<script src="js/stepper_titlebar.js"></script>
+	<script src="js/player_list.js"></script>
+	<script src="js/player.js"></script>
+	<script src="js/static_game.js"></script>
+</html>
