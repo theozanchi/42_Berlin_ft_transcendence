@@ -43,7 +43,8 @@ let ballUpdateEnabled = true;
 const faceMaterials = {};
 let scene, camera, camera2, renderer, cube, player, player2, aiPlayer, ball, collisionMarker, aimingLine;
 let ballSpeed = new THREE.Vector3();
-
+let lastSentTime = Date.now();
+const sendInterval = 1000 / 60;
 let keyMoveSpeed = 0.05;
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
@@ -57,7 +58,9 @@ let pivot;
 let pivot2;
 let isTransitioning = false;
 let isTransitioning2 = false;
+let isGameStateUpdating = false; 
 let ballIsHeld = true;
+let wallHits = 0;
 let aimingAngle = 0;
 let remote = false; // Set to false for two-player game
 const initialReconnectInterval = 1000; // Initial reconnect interval in ms
@@ -92,7 +95,7 @@ export function initializeWebSocket(url){
                     let playerId = data.player_id;
                     currentPlayer = (playerId === 'player1') ? player : player2;
                 } else if (data.type === 'update') {
-                    updateGameState(data);
+                    updateGameState(data.content);
                 }
                 //console.log(data);
             };    
@@ -134,53 +137,69 @@ export function initializeWebSocket(url){
 
 
         export function updateGameState(data) {
-                    
-                // Update player positions
-                //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
-                if (data.player1) {
-                    // Update player1 position
-                    player.position.set(data.player1.x, data.player1.y, data.player1.z);
-                    player.rotation.set(data.player1.rotation.x, data.player1.rotation.y, data.player1.rotation.z);
-                }
-                if (data.player2) {
-                    // Update player2 position
-                    player2.position.set(data.player2.x, data.player2.y, data.player2.z);
-                    player2.rotation.set(data.player2.rotation.x, data.player2.rotation.y, data.player2.rotation.z);
-                }
-                // Update ball position and speed
-                ball.position.set(data.ball.x, data.ball.y, data.ball.z);
-                ballSpeed.set(data.ballSpeed.x, data.ballSpeed.y, data.ballSpeed.z);
-                // Update game state variables
-                playerTurn = data.playerTurn;
-                playerScore = data.playerScore;
-                aiScore = data.aiScore;
-                ballIsHeld = data.ballIsHeld;
-                currentFace = data.current_face;
-                currentFace2 = data.current_face2;
-                aimingAngle = data.aiming_angle;
-                resetBall_ = data.reset_ball;
-                //console.log("reset ball", resetBall_);
-                console.log("ballisheld", ballIsHeld);
+            //if (!data) return;
+            // Update player positions
+            //console.log("ballpos", data.ball.x, data.ball.y, data.ball.z)
+            //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
+            if (data.player1) {
+                // Update player1 position
+                player.position.set(data.player1.x, data.player1.y, data.player1.z);
+                player.rotation.set(data.player1.rotation.x, data.player1.rotation.y, data.player1.rotation.z);
+            }
+            if (data.player2) {
+                // Update player2 position
+                player2.position.set(data.player2.x, data.player2.y, data.player2.z);
+                player2.rotation.set(data.player2.rotation.x, data.player2.rotation.y, data.player2.rotation.z);
+            }
+            // Update ball position and speed
+            ball.position.set(data.ball.x, data.ball.y, data.ball.z);
+            ballSpeed.set(data.ballSpeed.x, data.ballSpeed.y, data.ballSpeed.z);
+            // Update game state variables
+            playerTurn = data.playerTurn;
+            playerScore = data.playerScore;
+            aiScore = data.aiScore;
+            ballIsHeld = data.ballIsHeld;
+            currentFace = data.current_face;
+            currentFace2 = data.current_face2;
+            aimingAngle = data.aiming_angle;
+            resetBall_ = data.reset_ball;
+            wallHits = data.wall_hits;
+            //console.log("reset ball", resetBall_);
+            //console.log("ballisheld", ballIsHeld);
 
 
-                updateScore();
+            updateScore();
+            isGameStateUpdating = false;
              
         }    
 
         // Ensure WebSocket is open before sending data
         export function sendGameState() {
+            const now = Date.now();
+            if (now - lastSentTime < sendInterval) return; // Acquire the lock
+    
             if (socket.readyState === WebSocket.OPEN) {
-                
                 const newGameState = {
                     type: 'game-state',
                     playerTurn: playerTurn,
                     playerScore: playerScore,
                     aiScore: aiScore,
-                    //ballIsHeld: ballIsHeld,
+                    ball: {
+                        x: ball.position.x,
+                        y: ball.position.y,
+                        z: ball.position.z
+                    },
+                    ballSpeed: {
+                        x: ballSpeed.x,
+                        y: ballSpeed.y,
+                        z: ballSpeed.z
+                    },
+                    ballIsHeld: ballIsHeld,
                     current_face: currentFace,
                     current_face2: currentFace2,
                     aiming_angle: aimingAngle,
-                    reset_ball: resetBall_
+                    reset_ball: resetBall_,
+                    wall_hits: wallHits
                 };
                 if (remote){
                     if (currentPlayer === player) {
@@ -233,8 +252,10 @@ export function initializeWebSocket(url){
                 //if (!ballIsHeld) console.log("Sending new game state with ballIsHeld:", newGameState.ballIsHeld);
 
                 socket.send(JSON.stringify(newGameState));
+                lastSentTime = now;
 
             } else {
+                lastSentTime = now;
                 console.error('WebSocket is not open. Ready state:', socket.readyState);
             }    
         }  
@@ -432,8 +453,8 @@ function moveLoop() {
             }
         
             movePlayer(player, deltaX, deltaY);
-            if (!resetBall_)
-                sendGameState();
+
+            sendGameState();
         }
         else{
             if (keysPressed.ArrowUp) {
@@ -450,8 +471,8 @@ function moveLoop() {
             }
         
             movePlayer2(player2, deltaX, deltaY);
-            if (!resetBall_)
-                sendGameState();
+
+            sendGameState();
         }
     } else {
         if (keysPressed.i) {
@@ -468,10 +489,7 @@ function moveLoop() {
         }
     
         movePlayer(player, deltaX, deltaY);
-        if (!resetBall_)
-            sendGameState();
 
-        
         deltaX = 0;
         deltaY = 0;
     
@@ -489,8 +507,8 @@ function moveLoop() {
         }
     
         movePlayer2(player2, deltaX, deltaY);
-        if (!resetBall_)
-            sendGameState();
+  
+        sendGameState();
 
 }
 }
@@ -687,8 +705,8 @@ function switchFace(direction) {
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
         .start();
-        if (!resetBall_)
-            sendGameState();
+
+        sendGameState();
 }
 
 
@@ -722,8 +740,8 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     });
 
     currentFace = newCurrentFace;
-    if (!resetBall_)
-        sendGameState();
+
+    sendGameState();
 
 }
 
@@ -755,8 +773,8 @@ function updatePlayerPositionForFace(face) {
             player.rotation.set(Math.PI / 2, 0, 0);
             break;
     }
-    if (!resetBall_)
-        sendGameState();
+
+    sendGameState();
 
 }
 
@@ -842,8 +860,8 @@ function switchFace2(direction) {
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
         .start();
-        if (!resetBall_)
-            sendGameState();
+
+        sendGameState();
 }
 
 function updateCurrentFaceWithTargetRotation2(targetRotation) {
@@ -876,8 +894,7 @@ function updateCurrentFaceWithTargetRotation2(targetRotation) {
     });
 
     currentFace2 = newCurrentFace;
-    if (!resetBall_)
-        sendGameState();
+    sendGameState();
     //console.log(`Updated current face: ${currentFace2}`);
 }
 
@@ -910,8 +927,7 @@ function updatePlayerPositionForFace2(face) {
             player2.rotation.set(Math.PI / 2, 0, 0);
             break;
     }
-    if (!resetBall_)
-        sendGameState();
+    sendGameState();
 
 }
 
@@ -1008,8 +1024,7 @@ function updateAimingLine() {
 
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
-        if (!resetBall_)
-            sendGameState();
+        sendGameState();
     }
     else
         aimingLine.material.opacity = 0;
@@ -1216,8 +1231,7 @@ function animate() {
     checkPlayerPosition();
     updateScore();
 
-    if (!resetBall_)
-        sendGameState();
+    sendGameState();
     if (currentBlinkingFace) {
         startBlinking(currentBlinkingFace);
     }

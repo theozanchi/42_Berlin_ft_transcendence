@@ -6,6 +6,7 @@ import uuid
 import json
 import asyncio
 import websockets
+import aiohttp
 from requests.exceptions import RequestException
 from asgiref.sync import async_to_sync, sync_to_async
 
@@ -132,15 +133,30 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             async with self.lock:
                 # Ensure only one request is sent at a time
                 content['game_id'] = self.game_id
+                #response =  await self._post_request(GAME_LOGIC_REST_URL + '/game-update/', content)
                 response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
                 response.raise_for_status()
+                await self.channel_layer.group_send(
+                self.game_id, 
+                {
+                    'type': 'update',
+                    'content': response.json()
+                }
+                )
+                self.send_json({'type': 'update', 'content': content})
         except RequestException as e:
             self.send_json({'error': str(e)})
         except Exception as e:
             print({'error': str(e)})
-        
+
+    async def _post_request(self, url, content):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=content, headers=self.get_headers()) as response:
+                return response
+         
     async def update(self, content):
-        await self.send_json(content)
+        async with self.lock:
+            await self.send_json(content)
         
     async def pause_game(self, content):
         pass

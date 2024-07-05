@@ -22,18 +22,17 @@ from .serializers import GameStateSerializer
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 game_update_lock = Lock()
-
+last_update_time = time.time()
 
 @csrf_exempt
 @api_view(['POST'])
 def game_update(request):
     try:
+        global last_update_time
         channel_layer = get_channel_layer()
 
         new_game_state = json.loads(request.body)
         #print("ballisheld: ", new_game_state.get('ballIsHeld'))
-        if (new_game_state.get('ballIsHeld') == None):
-            new_game_state['ballIsHeld'] = False
         game_id = new_game_state.get('game_id')
 
         #if not(new_game_state.get('ballIsHeld')) : print("ballisheld: ", new_game_state.get('ballIsHeld'))
@@ -45,6 +44,9 @@ def game_update(request):
             return JsonResponse("Missing game-ID", status=400)
  
         with game_update_lock:
+            current_time = time.time()
+            if current_time - last_update_time < (1 / 60):
+                return JsonResponse("Too many requests", status=429)
             cached_game_state = cache.get(game_id)
 
             if cached_game_state is not None:
@@ -64,9 +66,9 @@ def game_update(request):
             game_state['type'] = 'update'
 
         #print("updated Game state: ", game_state)
-        async_to_sync(channel_layer.group_send)(game_id, game_state)
+        #async_to_sync(channel_layer.group_send)(game_id, game_state)
 
-        return JsonResponse("Updated game state", safe=False, status=200)
+        return JsonResponse(game_state, safe=False, status=200)
     
     except Exception as e:
         logging.error(f'Error updating game state: {str(e)}')
@@ -192,7 +194,7 @@ def update_ball(game_state):
             game_state['ball'] = game_state['player2'].copy()
         return
     # Calculate the next position of the ball
-    print("Updating ball")
+    #print("Updating ball")
     next_position = {
         'x': game_state['ball']['x'] + game_state['ballSpeed']['x'],
         'y': game_state['ball']['y'] + game_state['ballSpeed']['y'],
@@ -223,8 +225,8 @@ def update_ball(game_state):
         game_state['wall_hits'] += 1
         logging.info(game_state['wall_hits'])
 
-    logging.info(game_state['wall_hits'])
-    game_state['ballIsHeld'] = False
+    #logging.info(game_state['wall_hits'])
+    #game_state['ballIsHeld'] = False
     # Score handling
     if game_state['wall_hits'] >= 2:
         if not game_state['playerTurn']:
@@ -232,7 +234,7 @@ def update_ball(game_state):
         else:
             game_state['aiScore'] += 1
         game_state['wall_hits'] = 0
-        game_state['playerTurn'] = not game_state['playerTurn']
+        #game_state['playerTurn'] = not game_state['playerTurn']
         game_state['ballIsHeld'] = True
         print(f"Scoring update. PlayerScore: {game_state['playerScore']}, AIScore: {game_state['aiScore']}")
         update_ball(game_state)
