@@ -62,6 +62,11 @@ const urlRoutes = {
 		title: "Signup",
 		description: "",
 	},
+	"/game-table": {
+		template: "/game_table.html",
+		title: "Game Table",
+		description: "",
+	},
 }
 
 const urlRoute = (event) => {
