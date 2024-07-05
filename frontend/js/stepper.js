@@ -14,6 +14,13 @@ var gameStarted = false;
 var playerId;
 var remote;
 
+//Create the staert button
+let startGameButton = document.createElement('button');
+startGameButton.textContent = 'Start Game';
+
+// Add a margin to the top of the button
+startGameButton.style.marginTop = '100px';  // Adjust this value as needed
+
 /* // For chat area
 var messageInput = document.getElementById('messageInput');
 var sendButton = document.getElementById('sendButton');
@@ -66,6 +73,9 @@ function openSocket() {
                     gameStarted = true;
                     console.log('Game started!');
 					loadLocalGame();
+					if (startGameButton) {
+						startGameButton.remove();
+					}
                 }
 				if (data.type === 'game_state') {
 					updateGameState(data);
@@ -117,12 +127,6 @@ function generateLocalGame() {
 		sendJson(json);
 
 		////////////////////////////////////////
-		//Create the staert button
-		let startGameButton = document.createElement('button');
-		startGameButton.textContent = 'Start Game';
-
-		// Add a margin to the top of the button
-		startGameButton.style.marginTop = '100px';  // Adjust this value as needed
 
 		const gameArea = document.getElementById('game-column');
 		if (gameArea) {
@@ -133,6 +137,10 @@ function generateLocalGame() {
 		
 		// Add event listener to start game button
 		startGameButton.addEventListener('click', function() {
+			if (gameStarted) {
+				console.log('Game already started!');
+				return;
+			}
 			sendJson(JSON.stringify({ type: 'start-game' }));
 		});
 		////////////////////////////////////////////
