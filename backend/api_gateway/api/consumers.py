@@ -66,6 +66,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def create_game(self, content):
         try:
             content['channel_name'] = self.channel_name
+            print('content: ', content)
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.game_id = response.json().get('game_id')
