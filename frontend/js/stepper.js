@@ -107,6 +107,25 @@ async function sendJson(json) {
     }
 }
 
+function createStartButton() {
+
+	const gameArea = document.getElementById('game-column');
+	if (gameArea) {
+		gameArea.appendChild(startGameButton);
+	} else {
+		console.error('Element with id "game-column" not found');
+	}
+	
+	// Add event listener to start game button
+	startGameButton.addEventListener('click', function() {
+		if (gameStarted) {
+			console.log('Game already started!');
+			return;
+		}
+		sendJson(JSON.stringify({ type: 'start-game' }));
+	});
+}
+
 function generateLocalGame() {
 	console.log("GENERATING LOCAL GAME");
 	
@@ -126,24 +145,7 @@ function generateLocalGame() {
 		console.log('Sending JSON:', data);
 		sendJson(json);
 
-		////////////////////////////////////////
-
-		const gameArea = document.getElementById('game-column');
-		if (gameArea) {
-			gameArea.appendChild(startGameButton);
-		} else {
-			console.error('Element with id "game-column" not found');
-		}
-		
-		// Add event listener to start game button
-		startGameButton.addEventListener('click', function() {
-			if (gameStarted) {
-				console.log('Game already started!');
-				return;
-			}
-			sendJson(JSON.stringify({ type: 'start-game' }));
-		});
-		////////////////////////////////////////////
+		createStartButton();
 	})
 	.catch(error => {
 		console.error('Failed to open WebSocket connection:', error);
@@ -189,19 +191,42 @@ function unloadLocalGame() {
 
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
+	const playerAlias = 'NewPlayer';
+	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', players: [playerAlias]};
 
-	openSocket();
+	openSocket('/ws/')
+	.then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 async function hostRemoteGame() {
-	const { openPromise, messagePromise } = openSocket();
-	await openPromise;
-    console.log('MY RESPONSE');
-    const message = await messagePromise;
-    console.log('MY RESPONSE', message);
+	// const { openPromise, messagePromise } = openSocket('/ws/host/');
+	// await openPromise;
+    // console.log('MY RESPONSE');
+    // const message = await messagePromise;
+    // console.log('MY RESPONSE', message);
+	
+	// Create data object with type key
+	let data = {type: 'create-game', 'game-mode': 'remote', 'players': ['Player1']};
+
+	openSocket('/ws/')
+    .then(() => {
+        var json = JSON.stringify(data);
+		console.log('Sending JSON:', data);
+        sendJson(json);
+		
+		createStartButton();
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
-
-
 
 	class StepperWrapper extends HTMLElement {
 		constructor() {
@@ -227,7 +252,7 @@ async function hostRemoteGame() {
 			});
 
 			document.getElementById('hostRemoteGameButton').addEventListener('click', (event) => {
-				event
+				event.preventDefault();
 				hostRemoteGame();
 
 			});

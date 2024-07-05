@@ -176,7 +176,17 @@ export function initializeWebSocket(url){
                     playerTurn: playerTurn,
                     playerScore: playerScore,
                     aiScore: aiScore,
-                    //ballIsHeld: ballIsHeld,
+                    ball: {
+                        x: ball.position.x,
+                        y: ball.position.y,
+                        z: ball.position.z
+                    },
+                    ballSpeed: {
+                        x: ballSpeed.x,
+                        y: ballSpeed.y,
+                        z: ballSpeed.z
+                    },
+                    ballIsHeld: ballIsHeld,
                     current_face: currentFace,
                     current_face2: currentFace2,
                     aiming_angle: aimingAngle,
@@ -233,6 +243,7 @@ export function initializeWebSocket(url){
                 //if (!ballIsHeld) console.log("Sending new game state with ballIsHeld:", newGameState.ballIsHeld);
 
                 newsocket.send(JSON.stringify(newGameState));
+                console.log("Sending game state");
 
             } else {
                 console.error('WebSocket is not open. Ready state:', socket.readyState);
