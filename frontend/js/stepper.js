@@ -125,33 +125,53 @@ async function hostRemoteGame() {
 		connectedCallback() {
 			// console.log("rendering stepper form");
 
-			document.getElementById('generateLocalGameButton').addEventListener('click', (event) => {
-				event.preventDefault();
+			// let myElement = document.querySelector('')
 
-				generateLocalGame();
-				console.log("heyhey");
-				loadLocalGame();
-			});
+			let myElement = document.getElementById('generateLocalGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
+					event.preventDefault();
 
-			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
+					generateLocalGame();
+					console.log("heyhey");
+					loadLocalGame();
+				});
+			};
+
+			myElement = document.getElementById('joinRemoteGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
 				
 				joinRemoteGame();
 			});
+			};
 
-			document.getElementById('hostRemoteGameButton').addEventListener('click', (event) => {
-				event
+			myElement = document.getElementById('hostRemoteGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
+				event.preventDefault();
+
+				console.log("HOSTING REMOTE");
+
 				hostRemoteGame();
 
 			});
-			
-			document.getElementById('startRemoteGameButton').addEventListener('click', (event) => {
-				event.preventDefault();
-				
-				alert(`Get Ready to Play Your Remote Game`)	
-			});
+			};
 
-			document.getElementById('shareRemoteGameIDButton').addEventListener('click', function() {
+
+			myElement = document.getElementById('startRemoteGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
+					event.preventDefault();
+					
+					alert(`Get Ready to Play Your Remote Game`)	
+				});
+			};
+
+			myElement = document.getElementById('shareRemoteGameIDButton');
+			if (myElement) {
+				myElement.addEventListener('click', function() {
 				// Get the input field
 				const input = this.previousElementSibling;
 				// Get the span element containing the icon
@@ -171,6 +191,7 @@ async function hostRemoteGame() {
 					console.error('Could not copy text: ', err);
 				});
 			});
+			};
 		}
 	}
 	
