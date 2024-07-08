@@ -21,7 +21,7 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 
 CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8'
-CLIENT_SECRET = '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'
+CLIENT_SECRET = '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'
 REDIRECT_URI = 'https://localhost:8443/api/user_mgt/oauth/callback/'
 
     # return Response(response.json(), status=response.status_code)
@@ -57,7 +57,7 @@ def oauth_login(request):
 def oauth_callback(request):
     state = request.GET.get('state')
     if state != request.session.pop('oauth_state', ''):
-        return redirect('/')
+        return redirect('/api/user_mgt')
     code = request.GET.get('code')
     token_url = 'https://api.intra.42.fr/oauth/token'
     token_data = {
@@ -70,10 +70,10 @@ def oauth_callback(request):
     token_response = requests.post(token_url, data=token_data)
     token_json = token_response.json()
     if token_response.status_code != 200:
-        return redirect('/')
+        return render(request, "error.html", {"error": "No access token in 42 server response. API credentials might be outdated"})
     access_token = token_json.get('access_token')
     if not access_token:
-        return redirect('/')
+        return render(request, "error.html", {"error": "Server response does not contain access_token"})
 
     user_info_url = 'https://api.intra.42.fr/v2/me'
     headers = {'Authorization': f'Bearer {access_token}'}
@@ -127,9 +127,10 @@ def delete_cookie(request):
 # email and password registration
 def register(request):
     if request.method == "POST":
-        form = RegistrationForm(request.POST)
+        form = RegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            UserProfile.objects.update_or_create(user=user, defaults={'avatar': form.cleaned_data['avatar']})
             return redirect("home")
     else:
         form = RegistrationForm()
