@@ -27,26 +27,33 @@ const urlRoutes = {
 		title: "Setup",
 		description: "",
 	},
-	"/host-remote": {
-		template: "/host.html",
-		title: "Setup",
-		description: "",
-	},
 	"/setup-remote": {
-		template: "/lobby.html",
+		template: "/remote.html",
 		title: "Lobby",
 		description: "",
 	},
+	"/host-remote": {
+		template: "/lobby.html",
+		title: "Setup",
+		description: "",
+	},
+	"/join-remote": {
+		template: "/lobby.html",
+		title: "Setup",
+		description: "",
+	},
+
 	"/game": {
-		template: "/setup-local.html",
-		title: "game",
+		template: "/game.html",
+		title: "Signup",
 		description: "",
 	},
-	"/profile": {
-		template: "/profile.html",
-		title: "Profile",
+	"/game-table": {
+		template: "/game_table.html",
+		title: "Game Table",
 		description: "",
 	},
+
 	"/login": {
 		template: "/login.html",
 		title: "Login",
@@ -57,14 +64,15 @@ const urlRoutes = {
 		title: "Signup",
 		description: "",
 	},
-	"/game": {
-		template: "/game.html",
-		title: "Signup",
+	"/profile": {
+		template: "/profile.html",
+		title: "Profile",
 		description: "",
 	},
-	"/game-table": {
-		template: "/game_table.html",
-		title: "Game Table",
+
+	"/fill": {
+		template: "/fill.html",
+		title: "Layout Tes",
 		description: "",
 	},
 }
