@@ -10,17 +10,18 @@ let newsocket;
 let openPromise;
 
 function openSocket(path) {
-	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
-		console.log('Opening new WebSocket');
-		const url = `wss://${window.location.host}${path}`;
-		newsocket = new WebSocket(url);
+    let openPromise, messagePromise;
+    if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+        console.log('Opening new WebSocket');
+        const url = `wss://${window.location.host}${path}`;
+        newsocket = new WebSocket(url);
 
-		openPromise = new Promise((resolve) => {
-			newsocket.onopen = function(event) {
-				console.log('Connected to WebSocket server.');
-				resolve();
-			};
-		});
+        openPromise = new Promise((resolve) => {
+            newsocket.onopen = function(event) {
+                console.log('Connected to WebSocket server.');
+                resolve();
+            };
+        });
 
         messagePromise = new Promise((resolve) => {
             newsocket.onmessage = function(event) {
@@ -29,19 +30,15 @@ function openSocket(path) {
             };
         });
 
-		newsocket.onmessage = function(event) {
-			console.log('Received: ' + event.data);
-		};
+        newsocket.onclose = function(event) {
+            console.log('Disconnected from WebSocket server.');
+        };
 
-		newsocket.onclose = function(event) {
-			console.log('Disconnected from WebSocket server.');
-		};
-
-		newsocket.onerror = function(error) {
-			console.log('WebSocket error: ' + error.message);
-		};
+        newsocket.onerror = function(error) {
+            console.log('WebSocket error: ' + error.message);
+        };
     }
-	return (openPromise);
+    return { openPromise, messagePromise };
 }
 
 async function sendJson(json) {
@@ -99,25 +96,26 @@ function loadLocalGame() {
 
 }
 
-function joinRemoteGame() {
-	const gameId = document.getElementById('searchGameID').value.trim(); 
+function setGameID(gameID) {
+	if (!gameID) {
+		let params = new URLSearchParams(window.location.search);
+		gameID = params.get('id');
+	}
 
-	uri = `/ws/join/${gameId}/`;
-	console.log(uri);
-	openSocket(uri);
-
-
-	console.log(typeof eventOrUrl);
-
-	urlRoute(`/join-remote?id=${gameId}`);
+	let input = document.getElementById("lobbyGameID");
+	if (input)
+		input.value = gameID;
 }
 
 async function hostRemoteGame() {
 	const { openPromise, messagePromise } = openSocket('/ws/host/');
 	await openPromise;
-    console.log('MY RESPONSE');
-    const message = await messagePromise;
-    console.log('MY RESPONSE', message);
+    // console.log('MY RESPONSE');
+	const message = await messagePromise;
+	console.log('MY RESPONSE', message);
+	const data = JSON.parse(message);
+	const gameID = data['game-id'];
+	urlRoute(`/join-remote?id=${gameID}`);
 }
 
 
