@@ -64,7 +64,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def create_game(self, content):
         try:
             content['channel_name'] = self.channel_name
-            print('content: ', content)
+            self.alias = content.get('players')[0]
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.game_id = response.json().get('game_id')
@@ -82,12 +82,14 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def join_game(self, content):
         try:
             content['channel_name'] = self.channel_name
+            self.alias = content.get('players')[0]
             response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
             if response.status_code == 404:
                 self.game_id = content.get('game_id')
                 raise ValueError(f'{self.game_id} not found.')
             response.raise_for_status()
             self.game_id = response.json().get('game_id')
+            self.mode = 'remote'
 
             await self.channel_layer.group_add(self.game_id, self.channel_name)
             await self.channel_layer.group_send(
@@ -114,18 +116,21 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             content = {'game-id': self.game_id}
             response = requests.post(GAME_MANAGER_REST_URL + '/round/', json=content, headers=self.get_headers())
             response.raise_for_status()
-            #await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
+
+            # Send round info to all players
             await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
+            # Send player id to pther players
+            await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
 
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
     
     async def get_player_id(self, content):
-        print('player id: ', content)
+        logging.debug('player id: ', content)
         if self.mode == 'remote':
-            if content['player1_channel_name'] == self.channel_name:
+            if content.get('player1') == self.alias:
                 self.player_id = 'player1'
-            elif content['player2_channel_name'] == self.channel_name:
+            elif content.get('player2') == self.alias:
                 self.player_id = 'player2'
             else:
                 self.player_id = 'spectator'
@@ -150,7 +155,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     'type': 'update',
                     'content': response.json() 
                 })
-                await self.send_json({'type': 'update', 'content': content})
+                #await self.send_json({'type': 'update', 'content': content})
 
         except Exception as e:
             await self.send_json({'error': str(e)})

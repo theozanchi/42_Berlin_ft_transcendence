@@ -12,8 +12,8 @@ let openPromise;
 
 // For game area
 var gameStarted = false;
-var playerId = null;
 var remote = false;
+var playerId;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -44,12 +44,10 @@ function openSocket() {
 
 		newsocket.onmessage = function(event) {
 			console.log('Received: ' + event.data);
-                let data = JSON.parse(event.data);
+			let data = JSON.parse(event.data);
                
 				if (data.type === 'broadcast') {
-					var messageElement = document.createElement('p');
-					messageElement.textContent = data.message;
-					messageArea.appendChild(messageElement);
+					console.log('Broadcast:', data);
 				}
 				if (data.type === 'create-game') {
 						game_id = data.game_id;
@@ -58,7 +56,10 @@ function openSocket() {
 					if (data.mode === 'remote') {
 						remote = true;
 						playerId = data.player_id;
-						currentPlayer = (playerId === 'player1') ? player : player2;
+						/* if (data.player_id === 'spectator')
+							currentPlayer = null;
+						else
+							currentPlayer = (data.player_id === 'player1') ? player : player2; */
 					}
 
                     gameStarted = true;

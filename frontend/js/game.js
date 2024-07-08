@@ -3,6 +3,8 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
+import { sendJson, remote, playerId } from './stepper.js';
+
 //////////////--------INDEX--------///////////////
 
 //---WEBSOCKET---//
@@ -199,6 +201,12 @@ export function sendGameState() {
 index2;
 
 async function init() {
+    if (playerId === 'player1')
+        currentPlayer = player;
+    else if (playerId === 'player2')
+        currentPlayer = player2;
+    else
+        currentPlayer = 'spectator';
 
     // Create the scene
     scene = new THREE.Scene();
