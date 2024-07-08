@@ -11,8 +11,8 @@ let openPromise;
 
 // For game area
 var gameStarted = false;
-var playerId;
-var remote;
+var playerId = null;
+var remote = false;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -62,13 +62,15 @@ function openSocket() {
 					messageElement.textContent = data.message;
 					messageArea.appendChild(messageElement);
 				}
+				if (data.type === 'create-game') {
+						game_id = data.game_id;
+				}
                 if (data.type === 'start-game') {
 					if (data.mode === 'remote') {
 						remote = true;
 						playerId = data.player_id;
+						currentPlayer = (playerId === 'player1') ? player : player2;
 					}
-					else
-						remote = false;
 
                     gameStarted = true;
                     console.log('Game started!');
@@ -77,7 +79,7 @@ function openSocket() {
 						startGameButton.remove();
 					}
                 }
-				if (data.type === 'game_state') {
+				if (data.type === 'update') {
 					updateGameState(data);
 				}
 				if (data.type === 'finish-game') {
@@ -94,6 +96,15 @@ function openSocket() {
 			console.log('WebSocket error: ' + error.message);
 		};
     }
+/* 		// Keep-Alive Mechanism
+		function sendKeepAlive() {
+			if (socket.readyState === WebSocket.OPEN) {
+				socket.send(JSON.stringify({ type: 'keep_alive' }));
+			}    
+		}    
+	
+		setInterval(sendKeepAlive, 30000); // Send a keep-alive message every 30 seconds
+	 */
 	return (openPromise);
 }
 
@@ -101,7 +112,7 @@ async function sendJson(json) {
 	console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
-        newsocket.send(json);
+        await newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
     }
@@ -153,6 +164,11 @@ function generateLocalGame() {
 }
 
 function loadLocalGame() {
+	if (!gameStarted) {
+		console.error('Game not started yet!');
+		return;
+	}
+
 	// Get the game area element
     const gameArea = document.getElementById('game-column');
 
@@ -202,7 +218,7 @@ async function hostRemoteGame() {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
-		
+
 		createStartButton();
     })
     .catch(error => {
