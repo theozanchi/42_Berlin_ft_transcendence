@@ -12,8 +12,8 @@ let openPromise;
 
 // For game area
 var gameStarted = false;
-var remote = false;
-var playerId;
+export var remote = false;
+export var playerId;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
