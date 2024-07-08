@@ -57,6 +57,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def keep_alive(self, content):
         await self.send_json({'type': 'keep-alive'})
 
+    # TO DO: if local game, start it immediately
     async def create_game(self, content):
         try:
             content['channel_name'] = self.channel_name
@@ -106,9 +107,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         if self.host is not True:
             await self.send_json({'error': 'Only host can start game'})
         try:
-            response = requests.get(GAME_MANAGER_REST_URL + '/round/', params={'game_id': self.game_id}, headers=self.get_headers())
+            content = {'game-id': self.game_id}
+            response = requests.post(GAME_MANAGER_REST_URL + '/round/', json=content, headers=self.get_headers())
             response.raise_for_status()
-            await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
+            #await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
+            await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
 
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})

@@ -119,7 +119,6 @@ async function sendJson(json) {
 }
 
 function createStartButton() {
-
 	const gameArea = document.getElementById('game-column');
 	if (gameArea) {
 		gameArea.appendChild(startGameButton);
