@@ -176,7 +176,7 @@ export function initializeWebSocket(url){
         // Ensure WebSocket is open before sending data
         export function sendGameState() {
             const now = Date.now();
-            if (now - lastSentTime < sendInterval) return; // Acquire the lock
+            //if (now - lastSentTime < sendInterval) return; // Acquire the lock
     
             if (socket.readyState === WebSocket.OPEN) {
                 const newGameState = {
@@ -533,6 +533,7 @@ function onMouseMove(event) {
         else {
             movePlayer2(player2, deltaX, deltaY);
         }
+        sendGameState();
     }
 }
 
@@ -751,26 +752,32 @@ function updatePlayerPositionForFace(face) {
         case 0: // Front
             player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6);
             player.rotation.set(0, 0, 0);
+            sendGameState();
             break;
         case 1: // Back
             player.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
             player.rotation.set(0, Math.PI, 0);
+            sendGameState();
             break;
         case 2: // Left
             player.position.set(-(cubeSize / 2 + playerSize.z / 6), 0, 0);
             player.rotation.set(0, -Math.PI / 2, 0);
+            sendGameState();
             break;
         case 3: // Right
             player.position.set(cubeSize / 2 + playerSize.z / 6, 0, 0);
             player.rotation.set(0, Math.PI / 2, 0);
+            sendGameState();
             break;
         case 4: // Top
             player.position.set(0, cubeSize / 2 + playerSize.z / 6, 0);
             player.rotation.set(-Math.PI / 2, 0, 0);
+            sendGameState();
             break;
         case 5: // Bottom
             player.position.set(0, -(cubeSize / 2 + playerSize.z / 6), 0);
             player.rotation.set(Math.PI / 2, 0, 0);
+            sendGameState();
             break;
     }
 
@@ -905,26 +912,32 @@ function updatePlayerPositionForFace2(face) {
         case 0: // Front
             player2.position.set(0, 0, cubeSize / 2 + playerSize.z / 6);
             player2.rotation.set(0, 0, 0);
+            sendGameState();
             break;
         case 1: // Back
             player2.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
             player2.rotation.set(0, Math.PI, 0);
+            sendGameState();
             break;
         case 2: // Left
             player2.position.set(-(cubeSize / 2 + playerSize.z / 6), 0, 0);
             player2.rotation.set(0, -Math.PI / 2, 0);
+            sendGameState();
             break;
         case 3: // Right
             player2.position.set(cubeSize / 2 + playerSize.z / 6, 0, 0);
             player2.rotation.set(0, Math.PI / 2, 0);
+            sendGameState();
             break;
         case 4: // Top
             player2.position.set(0, cubeSize / 2 + playerSize.z / 6, 0);
             player2.rotation.set(-Math.PI / 2, 0, 0);
+            sendGameState();
             break;
         case 5: // Bottom
             player2.position.set(0, -(cubeSize / 2 + playerSize.z / 6), 0);
             player2.rotation.set(Math.PI / 2, 0, 0);
+            sendGameState();
             break;
     }
     sendGameState();
