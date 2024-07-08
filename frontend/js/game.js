@@ -75,6 +75,7 @@ let maxReconnectAttempts = 10;
 
 
 export function updateGameState(data) {
+    console.log("pepe");
     //if (!data) return;
     // Update player positions
     //console.log("ballpos", data.ball.x, data.ball.y, data.ball.z)

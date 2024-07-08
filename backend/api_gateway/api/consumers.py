@@ -2,6 +2,7 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import requests
 import json
 import logging
+import asyncio
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -17,6 +18,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.alias = None
         self.mode = None
         self.player_id = None
+        self.last_sent_state = None
+        self.lock = asyncio.Lock()
 
         await self.accept()
 
