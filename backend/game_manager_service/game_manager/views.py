@@ -8,6 +8,7 @@ from game_manager.models import Game, Player, Round
 from .serialize import GameSerializer, RoundSerializer
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 import logging
+from .exceptions import InsufficientPlayersError
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -70,51 +71,50 @@ def update_round_status(request):
         return Response({'error': 'Game not found.'}, status=404)
     
     except ValidationError as e:
-        return Response({'error': e}, status=400)
+        return Response({'error': str(e)}, status=400)
     
-    
+@api_view(['POST'])    
 @permission_classes([AllowAny])
 def round(request):
-    if request.method == 'GET':
-        try:
-            game_id = request.GET.get('game_id')
-
-            if game_id is None:
-                return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
-
-            game = Game.objects.filter(game_id=game_id).first()
-
-            if not Round.objects.filter(game=game).exists():
-                game.create_rounds()
-                game.save()
-            
-            round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
-            
-            if round_to_play:
-                serializer = RoundSerializer(round_to_play)
-                return JsonResponse(serializer.data, status=200)
-            
-            else:
-                return JsonResponse({'message': 'No rounds to play or all rounds played.'}, status=403)
-
-        except Game.DoesNotExist:
-            return JsonResponse({'error': 'Game not found.'}, status=404)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-
-    if request.method == 'POST':
-        try:
-            game = Game.objects.get(pk=request.data.get('game_id'))
-            game.update_round_status(request.data)
+    try:
+        if request.data.get('game-id') is None:
+            return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
+        game = Game.objects.filter(game_id=request.data.get('game-id')).first()
+        if not Round.objects.filter(game=game).exists():
+            game.create_rounds()
             game.save()
-            serializer = GameSerializer(game)
-            return Response(serializer.data, status=200)
         
-        except Game.DoesNotExist:
-            return JsonResponse({'error': 'Game not found.'}, status=404)
         
-        except ValidationError as e:
-            return JsonResponse({'error': e}, status=400)
+        round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
+        
+        logging.debug('round_to_play: %s', round_to_play)
+
+        if round_to_play:
+            serializer = RoundSerializer(round_to_play)
+            return JsonResponse(serializer.data, status=200)      
+        else:
+            return JsonResponse({'message': 'No rounds to play or all rounds played.'}, status=403)
+
+    except InsufficientPlayersError as e:
+        return JsonResponse({'error': str(e)}, status=418)
+    except Game.DoesNotExist:
+        return JsonResponse({'error': 'Game not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+    # if request.method == 'POST':
+    #     try:
+    #         game = Game.objects.get(pk=request.data.get('game_id'))
+    #         game.update_round_status(request.data)
+    #         game.save()
+    #         serializer = GameSerializer(game)
+    #         return Response(serializer.data, status=200)
+        
+    #     except Game.DoesNotExist:
+    #         return JsonResponse({'error': 'Game not found.'}, status=404)
+        
+    #     except ValidationError as e:
+    #         return JsonResponse({'error': e}, status=400)
         
 
 @api_view(['GET'])

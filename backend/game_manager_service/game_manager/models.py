@@ -6,6 +6,7 @@ from itertools import combinations
 import requests
 import string
 import random
+from .exceptions import InsufficientPlayersError
 
 def generate_game_id():
     while True:
@@ -39,7 +40,7 @@ class Game(models.Model):
         rounds.delete()
 
         if self.players.count() < 2:
-            raise ValidationError('A game must have at least 2 players.')
+            raise InsufficientPlayersError()
         
         round_number = 1
         players_list = list(self.players.all())

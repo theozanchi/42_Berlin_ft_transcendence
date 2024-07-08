@@ -103,13 +103,13 @@ class PlayerList extends HTMLElement {
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 			<h3 id="playerCount"> ${this.count} Players</h3>
-			<div id="list-of-players" style="max-height: 60vh; overflow-y: auto>
+			<div id="list-of-players">
 				<player-component name="USER" input></player-component>
 			</div>
 			
 			<div class="d-flex justify-content-center">
-			${this.gameMode === "local" ?
-					'<button id="addPlayerButton" class="btn btn-outline-primary d-flex"><i class="bi bi-plus-lg"></i>Add Player</button>'
+			${this.gameMode === "local" 
+				?	'<button id="addPlayerButton" class="btn btn-outline-primary d-flex"><i class="bi bi-plus-lg"></i>Add Player</button>'
 				:	'<div class="spinner-border" role="status">	<span class="visually-hidden">Loading...</span></div><p>Waiting for Players to join</p>'
 			}
 			</div>

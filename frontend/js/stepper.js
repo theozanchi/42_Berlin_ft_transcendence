@@ -108,7 +108,6 @@ async function sendJson(json) {
 }
 
 function createStartButton() {
-
 	const gameArea = document.getElementById('game-column');
 	if (gameArea) {
 		gameArea.appendChild(startGameButton);
@@ -127,8 +126,9 @@ function createStartButton() {
 }
 
 function generateLocalGame() {
+
 	console.log("GENERATING LOCAL GAME");
-	
+
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 	
@@ -138,19 +138,17 @@ function generateLocalGame() {
 	
 	// Add players to JSON
 	data.players = playerNames;
-	
-	openSocket('/ws/')
-	.then(() => {
-		var json = JSON.stringify(data);
-		console.log('Sending JSON:', data);
-		sendJson(json);
 
-		createStartButton();
-	})
-	.catch(error => {
-		console.error('Failed to open WebSocket connection:', error);
-	});
-	
+	openSocket('/ws/local/')
+    .then(() => {
+		console.log("PREPARING JSON");
+        var json = JSON.stringify(data);
+		console.log(json);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 function loadLocalGame() {
@@ -175,23 +173,6 @@ function loadLocalGame() {
     canvas.id = 'bg';
     gameArea.appendChild(canvas);
 
-}
-
-function unloadLocalGame() {
-	// Get the game area element
-	const gameArea = document.getElementById('game-column');
-	
-	// Remove the script
-	let script = gameArea.querySelector("script[src='./js/game.js']");
-	if (script) {
-		gameArea.removeChild(script);
-	}
-	
-	// Remove the canvas
-	let canvas = document.getElementById('bg');
-	if (canvas) {
-		gameArea.removeChild(canvas);
-	}
 }
 
 function joinRemoteGame() {
@@ -242,33 +223,53 @@ async function hostRemoteGame() {
 		connectedCallback() {
 			// console.log("rendering stepper form");
 
-			document.getElementById('generateLocalGameButton').addEventListener('click', (event) => {
-				event.preventDefault();
+			// let myElement = document.querySelector('')
 
-				generateLocalGame();
-				console.log("heyhey");
-				//loadLocalGame();
-			});
+			let myElement = document.getElementById('generateLocalGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
+					event.preventDefault();
 
-			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
+					generateLocalGame();
+					console.log("heyhey");
+					loadLocalGame();
+				});
+			};
+
+			myElement = document.getElementById('joinRemoteGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
 				
 				joinRemoteGame();
 			});
+			};
 
-			document.getElementById('hostRemoteGameButton').addEventListener('click', (event) => {
+			myElement = document.getElementById('hostRemoteGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
+
+				console.log("HOSTING REMOTE");
+
 				hostRemoteGame();
 
 			});
-			
-			document.getElementById('startRemoteGameButton').addEventListener('click', (event) => {
-				event.preventDefault();
-				
-				alert(`Get Ready to Play Your Remote Game`)	
-			});
+			};
 
-			document.getElementById('shareRemoteGameIDButton').addEventListener('click', function() {
+
+			myElement = document.getElementById('startRemoteGameButton');
+			if (myElement) {
+				myElement.addEventListener('click', (event) => {
+					event.preventDefault();
+					
+					alert(`Get Ready to Play Your Remote Game`)	
+				});
+			};
+
+			myElement = document.getElementById('shareRemoteGameIDButton');
+			if (myElement) {
+				myElement.addEventListener('click', function() {
 				// Get the input field
 				const input = this.previousElementSibling;
 				// Get the span element containing the icon
@@ -288,6 +289,7 @@ async function hostRemoteGame() {
 					console.error('Could not copy text: ', err);
 				});
 			});
+			};
 		}
 	}
 	
