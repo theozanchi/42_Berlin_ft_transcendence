@@ -51,6 +51,10 @@ class UserProfile(models.Model):
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name='userprofiles')
 
+"""     def delete(self, *args, **kwargs):
+        self.avatar.delete(save=False)
+        super().delete(*args, **kwargs) """
+
 User.add_to_class('rankings', UserManager())
 
 

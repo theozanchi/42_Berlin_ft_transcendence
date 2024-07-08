@@ -6,6 +6,7 @@
 	<h1>Hello {{ user.first_name|default:user.username }}!</h1>
     {% if user.userprofile.avatar %}
 	    <img src="{{ user.userprofile.avatar.url }}" alt="User picture">
+
     {% else %}
         <p>Image missing</p>
     {% endif %}

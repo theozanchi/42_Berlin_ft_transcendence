@@ -19,6 +19,7 @@ from django.db.models import Sum
 from django.views.generic.edit import CreateView
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 
 CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8'
 CLIENT_SECRET = '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'
@@ -32,6 +33,7 @@ def save_avatar_from_url(user_profile, url):
     if response.status_code == 200 and 'image' in response.headers['Content-Type']:
         image_content = ContentFile(response.content)
         filename = url.split("/")[-1]
+        print("--> in save_avatar_from_url")
 
         if user_profile.avatar and filename in user_profile.avatar.name:
             pass
@@ -42,6 +44,8 @@ def save_avatar_from_url(user_profile, url):
 
 def home(request):
     if request.user.is_authenticated:
+        pprint.pprint(request.user.userprofile.avatar)
+        print(f'UserProfile ID in home: {request.user.userprofile.id} : {request.user.userprofile.avatar}')
         return render(request, 'oauth42/home.html', {'user': request.user})
     return render(request, 'oauth42/home.html')
 
@@ -130,7 +134,10 @@ def register(request):
         form = RegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
-            UserProfile.objects.update_or_create(user=user, defaults={'avatar': form.cleaned_data['avatar']})
+            avatar = form.cleaned_data['avatar']
+            profile, created = UserProfile.objects.update_or_create(user=user, defaults={'avatar': avatar})
+            print(f'UserProfile ID in register: {profile.id} with {profile.avatar}')
+            login(request, user=user)
             return redirect("home")
     else:
         form = RegistrationForm()
