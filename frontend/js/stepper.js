@@ -127,8 +127,9 @@ function createStartButton() {
 }
 
 function generateLocalGame() {
+
 	console.log("GENERATING LOCAL GAME");
-	
+
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 	
@@ -138,19 +139,17 @@ function generateLocalGame() {
 	
 	// Add players to JSON
 	data.players = playerNames;
-	
-	openSocket('/ws/')
-	.then(() => {
-		var json = JSON.stringify(data);
-		console.log('Sending JSON:', data);
-		sendJson(json);
 
-		createStartButton();
-	})
-	.catch(error => {
-		console.error('Failed to open WebSocket connection:', error);
-	});
-	
+	openSocket('/ws/local/')
+    .then(() => {
+		console.log("PREPARING JSON");
+        var json = JSON.stringify(data);
+		console.log(json);
+        sendJson(json);
+    })
+    .catch(error => {
+        console.error('Failed to open WebSocket connection:', error);
+    });
 }
 
 function loadLocalGame() {
@@ -170,23 +169,6 @@ function loadLocalGame() {
     canvas.id = 'bg';
     gameArea.appendChild(canvas);
 
-}
-
-function unloadLocalGame() {
-	// Get the game area element
-	const gameArea = document.getElementById('game-column');
-	
-	// Remove the script
-	let script = gameArea.querySelector("script[src='./js/game.js']");
-	if (script) {
-		gameArea.removeChild(script);
-	}
-	
-	// Remove the canvas
-	let canvas = document.getElementById('bg');
-	if (canvas) {
-		gameArea.removeChild(canvas);
-	}
 }
 
 function joinRemoteGame() {
@@ -242,7 +224,7 @@ async function hostRemoteGame() {
 
 				generateLocalGame();
 				console.log("heyhey");
-				//loadLocalGame();
+				loadLocalGame();
 			});
 
 			document.getElementById('joinRemoteGameButton').addEventListener('click', (event) => {
