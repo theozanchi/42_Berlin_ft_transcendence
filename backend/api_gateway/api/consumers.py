@@ -17,15 +17,32 @@ GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 GAME_LOGIC_REST_URL = 'http://game_logic:8001'
 
 class APIConsumer(AsyncJsonWebsocketConsumer):
+    clients = {'player1': None, 'player2': None}
+
     async def connect(self):
         self.game_id = None
         self.last_sent_state = None
         self.lock = asyncio.Lock()
         await self.accept()
 
+        async with self.lock:
+            if not APIConsumer.clients['player1']:
+                self.client_id = 'player1'
+                APIConsumer.clients['player1'] = self
+            elif not APIConsumer.clients['player2']:
+                self.client_id = 'player2'
+                APIConsumer.clients['player2'] = self
+            else:
+                self.client_id = 'spectator'
+
         #TEST
         self.game_id = 'test'
         await self.channel_layer.group_add(self.game_id, self.channel_name)
+        await self.send_json({
+            'type': 'player_identity',
+            'player_id': self.client_id
+        })
+
         #
 
     async def disconnect(self, close_code):

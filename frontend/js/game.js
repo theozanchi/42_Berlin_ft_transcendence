@@ -62,7 +62,7 @@ let isGameStateUpdating = false;
 let ballIsHeld = true;
 let wallHits = 0;
 let aimingAngle = 0;
-let remote = false; // Set to false for two-player game
+let remote = true; // Set to false for two-player game
 const initialReconnectInterval = 1000; // Initial reconnect interval in ms
 let reconnectInterval = initialReconnectInterval;
 let currentPlayer;
@@ -80,7 +80,6 @@ export function initializeWebSocket(url){
     index1;
 ///setup web socket ///
         function connect() {
-            
             socket = new WebSocket(url);
             socket.onopen = function(event) {
                 console.log('WebSocket connection established.');
@@ -247,6 +246,7 @@ export function initializeWebSocket(url){
                             z: player2.rotation.z
                         }
                     };
+                    console.log("sending player2 position", player2.position.x, player2.position.y, player2.position.z)
                 }
 
                 //if (!ballIsHeld) console.log("Sending new game state with ballIsHeld:", newGameState.ballIsHeld);
@@ -268,22 +268,7 @@ index2;
 async function init() {
 
     // TESTING //
-    // FIRST WAIT FOR THE WEBSOCKET CONNECTION TO BE ESTABLISHED
-    const url = `wss://${window.location.host}/ws/`;
-    console.log('Connecting to WebSocket server...');
-    initializeWebSocket(url)
-    await new Promise((resolve, reject) => {
-        if (!socket) {
-            reject('WebSocket is not initialized.');
-        } else {
-            const checkInterval = setInterval(() => {
-                if (socket.readyState === WebSocket.OPEN) {
-                    clearInterval(checkInterval);
-                    resolve();
-                }
-            }, 1000);
-        }
-    });
+
 
     // Create the scene
     scene = new THREE.Scene();
@@ -402,13 +387,29 @@ async function init() {
     scoreDisplay.style.color = 'white';
     scoreDisplay.style.fontSize = '20px';
     document.body.appendChild(scoreDisplay);
-    
+        // FIRST WAIT FOR THE WEBSOCKET CONNECTION TO BE ESTABLISHED
+        const url = `wss://${window.location.host}/ws/`;
+        console.log('Connecting to WebSocket server...');
+        initializeWebSocket(url)
+        await new Promise((resolve, reject) => {
+            if (!socket) {
+                reject('WebSocket is not initialized.');
+            } else {
+                const checkInterval = setInterval(() => {
+                    if (socket.readyState === WebSocket.OPEN) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 1000);
+            }
+        });
 
             //--------EVENT_LISTENERS---------//
 
 
     // Add event listeners for movement and face change
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', onKeyDownPlayer1);
+    document.addEventListener('keydown', onKeyDownPlayer2);
     document.addEventListener('keyup', onKeyUp);
     // Request pointer lock when the canvas is clicked
     renderer.domElement.addEventListener('click', () => {
@@ -537,7 +538,7 @@ function onMouseMove(event) {
     }
 }
 
-function onKeyDown(event) {
+function onKeyDownPlayer1(event) {
 
     keysPressed[event.key] = true;
     //console.log(keysPressed[event.key]);
@@ -566,7 +567,39 @@ function onKeyDown(event) {
                     break;
             }
         }
-        else {
+    }else {
+        console.log("event key", event.key);
+        switch (event.key) {
+            case 'w':
+                switchFace('up');
+                break;
+            case 's':
+                switchFace('down');
+                break;
+            case 'a':
+                switchFace('left');
+                break;
+            case 'd':
+                switchFace('right');
+                break;
+            case ' ': // Space key
+                if (ballIsHeld && !resetBall_) {
+                    ballIsHeld = false; // Release the ball
+                    resetBall_ = true; // Reset the ball to a random position
+                    sendGameState();
+                    ballIsHeld = false;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+function onKeyDownPlayer2(event) {
+    keysPressed[event.key] = true;
+    if (remote){
+        if (currentPlayer != player){
             switch (event.key) {
                 case 's':
                     switchFace2('up');
@@ -589,25 +622,10 @@ function onKeyDown(event) {
                     }
                     break;
             }
-
         }
-    }else {
-        console.log("event key", event.key);
+        }
+    else {
         switch (event.key) {
-            case 'w':
-                switchFace('up');
-                break;
-            case 's':
-                switchFace('down');
-                break;
-            case 'a':
-                switchFace('left');
-                break;
-            case 'd':
-                switchFace('right');
-                break;
-        // Player 2 face switching
-        
             case 'ArrowDown':
                 switchFace2('up');
                 break;
@@ -629,10 +647,8 @@ function onKeyDown(event) {
                     ballIsHeld = false;
                 }
                 break;
-            default:
-                break;
         }
-    }
+        }
 }
 function onKeyUp(event) {
 
@@ -741,7 +757,6 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     });
 
     currentFace = newCurrentFace;
-
     sendGameState();
 
 }
@@ -780,7 +795,6 @@ function updatePlayerPositionForFace(face) {
             sendGameState();
             break;
     }
-
     sendGameState();
 
 }
@@ -872,7 +886,7 @@ function switchFace2(direction) {
 }
 
 function updateCurrentFaceWithTargetRotation2(targetRotation) {
-    // Define the reference vector representing the front direction
+    // Define the reference vector representing the back direction
     const referenceVector = new THREE.Vector3(0, 0, -1);
 
     // Apply the target rotation to the reference vector
