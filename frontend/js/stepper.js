@@ -69,7 +69,7 @@ function generateLocalGame() {
 
 	openSocket('/ws/local/')
     .then(() => {
-		console.log("PREPARING JSON");
+		// console.log("PREPARING JSON");
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
@@ -103,7 +103,13 @@ function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
 
 	uri = `/ws/join/${gameId}/`;
+	console.log(uri);
 	openSocket(uri);
+
+
+	console.log(typeof eventOrUrl);
+
+	urlRoute(`/join-remote?id=${gameId}`);
 }
 
 async function hostRemoteGame() {
@@ -133,7 +139,6 @@ async function hostRemoteGame() {
 					event.preventDefault();
 
 					generateLocalGame();
-					console.log("heyhey");
 					loadLocalGame();
 				});
 			};

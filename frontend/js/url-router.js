@@ -77,13 +77,20 @@ const urlRoutes = {
 	},
 }
 
-const urlRoute = (event) => {
-	event = window.event || event;
-	console.log("HELLO");
-	event.preventDefault();
-	window.history.pushState({}, "", event.target.href);
-	console.log(event.target.href);
-	urlLocationHandler();
+const urlRoute = (eventOrUrl) => {
+    let url;
+	console.log(eventOrUrl);
+	console.log(typeof eventOrUrl);
+    if (typeof eventOrUrl === 'string') {
+        url = eventOrUrl;
+    } else {
+        eventOrUrl = window.event || eventOrUrl;
+        eventOrUrl.preventDefault();
+        url = eventOrUrl.target.href;
+    }
+	console.log(url);
+    window.history.pushState({}, "", url);
+    urlLocationHandler();
 }
 
 const urlLocationHandler = async () => {
@@ -91,14 +98,14 @@ const urlLocationHandler = async () => {
     if (location.length == 0) {
         location = "/"
     }
-    console.log(`MY LOCATION: ${location}`);
+    // console.log(`MY LOCATION: ${location}`);
 
     const route = urlRoutes[location] || urlRoutes[404]
 
-    console.log(`MY ROUTE: ${route.template}`);
+    // console.log(`MY ROUTE: ${route.template}`);
 
     let imageUrl = new URL(route, baseUrl);
-    console.log(imageUrl);
+    // console.log(imageUrl);
 
     const html = await fetch(route.template).then((response) => 
 		response.text());

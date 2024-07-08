@@ -23,16 +23,16 @@
 							<stepper-titlebar title="Remote Game ID"></stepper-titlebar>
 							<div class="input-group mb-3">
 								<span class="input-group-text" id="basic-addon1">Game ID</span>
-								<input type="search" name="game_id" class="form-control" value="FGZ6" readonly>
+								<input type="search" id="lobbyGameID" class="form-control" value="FGZ6" readonly>
 								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton"><span class="bi bi-clipboard"></span></button>
 							</div>
-								<div class="input-group mb-3">
-									<div class="form-floating">
-											<input type="search" class="form-control" value="FGZ6" id="SearchGameID" readonly></textarea>
-										<label for="SearchGameID">Game ID</label>
-									</div>
+							<!-- <div class="input-group mb-3">
+								<div class="form-floating">
+										<input type="search" class="form-control" value="FGZ6" id="SearchGameID" readonly></textarea>
+									<label for="SearchGameID">Game ID</label>
+								</div>
 								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton"><span class="bi bi-clipboard"></span>&nbsp;&nbsp;Copy</button>
-							</div>
+							</div> -->
 							<player-list mode="join"></player-list>
 						</div>
 						
@@ -89,4 +89,5 @@
 	<script src="js/player_list.js"></script>
 	<script src="js/player.js"></script>
 	<script src="js/static_game.js"></script>
+	<script src="js/lobby.js"></script>
 </html>
