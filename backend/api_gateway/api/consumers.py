@@ -80,6 +80,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
     async def join_game(self, content):
         try:
+            content['channel_name'] = self.channel_name
             response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
             if response.status_code == 404:
                 self.game_id = content.get('game_id')
@@ -119,9 +120,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def get_player_id(self, content):
         print('player id: ', content)
         if self.mode == 'remote':
-            if content['player1'] == self.channel_name:
+            if content['player1_channel_name'] == self.channel_name:
                 self.player_id = 'player1'
-            elif content['player2'] == self.channel_name:
+            elif content['player2_channel_name'] == self.channel_name:
                 self.player_id = 'player2'
             else:
                 self.player_id = 'spectator'

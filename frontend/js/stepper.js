@@ -5,8 +5,8 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
+//import { updateGameState } from './game.js';
 
-import { updateGameState } from './game.js';
 var newsocket;
 let openPromise;
 

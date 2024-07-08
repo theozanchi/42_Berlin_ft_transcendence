@@ -32,7 +32,7 @@ class Game(models.Model):
         player_names = data.get("players", [])
 
         for name in player_names:
-            player = Player.objects.create(game=self, alias=name, channel_name=data.get('channel_name'))
+            Player.objects.create(game=self, alias=name, channel_name=data.get('channel_name'))
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)

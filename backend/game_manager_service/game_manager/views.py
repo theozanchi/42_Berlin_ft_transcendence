@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from game_manager.models import Game, Player, Round
-from .serialize import GameSerializer
+from .serialize import GameSerializer, RoundSerializer
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 import logging
 
@@ -91,7 +91,7 @@ def round(request):
             round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
             
             if round_to_play:
-                serializer = GameSerializer(game)
+                serializer = RoundSerializer(round_to_play)
                 return JsonResponse(serializer.data, status=200)
             
             else:
