@@ -126,7 +126,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({'error': str(e)})
     
     async def get_player_id(self, content):
-        logging.debug('player id: ', content)
         if self.mode == 'remote':
             if content.get('player1') == self.alias:
                 self.player_id = 'player1'
@@ -135,7 +134,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             else:
                 self.player_id = 'spectator'
 
-        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id})
+        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias})
 
     async def game_state(self, content):
         if content == self.last_sent_state:

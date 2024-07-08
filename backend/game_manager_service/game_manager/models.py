@@ -6,7 +6,6 @@ from itertools import combinations
 import requests
 import string
 import random
-from .exceptions import InsufficientPlayersError
 
 def generate_game_id():
     while True:
@@ -33,21 +32,21 @@ class Game(models.Model):
         player_names = data.get("players", [])
 
         for name in player_names:
-            Player.objects.create(game=self, alias=name, channel_name=data.get('channel_name'))
+            Player.objects.create(game=self, alias=name)
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
         rounds.delete()
 
         if self.players.count() < 2:
-            raise InsufficientPlayersError()
+            raise ValidationError('A game must have at least 2 players.')
         
         round_number = 1
         players_list = list(self.players.all())
 
         # Generate all possible matchups for league play
         for player1, player2 in combinations(players_list, 2):
-            round = Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
+            Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
             round_number += 1
 
     def update_round_status(self, data):
