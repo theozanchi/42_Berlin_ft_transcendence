@@ -1,13 +1,7 @@
-import json
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from channels.db import database_sync_to_async
 import requests
-import uuid
 import json
-import asyncio
-import websockets
 import logging
-from asgiref.sync import async_to_sync, sync_to_async
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -74,7 +68,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             self.host = True
             if self.game_id:
                 await self.channel_layer.group_add(self.game_id, self.channel_name)
-            await self.send_json(response.json())
+            data = response.json()
+            data['type'] = 'create-game'
+            await self.send_json(data)
         
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
@@ -130,17 +126,32 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id})
 
     async def game_state(self, content):
-        if self.player_id == 'spectator':
+        if content == self.last_sent_state:
+            return
+        
+        self.last_sent_state = content
+        if self.player_id != 'player1' and self.player_id != 'player2':
             await self.send_json({'error': 'Not your turn'})
         try:
-            content['game_id'] = self.game_id
-            response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
-            response.raise_for_status()
+            async with self.lock:
+                content['game_id'] = self.game_id
+                response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
+                response.raise_for_status()
+
+                await self.channel_layer.group_send(self.game_id, 
+                {
+                    'type': 'update',
+                    'content': response.json() 
+                })
+                await self.send_json({'type': 'update', 'content': content})
+
         except Exception as e:
+            await self.send_json({'error': str(e)})
             logging.error({'error': str(e)})
         
     async def update(self, content):
-        await self.send_json(content)
+        async with self.lock:
+            await self.send_json(content)
 
     async def set_alias(self, content):
         if content.get('alias'):
