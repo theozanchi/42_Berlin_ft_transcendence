@@ -21,18 +21,6 @@ startGameButton.textContent = 'Start Game';
 // Add a margin to the top of the button
 startGameButton.style.marginTop = '100px';  // Adjust this value as needed
 
-/* // For chat area
-var messageInput = document.getElementById('messageInput');
-var sendButton = document.getElementById('sendButton');
-var messageArea = document.getElementById('message-area');
-
-// Add an event listener for the send button
-sendButton.addEventListener('click', function() {
-    var message = messageInput.value;
-    newsocket.send(message);
-    messageInput.value = '';
-}); */
-
 function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
 		console.log('Opening new WebSocket');
