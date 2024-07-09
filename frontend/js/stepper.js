@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-//import { updateGameState } from './game.js';
+import { init, updateGameState } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -101,7 +101,7 @@ function openSocket() {
 }
 
 export async function sendJson(json) {
-	console.log("TRYING TO SEND A JSON");
+	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
         await newsocket.send(json);
@@ -148,6 +148,8 @@ function generateLocalGame() {
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
+		
+		createStartButton();
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -175,6 +177,8 @@ function loadLocalGame() {
     let canvas = document.createElement('canvas');
     canvas.id = 'bg';
     gameArea.appendChild(canvas);
+	console.log('calling init now+++++')
+	init();
 
 }
 
@@ -234,8 +238,6 @@ async function hostRemoteGame() {
 					event.preventDefault();
 
 					generateLocalGame();
-					console.log("heyhey");
-					loadLocalGame();
 				});
 			};
 
@@ -252,8 +254,6 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
-
-				console.log("HOSTING REMOTE");
 
 				hostRemoteGame();
 

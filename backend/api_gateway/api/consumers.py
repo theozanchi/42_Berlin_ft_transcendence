@@ -152,12 +152,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     self.player_id = 'player2'
                 else:
                     self.player_id = 'spectator'
-
-        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias,  'debug': {
-                'self_channel_name': self.channel_name,
-                'player1_channel': player1_channel,
-                'player2_channel': player2_channel
-            }})
+        else:
+            self.player_id = None
+        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias})
 
     async def game_state(self, content):
         if content == self.last_sent_state:

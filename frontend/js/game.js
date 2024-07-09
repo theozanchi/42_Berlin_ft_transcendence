@@ -77,34 +77,37 @@ let maxReconnectAttempts = 10;
 
 
 export function updateGameState(data) {
-    console.log("pepe");
     //if (!data) return;
     // Update player positions
     //console.log("ballpos", data.ball.x, data.ball.y, data.ball.z)
     //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
-    if (data.player1) {
+    if (data.content.player1) {
         // Update player1 position
-        player.position.set(data.player1.x, data.player1.y, data.player1.z);
-        player.rotation.set(data.player1.rotation.x, data.player1.rotation.y, data.player1.rotation.z);
+        player.position.set(data.content.player1.x, data.content.player1.y, data.content.player1.z);
+        player.rotation.set(data.content.player1.rotation.x, data.content.player1.rotation.y, data.content.player1.rotation.z);
     }
-    if (data.player2) {
+    if (data.content.player2) {
         // Update player2 position
-        player2.position.set(data.player2.x, data.player2.y, data.player2.z);
-        player2.rotation.set(data.player2.rotation.x, data.player2.rotation.y, data.player2.rotation.z);
+        player2.position.set(data.content.player2.x, data.content.player2.y, data.content.player2.z);
+        player2.rotation.set(data.content.player2.rotation.x, data.content.player2.rotation.y, data.content.player2.rotation.z);
     }
     // Update ball position and speed
-    ball.position.set(data.ball.x, data.ball.y, data.ball.z);
-    ballSpeed.set(data.ballSpeed.x, data.ballSpeed.y, data.ballSpeed.z);
-    // Update game state variables
-    playerTurn = data.playerTurn;
-    playerScore = data.playerScore;
-    aiScore = data.aiScore;
-    ballIsHeld = data.ballIsHeld;
-    currentFace = data.current_face;
-    currentFace2 = data.current_face2;
-    aimingAngle = data.aiming_angle;
-    resetBall_ = data.reset_ball;
-    wallHits = data.wall_hits;
+    if (data.content.ball) {
+        ball.position.set(data.content.ball.x, data.content.ball.y, data.content.ball.z);
+    }
+    if (data.content.ballSpeed) {
+        ballSpeed.set(data.content.ballSpeed.x, data.content.ballSpeed.y, data.content.ballSpeed.z);
+    }
+    // Update game data.content variables
+    playerTurn = data.content.playerTurn;
+    playerScore = data.content.playerScore;
+    aiScore = data.content.aiScore;
+    ballIsHeld = data.content.ballIsHeld;
+    currentFace = data.content.current_face;
+    currentFace2 = data.content.current_face2;
+    aimingAngle = data.content.aiming_angle;
+    resetBall_ = data.content.reset_ball;
+    wallHits = data.content.wall_hits;
     //console.log("reset ball", resetBall_);
     //console.log("ballisheld", ballIsHeld);
 
@@ -200,7 +203,7 @@ export function sendGameState() {
     
 index2;
 
-async function init() {
+export async function init() {
     if (playerId === 'player1')
         currentPlayer = player;
     else if (playerId === 'player2')
@@ -1203,4 +1206,4 @@ function animate() {
     renderer.setScissorTest(false);
 }
 
-init();
+//init();
