@@ -9,6 +9,8 @@
 
 var newsocket;
 let openPromise;
+let messagePromise;
+let game_id;
 
 // For game area
 var gameStarted = false;
