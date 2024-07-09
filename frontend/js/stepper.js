@@ -115,7 +115,17 @@ async function hostRemoteGame() {
 	console.log('MY RESPONSE', message);
 	const data = JSON.parse(message);
 	const gameID = data['game-id'];
-	urlRoute(`/join-remote?id=${gameID}`);
+}
+
+async function joinRemoteGame(gameID) {
+    console.log(`JOINING: ${gameID}`);
+	const { openPromise, messagePromise } = openSocket(`/ws/join/${gameID}`);
+	await openPromise;
+	const message = await messagePromise;
+	console.log('MY RESPONSE', message);
+	// const data = JSON.parse(message);
+	// const gameID = data['game-id'];
+	return message;
 }
 
 
@@ -146,7 +156,10 @@ async function hostRemoteGame() {
 				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
 				
-				joinRemoteGame();
+				let gameID = document.getElementById('searchGameID').value;
+
+				joinRemoteGame(gameID);
+				urlRoute(`/join-remote?id=${gameID}`);
 			});
 			};
 
@@ -158,6 +171,7 @@ async function hostRemoteGame() {
 				console.log("HOSTING REMOTE");
 
 				hostRemoteGame();
+				urlRoute(`/join-remote?id=${gameID}`);
 
 			});
 			};
