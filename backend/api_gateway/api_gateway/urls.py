@@ -16,10 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
-from api import urls, routing
+from api import urls, consumers
  
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('api/', include(urls)),
-    path('ws/', include(routing.websocket_urlpatterns)),
-    ]
+    path('ws/', consumers.APIConsumer.as_asgi()),
+]

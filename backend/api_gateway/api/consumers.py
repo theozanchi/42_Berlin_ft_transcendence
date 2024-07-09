@@ -1,176 +1,172 @@
-import json
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from channels.db import database_sync_to_async
 import requests
-import uuid
 import json
+import logging
 import asyncio
-import redis
-import websockets
-from asgiref.sync import async_to_sync, sync_to_async
 
-# Initialize Redis client
-#redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-GAME_MANAGER_URL = 'http://game_manager'
-GAME_LOGIC_URL = 'http://game_logic'
+GAME_MANAGER_REST_URL = 'http://game_manager:8000'
+GAME_LOGIC_REST_URL = 'http://game_logic:8000'
 
-GAME_LOGIC_WS_URL = 'ws://game_logic:8000/ws/'
+class APIConsumer(AsyncJsonWebsocketConsumer):
 
-class LocalConsumer(AsyncJsonWebsocketConsumer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.game_logic_ws = None
-    
     async def connect(self):
-        print("API: Connecting to local game")
-        # ISSUE: check if uuid is unique / store in database
-        self.game_id = str(uuid.uuid4())[:8] # self.game_id = Tournament().game_id
-        
-        await self.channel_layer.group_add(
-            self.game_id,
-            self.channel_name
-        )
+        self.game_id = None
+        self.host = False
+        self.alias = None
+        self.mode = None
+        self.player_id = None
+        self.last_sent_state = None
+        self.lock = asyncio.Lock()
 
         await self.accept()
-        await self.send_json({"game-id": self.game_id})
 
     async def disconnect(self, close_code):
-        
-        await self.channel_layer.group_discard(
-            self.game_id,
-            self.channel_name
-        )
-
+        if self.game_id:
+            self.channel_layer.group_send(self.game_id, 
+                {'type': 'broadcast', 
+                'content': {'player': self.alias, 
+                'message': 'left the game'}})
+            await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
     
-    async def get_type(self, type):
-        switcher = {
-            'create-game': self.create_game,
-            'pause-game': self.pause_game,
-            'resume-game': self.resume_game,
-            'start-game': self.start_game,
-            'game_state': self.update_state,
-        }
-        return switcher.get(type)
-
     async def receive_json(self, content):
-        print("Consumer received message:", content)
-        type = content.get('type')
-
-        method = await self.get_type(type)
-        if method:
-            headers = {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
-            content['game-id'] = self.game_id
-            response = await method(content, headers)
-            
-            await self.send_json({"type": type, **response})
-       
-        else:
-            await self.send_json({'error': 'Invalid type'})
-
-    async def create_game(self, content, headers):
-        content['game-mode'] = 'local'
-        
-        try:
-            response = requests.post(GAME_MANAGER_URL + '/create-game/', json=content, headers=headers)
-            response.raise_for_status()
-            game_content = response.json()
-            return game_content
-        
-        except requests.RequestException as e:
-            return({'error': str(e)})
-    
-    async def start_game(self, content, headers):
-        try:
-            # Establish WebSocket connection to game_logic
-            print("Getting round info...")
-            #response = requests.post(GAME_MANAGER_URL + '/play-next-round/', json=content, headers=headers)
-            #response.raise_for_status()
-            #self.current_round = response.json()
-            #print(self.current_round)
-
-            print("Connecting to game logic")
-            self.game_logic_ws = await websockets.connect(GAME_LOGIC_WS_URL + self.game_id + '/')
-
-        except requests.RequestException as e:
-            return({'error': str(e)})
-
-    async def update_state(self, content, headers):
-        # Only for testing purposes
-
-        print("API: Updating state")
-        if self.game_logic_ws is None:
-            await self.start_game(content, headers)
-            #return({'error': 'Game not started'})
-        #if self.current_round['player1'] != self.alias and self.current_round['player2'] != self.alias:
-        #    return({'error': 'Not your turn'})
-        
-        try:
-            await self.game_logic_ws.send_json(content)
-        except Exception as e:
-            return({'error': str(e)})
-        
-    async def game_update(self, event):
-        print("API: Game update received from game logic via channel group")
-        await self.send_json(event)
-        
-    async def pause_game(self, content, headers):
-        pass
-
-    async def resume_game(self, content, headers):
-        pass
-
-class   HostConsumer(LocalConsumer):
-    async def get_type(self, type):
-        switcher = {
-            'set-alias': self.set_alias,
+        logging.debug('received: ' + str(content))
+        type_to_method = {
+            'broadcast': self.broadcast,
+            'game-state': self.game_state,
             'create-game': self.create_game,
+            'join-game': self.join_game,
             'start-game': self.start_game,
-            'update-game': self.update_game,
+            'set-alias': self.set_alias,
         }
-        return switcher.get(type)
+
+        method = type_to_method.get(content.get('type'))
+
+        if method:
+            await method(content)
+        else:
+            await self.send_json({'error': 'Invalid "type" or missing "type" in json'})
+
+    def get_headers(self):
+        return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
     
-    async def create_game(self, content, headers):
-        content['game-mode'] = 'remote'
-        content['host'] = self.channel_name
-        
+    async def broadcast(self, content):
+        logging.debug('broadcasting: ' + str(content))
+        await self.send_json(content)
+    
+    async def keep_alive(self, content):
+        await self.send_json({'type': 'keep-alive'})
+
+    # TO DO: if local game, start it immediately
+    async def create_game(self, content):
         try:
-            response = requests.post(GAME_MANAGER_URL + '/create-game/', json=content, headers=headers)
+            content['channel_name'] = self.channel_name
+            self.alias = content.get('players')[0]
+            response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
-            game_content = response.json()
-            return game_content
+            self.game_id = response.json().get('game_id')
+            self.mode = response.json().get('mode')
+            self.host = True
+            if self.game_id:
+                await self.channel_layer.group_add(self.game_id, self.channel_name)
+            data = response.json()
+            data['type'] = 'create-game'
+            await self.send_json(data)
         
         except requests.RequestException as e:
-            return({'error': str(e)})
+            await self.send_json({'error': str(e)})
+
+    async def join_game(self, content):
+        try:
+            content['channel_name'] = self.channel_name
+            self.alias = content.get('players')[0]
+            response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
+            if response.status_code == 404:
+                self.game_id = content.get('game_id')
+                raise ValueError(f'{self.game_id} not found.')
+            response.raise_for_status()
+            self.game_id = response.json().get('game_id')
+            self.mode = 'remote'
+
+            await self.channel_layer.group_add(self.game_id, self.channel_name)
+            await self.channel_layer.group_send(
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content': response.json()
+                }
+            )
+
+            await self.send_json(response.json())
+        
+        except requests.RequestException as e:
+            await self.send_json({'error': str(e)})
+            await self.close()
+        except ValueError as e:
+            await self.send_json({'error': str(e)})
+            await self.close()
     
-    async def set_alias(self, content, headers):
+    async def start_game(self, content):
+        if self.host is not True:
+            await self.send_json({'error': 'Only host can start game'})
+        try:
+            content = {'game-id': self.game_id}
+            response = requests.post(GAME_MANAGER_REST_URL + '/round/', json=content, headers=self.get_headers())
+            response.raise_for_status()
+
+            # Send round info to all players
+            await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
+            # Send player id to pther players
+            await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
+
+        except requests.RequestException as e:
+            await self.send_json({'error': str(e)})
+    
+    async def get_player_id(self, content):
+        if self.mode == 'remote':
+            if content.get('player1') == self.alias:
+                self.player_id = 'player1'
+            elif content.get('player2') == self.alias:
+                self.player_id = 'player2'
+            else:
+                self.player_id = 'spectator'
+
+        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias})
+
+    async def game_state(self, content):
+        if content == self.last_sent_state:
+            return
+        
+        self.last_sent_state = content
+        if self.player_id != 'player1' and self.player_id != 'player2':
+            await self.send_json({'error': 'Not your turn'})
+        try:
+            async with self.lock:
+                content['game_id'] = self.game_id
+                response = requests.post(GAME_LOGIC_REST_URL + '/game-update/', json=content, headers=self.get_headers())
+                response.raise_for_status()
+
+                await self.channel_layer.group_send(self.game_id, 
+                {
+                    'type': 'update',
+                    'content': response.json() 
+                })
+                #await self.send_json({'type': 'update', 'content': content})
+
+        except Exception as e:
+            await self.send_json({'error': str(e)})
+            logging.error({'error': str(e)})
+        
+    async def update(self, content):
+        async with self.lock:
+            await self.send_json(content)
+
+    async def set_alias(self, content):
         if content.get('alias'):
             self.alias = content.get('alias')
-            return {'alias': self.alias}
+            await self.send_json({'alias': self.alias})
         else:
-            return {'error': 'No alias received'}
-
-
-class RemoteConsumer(LocalConsumer):
-    async def connect(self):
-        self.game_id = self.scope['url_route']['kwargs']['game_id']
-        # ISSUE check if game id is valid
-        
-        await self.channel_layer.group_add(
-            self.game_id,
-            self.channel_name
-        )
-
-        await self.accept()
-        await self.send_json({"connect": "Successful"})
-
-    async def get_type(self, type):
-        switcher = {
-            'set-alias': self.set_alias,
-            'update-game': self.update_game,
-        }
-        return switcher.get(type)
-    
-    async def set_alias(self, content):
-        self.alias = content.get('alias')
+            await self.send_json({'error': 'No alias received'})

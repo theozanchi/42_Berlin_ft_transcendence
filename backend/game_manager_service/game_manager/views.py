@@ -5,30 +5,50 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from game_manager.models import Game, Player, Round
-from .serialize import GameSerializer
+from .serialize import GameSerializer, RoundSerializer
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+import logging
+from .exceptions import InsufficientPlayersError
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_game(request):
     try:
-        game = Game.objects.create(game_id = request.data.get('game-id'), mode=request.data.get('game-mode'))
+        game = Game.objects.create(mode=request.data.get('game-mode'), host=request.data.get('channel_name'))
         game.add_players_to_game(request.data)
-        game.create_rounds()
-        # Game can now be played
-        #for round in game.rounds.all():
-        #    round.initialize_round()
         game.save()
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
-    except request.data.get('game-id') is None:
-        return Response({'error': 'Missing game ID.'}, status=404)
+    except KeyError as e:
+        return Response({'error': e}, status=400)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def join_game(request):
+    try:
+        game = Game.objects.get(pk=request.data.get('game_id'))
+        if game.mode != 'remote':
+            return Response({'error': 'Game is not a remote game.'}, status=403)
+        game.add_players_to_game(request.data)
+        game.save()
+        serializer = GameSerializer(game)
+        return Response(serializer.data, status=200)
+    
+    except Game.DoesNotExist:
+        return Response({'error': 'Game not found.'}, status=404)
+    
+    except KeyError as e:
+        return Response({'error': e}, status=400)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_game(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
@@ -39,7 +59,7 @@ def get_game(request):
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
 
         game.update_game(request.data)
         game.save()
@@ -50,30 +70,58 @@ def update_round_status(request):
     except Game.DoesNotExist:
         return Response({'error': 'Game not found.'}, status=404)
     
-@api_view(['GET'])
+    except ValidationError as e:
+        return Response({'error': str(e)}, status=400)
+    
+@api_view(['POST'])    
 @permission_classes([AllowAny])
-def play_next_round(request):
+def round(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        if request.data.get('game-id') is None:
+            return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
+        game = Game.objects.filter(game_id=request.data.get('game-id')).first()
+        if not Round.objects.filter(game=game).exists():
+            game.create_rounds()
+            game.save()
+        
+        
         round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
         
+        logging.debug('round_to_play: %s', round_to_play)
+
         if round_to_play:
-            round_to_play.initialize_round()
-
-            serializer = GameSerializer(game)
-            return Response(serializer.data, status=200)
-        
+            serializer = RoundSerializer(round_to_play)
+            return JsonResponse(serializer.data, status=200)      
         else:
-            return Response({'message': 'No rounds to play or all rounds played.'}, status=404)
+            return JsonResponse({'message': 'No rounds to play or all rounds played.'}, status=403)
 
+    except InsufficientPlayersError as e:
+        return JsonResponse({'error': str(e)}, status=418)
     except Game.DoesNotExist:
-        return Response({'error': 'Game not found.'}, status=404)
+        return JsonResponse({'error': 'Game not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+    # if request.method == 'POST':
+    #     try:
+    #         game = Game.objects.get(pk=request.data.get('game_id'))
+    #         game.update_round_status(request.data)
+    #         game.save()
+    #         serializer = GameSerializer(game)
+    #         return Response(serializer.data, status=200)
+        
+    #     except Game.DoesNotExist:
+    #         return JsonResponse({'error': 'Game not found.'}, status=404)
+        
+    #     except ValidationError as e:
+    #         return JsonResponse({'error': e}, status=400)
+        
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def finish_game(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game-id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         game.determine_winner()
 
         game.save()

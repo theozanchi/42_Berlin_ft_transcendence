@@ -1,15 +1,24 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib.auth.models import User
 from itertools import combinations
 import requests
+import string
+import random
+
+def generate_game_id():
+    while True:
+        game_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+        if not Game.objects.filter(game_id=game_id).exists():
+            return game_id
 
 # Create your models here.
 class Game(models.Model):
-    game_id = models.UUIDField(primary_key=True, editable=False, unique=True)
-    mode = models.CharField(max_length=6, choices=[('local', 'Local'), ('remote', 'Remote')])
+    game_id = models.CharField(primary_key=True, default=generate_game_id, editable=False, unique=True, max_length=8)   
+    mode = models.CharField(max_length=6, choices=[('local', 'local'), ('remote', 'Remote')], blank=False, null=False)
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
+    host = models.CharField(max_length=255, null=True, blank=True)
 
     def clean(self):
         if not self.mode:
@@ -23,7 +32,7 @@ class Game(models.Model):
         player_names = data.get("players", [])
 
         for name in player_names:
-            player = Player.objects.create(game=self, alias=name)
+            Player.objects.create(game=self, alias=name)
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -37,7 +46,7 @@ class Game(models.Model):
 
         # Generate all possible matchups for league play
         for player1, player2 in combinations(players_list, 2):
-            round = Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
+            Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
             round_number += 1
 
     def update_round_status(self, data):
@@ -82,6 +91,7 @@ class Player(models.Model):
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, null=True, blank=True)
+    channel_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.alias
@@ -108,30 +118,6 @@ class Round(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
-    def initialize_round(self):
-        """
-        Initialize each round by making an internal API call to the game_logic service.
-        """
-        self.clean()
-
-        response = requests.post('http://game_logic_service/play_game/', json={
-            'player1': self.player1.alias,
-            'player2': self.player2.alias,
-            'game_id': self.game.pk,
-        })
-
-        if response.status_code == 200:
-            game_data = response.json()
-
-            self.player1_score = game_data.get('player1_score')
-            self.player2_score = game_data.get('player2_score')
-
-            players = self.game.players.all()
-            self.winner = next((player for player in players if player.alias == game_data.get('winner')), None)
-            
-        else:
-            print(f"Failed to initialize game {self.pk} round {self.round_number}: {response.status_code} - {response.text}")
-    
     def __str__(self):
         return f"Round {self.round_number} - {self.player1} vs {self.player2}"
 
