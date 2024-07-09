@@ -60,6 +60,7 @@ let pivot;
 let pivot2;
 let isTransitioning = false;
 let isTransitioning2 = false;
+let isGameStateUpdating = false; 
 let ballIsHeld = true;
 let wallHits = 0;
 let aimingAngle = 0;
@@ -328,12 +329,29 @@ export async function init() {
     scoreDisplay.style.color = 'white';
     scoreDisplay.style.fontSize = '20px';
     document.body.appendChild(scoreDisplay);
-    
+        // FIRST WAIT FOR THE WEBSOCKET CONNECTION TO BE ESTABLISHED
+        const url = `wss://${window.location.host}/ws/`;
+        console.log('Connecting to WebSocket server...');
+        initializeWebSocket(url)
+        await new Promise((resolve, reject) => {
+            if (!socket) {
+                reject('WebSocket is not initialized.');
+            } else {
+                const checkInterval = setInterval(() => {
+                    if (socket.readyState === WebSocket.OPEN) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 1000);
+            }
+        });
 
             //--------EVENT_LISTENERS---------//
 
 
     // Add event listeners for movement and face change
+    //document.addEventListener('keydown', onKeyDownPlayer1);
+    //document.addEventListener('keydown', onKeyDownPlayer2);
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);
     // Request pointer lock when the canvas is clicked
@@ -459,106 +477,108 @@ function onMouseMove(event) {
         else {
             movePlayer2(player2, deltaX, deltaY);
         }
-        sendGameState();
+        //sendGameState();
     }
 }
 
-function onKeyDown(event) {
 
-    keysPressed[event.key] = true;
-    //console.log(keysPressed[event.key]);
-    if (remote){
-        if (currentPlayer == player){
-            switch (event.key) {
-                case 'w':
-                    switchFace('up');
-                    break;
-                case 's':
-                    switchFace('down');
-                    break;
-                case 'a':
-                    switchFace('left');
-                    break;
-                case 'd':
-                    switchFace('right');
-                    break;
-                case ' ': // Space key
-                    if (ballIsHeld && !resetBall_) {
-                        ballIsHeld = false; // Release the ball
-                        resetBall_ = true; // Reset the ball to a random position
-                        sendGameState();
-                        ballIsHeld = false;
-                    }
-                    break;
-            }
-        }
-        else {
-            switch (event.key) {
-                case 's':
-                    switchFace2('up');
-                    break;
-                case 'w':
-                    switchFace2('down');
-                    break;
-                case 'a':
-                    switchFace2('left');
-                    break;
-                case 'd':
-                    switchFace2('right');
-                    break;
-                case ' ': // Space key
-                    if (ballIsHeld && !resetBall_) {
-                        ballIsHeld = false; // Release the ball
-                        resetBall_ = true; // Reset the ball to a random position
-                        sendGameState();
-                        ballIsHeld = false;
-                    }
-                    break;
-            }
-
-        }
-    }else {
-        console.log("event key", event.key);
-        switch (event.key) {
-            case 'w':
+function onKeyDownPlayer1() {
+    if (remote) {
+        if (currentPlayer === player) {
+            if (keysPressed['w']) {
                 switchFace('up');
-                break;
-            case 's':
+            }
+            if (keysPressed['s']) {
                 switchFace('down');
-                break;
-            case 'a':
+            }
+            if (keysPressed['a']) {
                 switchFace('left');
-                break;
-            case 'd':
+            }
+            if (keysPressed['d']) {
                 switchFace('right');
-                break;
-        // Player 2 face switching
-        
-            case 'ArrowDown':
-                switchFace2('up');
-                break;
-            case 'ArrowUp':
-                switchFace2('down');
-                break;
-            case 'ArrowLeft':
-                switchFace2('left');
-                break;
-            case 'ArrowRight':
-                switchFace2('right');
-                break;
-            case ' ': // Space key
+            }
+            if (keysPressed[' ']) { // Space key
                 if (ballIsHeld && !resetBall_) {
-                    
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
                     sendGameState();
                     ballIsHeld = false;
                 }
-                break;
-            default:
-                break;
+            }
+        }
+    } else {
+        if (keysPressed['w']) {
+            switchFace('up');
+        }
+        if (keysPressed['s']) {
+            switchFace('down');
+        }
+        if (keysPressed['a']) {
+            switchFace('left');
+        }
+        if (keysPressed['d']) {
+            switchFace('right');
+        }
+        if (keysPressed[' ']) { // Space key
+            if (ballIsHeld && !resetBall_) {
+                ballIsHeld = false; // Release the ball
+                resetBall_ = true; // Reset the ball to a random position
+                sendGameState();
+                ballIsHeld = false;
+            }
         }
     }
+}
+
+function onKeyDownPlayer2() {
+    if (remote) {
+        if (currentPlayer !== player) {
+            if (keysPressed['s']) {
+                switchFace2('up');
+            }
+            if (keysPressed['w']) {
+                switchFace2('down');
+            }
+            if (keysPressed['a']) {
+                switchFace2('left');
+            }
+            if (keysPressed['d']) {
+                switchFace2('right');
+            }
+            if (keysPressed[' ']) { // Space key
+                if (ballIsHeld && !resetBall_) {
+                    ballIsHeld = false; // Release the ball
+                    resetBall_ = true; // Reset the ball to a random position
+                    sendGameState();
+                    ballIsHeld = false;
+                }
+            }
+        }
+    } else {
+        if (keysPressed['ArrowDown']) {
+            switchFace2('up');
+        }
+        if (keysPressed['ArrowUp']) {
+            switchFace2('down');
+        }
+        if (keysPressed['ArrowLeft']) {
+            switchFace2('left');
+        }
+        if (keysPressed['ArrowRight']) {
+            switchFace2('right');
+        }
+        if (keysPressed[' ']) { // Space key
+            if (ballIsHeld && !resetBall_) {
+                ballIsHeld = false; // Release the ball
+                resetBall_ = true; // Reset the ball to a random position
+                sendGameState();
+                ballIsHeld = false;
+            }
+        }
+    }
+}
+function onKeyDown(event) {
+    keysPressed[event.key] = true;
 }
 function onKeyUp(event) {
 
@@ -634,6 +654,8 @@ function switchFace(direction) {
         .start();
 
         sendGameState();
+
+        sendGameState();
 }
 
 
@@ -667,9 +689,9 @@ function updateCurrentFaceWithTargetRotation(targetRotation) {
     });
 
     currentFace = newCurrentFace;
+    //sendGameState();
 
-    sendGameState();
-
+    
 }
 
 
@@ -678,36 +700,35 @@ function updatePlayerPositionForFace(face) {
         case 0: // Front
             player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6);
             player.rotation.set(0, 0, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 1: // Back
             player.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
             player.rotation.set(0, Math.PI, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 2: // Left
             player.position.set(-(cubeSize / 2 + playerSize.z / 6), 0, 0);
             player.rotation.set(0, -Math.PI / 2, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 3: // Right
             player.position.set(cubeSize / 2 + playerSize.z / 6, 0, 0);
             player.rotation.set(0, Math.PI / 2, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 4: // Top
             player.position.set(0, cubeSize / 2 + playerSize.z / 6, 0);
             player.rotation.set(-Math.PI / 2, 0, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 5: // Bottom
             player.position.set(0, -(cubeSize / 2 + playerSize.z / 6), 0);
             player.rotation.set(Math.PI / 2, 0, 0);
-            sendGameState();
+            //sendGameState();
             break;
     }
-
-    sendGameState();
+    //sendGameState();
 
 }
 
@@ -795,10 +816,12 @@ function switchFace2(direction) {
         .start();
 
         sendGameState();
+
+        sendGameState();
 }
 
 function updateCurrentFaceWithTargetRotation2(targetRotation) {
-    // Define the reference vector representing the front direction
+    // Define the reference vector representing the back direction
     const referenceVector = new THREE.Vector3(0, 0, -1);
 
     // Apply the target rotation to the reference vector
@@ -827,7 +850,7 @@ function updateCurrentFaceWithTargetRotation2(targetRotation) {
     });
 
     currentFace2 = newCurrentFace;
-    sendGameState();
+    //sendGameState();
     //console.log(`Updated current face: ${currentFace2}`);
 }
 
@@ -838,35 +861,35 @@ function updatePlayerPositionForFace2(face) {
         case 0: // Front
             player2.position.set(0, 0, cubeSize / 2 + playerSize.z / 6);
             player2.rotation.set(0, 0, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 1: // Back
             player2.position.set(0, 0, -(cubeSize / 2 + playerSize.z / 6));
             player2.rotation.set(0, Math.PI, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 2: // Left
             player2.position.set(-(cubeSize / 2 + playerSize.z / 6), 0, 0);
             player2.rotation.set(0, -Math.PI / 2, 0);
-            sendGameState();
+           // sendGameState();
             break;
         case 3: // Right
             player2.position.set(cubeSize / 2 + playerSize.z / 6, 0, 0);
             player2.rotation.set(0, Math.PI / 2, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 4: // Top
             player2.position.set(0, cubeSize / 2 + playerSize.z / 6, 0);
             player2.rotation.set(-Math.PI / 2, 0, 0);
-            sendGameState();
+            //sendGameState();
             break;
         case 5: // Bottom
             player2.position.set(0, -(cubeSize / 2 + playerSize.z / 6), 0);
             player2.rotation.set(Math.PI / 2, 0, 0);
-            sendGameState();
+            //sendGameState();
             break;
     }
-    sendGameState();
+    //sendGameState();
 
 }
 
@@ -963,7 +986,7 @@ function updateAimingLine() {
 
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
-        sendGameState();
+        //sendGameState();
     }
     else
         aimingLine.material.opacity = 0;
@@ -1165,10 +1188,14 @@ function animate() {
     requestAnimationFrame(animate);
     TWEEN.update();
     moveLoop();
+    onKeyDownPlayer1();
+    onKeyDownPlayer2();
+    //onKeyUp();
     updateAimingLine();
     updateCollisionMarker();
     checkPlayerPosition();
     updateScore();
+
 
     sendGameState();
     if (currentBlinkingFace) {

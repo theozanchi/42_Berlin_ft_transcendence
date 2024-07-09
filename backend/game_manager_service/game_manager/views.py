@@ -49,6 +49,7 @@ def join_game(request):
 def get_game(request):
     try:
         game = Game.objects.get(pk=request.data.get('game_id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
@@ -59,6 +60,7 @@ def get_game(request):
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
+        game = Game.objects.get(pk=request.data.get('game_id'))
         game = Game.objects.get(pk=request.data.get('game_id'))
 
         game.update_game(request.data)
@@ -107,6 +109,7 @@ def round(request):
 @permission_classes([AllowAny])
 def finish_game(request):
     try:
+        game = Game.objects.get(pk=request.data.get('game_id'))
         game = Game.objects.get(pk=request.data.get('game_id'))
         game.determine_winner()
 

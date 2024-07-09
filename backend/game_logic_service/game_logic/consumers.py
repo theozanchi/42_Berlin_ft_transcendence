@@ -37,7 +37,6 @@ class PongConsumer(WebsocketConsumer):
         'playerTurn': True,  # Initial value, assuming player 1 starts
         'playerScore': 0,
         'aiScore': 0,
-        'ballIsHeld': True,  # Initial value, assuming ball is held initially
         'current_face': 0,  # Adding initial value for current face
         'current_face2': 1,
         'wall_hits' : 0,

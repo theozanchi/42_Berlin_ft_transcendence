@@ -134,6 +134,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
+            await self.send_json({'error': str(e)})
     
     async def get_player_id(self, content):
         data = content.get('content')
@@ -187,6 +188,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def set_alias(self, content):
         if content.get('alias'):
             self.alias = content.get('alias')
+            await self.send_json({'alias': self.alias})
             await self.send_json({'alias': self.alias})
         else:
             await self.send_json({'error': 'No alias received'})
