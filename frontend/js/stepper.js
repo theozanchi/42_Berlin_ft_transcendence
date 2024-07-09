@@ -5,28 +5,16 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-//import { updateGameState } from './game.js';
 
-var newsocket;
+let newsocket;
 let openPromise;
 
-// For game area
-var gameStarted = false;
-export var remote = false;
-export var playerId;
-
-//Create the staert button
-let startGameButton = document.createElement('button');
-startGameButton.textContent = 'Start Game';
-
-// Add a margin to the top of the button
-startGameButton.style.marginTop = '100px';  // Adjust this value as needed
-
-function openSocket() {
-	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
-		console.log('Opening new WebSocket');
-		const url = `wss://${window.location.host}/ws/`;
-		newsocket = new WebSocket(url);
+function openSocket(path) {
+    let openPromise, messagePromise;
+    if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+        console.log('Opening new WebSocket');
+        const url = `wss://${window.location.host}${path}`;
+        newsocket = new WebSocket(url);
 
         openPromise = new Promise((resolve) => {
             newsocket.onopen = function(event) {
@@ -42,84 +30,25 @@ function openSocket() {
             };
         });
 
-		newsocket.onmessage = function(event) {
-			console.log('Received: ' + event.data);
-			let data = JSON.parse(event.data);
-               
-				if (data.type === 'broadcast') {
-					console.log('Broadcast:', data);
-				}
-				if (data.type === 'create-game') {
-						game_id = data.game_id;
-				}
-                if (data.type === 'start-game') {
-					if (data.mode === 'remote') {
-						remote = true;
-						playerId = data.player_id;
-						/* if (data.player_id === 'spectator')
-							currentPlayer = null;
-						else
-							currentPlayer = (data.player_id === 'player1') ? player : player2; */
-					}
-
-                    gameStarted = true;
-                    console.log('Game started!');
-					loadLocalGame();
-					if (startGameButton) {
-						startGameButton.remove();
-					}
-                }
-				if (data.type === 'update') {
-					updateGameState(data);
-				}
-				if (data.type === 'finish-game') {
-					unloadLocalGame();
-					console.log('Game finished! Winner is: ' + data.winner);
-				}
-		};
+        newsocket.onclose = function(event) {
+            console.log('Disconnected from WebSocket server.');
+        };
 
         newsocket.onerror = function(error) {
             console.log('WebSocket error: ' + error.message);
         };
     }
-/* 		// Keep-Alive Mechanism
-		function sendKeepAlive() {
-			if (socket.readyState === WebSocket.OPEN) {
-				socket.send(JSON.stringify({ type: 'keep_alive' }));
-			}    
-		}    
-	
-		setInterval(sendKeepAlive, 30000); // Send a keep-alive message every 30 seconds
-	 */
-	return (openPromise);
+    return { openPromise, messagePromise };
 }
 
 async function sendJson(json) {
 	console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
-        await newsocket.send(json);
+        newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
     }
-}
-
-function createStartButton() {
-	const gameArea = document.getElementById('game-column');
-	if (gameArea) {
-		gameArea.appendChild(startGameButton);
-	} else {
-		console.error('Element with id "game-column" not found');
-	}
-	
-	// Add event listener to start game button
-	startGameButton.addEventListener('click', function() {
-		if (gameStarted) {
-			console.log('Game already started!');
-			return;
-		}
-		sendJson(JSON.stringify({ type: 'start-game' }));
-	});
 }
 
 function generateLocalGame() {
@@ -128,11 +57,10 @@ function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
-	
-	// Create data object with type key
-	let data = {type: 'create-game'}
-	data['game-mode'] = 'local';
-	
+
+	// Create data object with action key
+	let data = {action: 'create-game'}
+
 	// Add players to JSON
 	data.players = playerNames;
 
@@ -149,17 +77,13 @@ function generateLocalGame() {
 }
 
 function loadLocalGame() {
-	if (!gameStarted) {
-		console.error('Game not started yet!');
-		return;
-	}
-
 	// Get the game area element
     const gameArea = document.getElementById('game-column');
 
     // Create and append the script
     let script = document.createElement('script');
     script.type = 'module';
+    // script.src = './js/pong/main.js';
     script.src = './js/game.js';
     gameArea.appendChild(script);
 
@@ -172,44 +96,39 @@ function loadLocalGame() {
 
 }
 
-function joinRemoteGame() {
-	const gameId = document.getElementById('searchGameID').value.trim(); 
-	const playerAlias = 'NewPlayer';
-	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', players: [playerAlias]};
+function setGameID(gameID) {
+	if (!gameID) {
+		let params = new URLSearchParams(window.location.search);
+		gameID = params.get('id');
+	}
 
-	openSocket('/ws/')
-	.then(() => {
-        var json = JSON.stringify(data);
-		console.log('Sending JSON:', data);
-        sendJson(json);
-    })
-    .catch(error => {
-        console.error('Failed to open WebSocket connection:', error);
-    });
+	let input = document.getElementById("lobbyGameID");
+	if (input)
+		input.value = gameID;
 }
 
 async function hostRemoteGame() {
-	// const { openPromise, messagePromise } = openSocket('/ws/host/');
-	// await openPromise;
+	const { openPromise, messagePromise } = openSocket('/ws/host/');
+	await openPromise;
     // console.log('MY RESPONSE');
-    // const message = await messagePromise;
-    // console.log('MY RESPONSE', message);
-	
-	// Create data object with type key
-	let data = {type: 'create-game', 'game-mode': 'remote', 'players': ['Player1']};
-
-	openSocket('/ws/')
-    .then(() => {
-        var json = JSON.stringify(data);
-		console.log('Sending JSON:', data);
-        sendJson(json);
-
-		createStartButton();
-    })
-    .catch(error => {
-        console.error('Failed to open WebSocket connection:', error);
-    });
+	const message = await messagePromise;
+	console.log('MY RESPONSE', message);
+	const data = JSON.parse(message);
+	const gameID = data['game-id'];
 }
+
+async function joinRemoteGame(gameID) {
+    console.log(`JOINING: ${gameID}`);
+	const { openPromise, messagePromise } = openSocket(`/ws/join/${gameID}`);
+	await openPromise;
+	const message = await messagePromise;
+	console.log('MY RESPONSE', message);
+	// const data = JSON.parse(message);
+	// const gameID = data['game-id'];
+	return message;
+}
+
+
 
 	class StepperWrapper extends HTMLElement {
 		constructor() {
