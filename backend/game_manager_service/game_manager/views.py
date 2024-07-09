@@ -115,3 +115,25 @@ def finish_game(request):
                              
     except Game.DoesNotExist:
         return Response({'error': 'Game not found.'}, status=404)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def update_players(request):
+    try:
+        game = Game.objects.get(pk=request.data.get('game-id'))
+        if request.data.get('channel_name') is game.host:
+            next_player = game.players.exclude(channel_name=game.host).first()
+            if next_player:
+                game.host = next_player.channel_name
+            else:
+                game.host = None
+        game.round.update_scores_abandon(request.data.get('alias'))
+        game.save()
+        serializer = GameSerializer(game)
+        return Response(serializer.data, status=200)
+    
+    except Game.DoesNotExist:
+        return Response({'error': 'Game not found.'}, status=404)
+    
+    except KeyError as e:
+        return Response({'error': e}, status=400)

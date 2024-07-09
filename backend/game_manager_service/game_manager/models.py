@@ -110,6 +110,19 @@ class Round(models.Model):
     player1_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
     player2_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
 
+    def update_scores_abandon(self, alias):
+        for round in self.round.all():
+            if round.player1.alias == alias:
+                round.player1_score = 0
+                round.player2_score = 0
+                winner = round.player2
+                round.save()
+            elif round.player2.alias == alias:
+                round.player1_score = 0
+                round.player2_score = 0
+                winner = round.player1
+                round.save()
+
     def clean(self):
         if self.player1 == self.player2:
             raise ValidationError("A player cannot play against themselves.")

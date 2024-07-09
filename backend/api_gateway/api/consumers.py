@@ -23,12 +23,23 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
         await self.accept()
 
+#  TO DO : the whole routine of somebody leaving should only occur if tournament is not over, if not we just let clients disconnect 
     async def disconnect(self, close_code):
         if self.game_id:
             self.channel_layer.group_send(self.game_id, 
                 {'type': 'broadcast', 
                 'content': {'player': self.alias, 
                 'message': 'left the game'}})
+            content = {'game_id': self.game_id, 'alias': self.alias, 'channel_name': self.channel_name}
+            response = requests.post(GAME_MANAGER_REST_URL + '/player-left/', json=content, headers=self.get_headers())
+            response.raise_for_status()
+            await self.channel_layer.group_send(
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content': response.json()
+                }
+            )
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
     
