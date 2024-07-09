@@ -96,7 +96,7 @@ def round(request):
             return JsonResponse({'message': 'No rounds to play or all rounds played.'}, status=403)
 
     except InsufficientPlayersError as e:
-        return JsonResponse({'error': str(e)}, status=418)
+        return JsonResponse({'error': str(e)}, status=422)
     except Game.DoesNotExist:
         return JsonResponse({'error': 'Game not found.'}, status=404)
     except Exception as e:
