@@ -11,25 +11,28 @@
 
   	</head>
 	<body>
-		<h1>Let's route!</h1>
 
-		<div class="container">
-			<div id="main">
-				<nav>
-					<a href="/">Home</a>
-					<a href="/setup">Setup</a>
-					<a href="/lobby">Lobby</a>
-					<a href="/game">Game</a>
-					<a href="/profile">Profile</a>
-					<a href="/login">Login</a>
-					<a href="/signup">Sign up</a>
-					<button id="backButton" class="btn btn-outline-secondary col-auto"><i class="bi bi-arrow-left"></i>
-					<!-- <a href="/about">about</a> -->
-					<!-- <a href="/imprint">Imprint</a> -->
-				</nav>
-				<div id="content"></div>
-			</div>
-		</div>
+		<header class="d-flex fixed-top">
+
+			<nav>
+				<a href="/">Home</a>
+				<a href="/setup-local">Setup</a>
+				<a href="/setup-remote">Lobby</a>
+				<a href="/game">Game</a>
+				<a href="/profile">Profile</a>
+				<a href="/login">Login</a>
+				<a href="/signup">Sign up</a>
+				<a href="/game-table">Game table</a>
+				<a href="/layout">Layout test</a>
+			</nav>
+
+			<!-- <div class="d-flex justify-content-center">
+				<img src="/assets/logo_ppg.png" class="header-logo" alt="Logo"></img>
+			</div> -->
+		</header>
+
+
+		<div id="content"></div>
 
 	</body>
     <!-- custom JS -->
@@ -39,5 +42,6 @@
 	<script src="js/stepper_titlebar.js"></script>
 	<script src="js/player_list.js"></script>
 	<script src="js/player.js"></script>
-	<script src="js/static_game.js"></script>
+	<script src="js/lobby.js"></script>
+	
 </html>

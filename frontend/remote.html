@@ -13,70 +13,41 @@
 	<body>
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col col-lg-3 ppg-blue-light">
-					
+				<div class="col col-lg-3 ppg-blue-light" id="settings-column">
 					<div class="spacer-48"></div>
-					<div class="d-flex row align-self-start">
-						<stepper-component></stepper-component>
-					
-					<div  class="step">
-						<stepper-titlebar title="Remote Game"></stepper-titlebar>
-					</div>
-										
-					<div id="20-remote-switch" class="step">
-						<p></p>
-						<p>Fantastic! Nothing better than playing with friends via the internet.</p>
-						<h3>Join Game</h3>
+					<stepper-component></stepper-component>
+
+					<stepper-titlebar title="Remote Game"></stepper-titlebar>
+
+					<div class="d-flex flex-column h-100 overflow-auto">
+						<div class="spacer-48"></div>
+						<p>Fantastic!<br>Nothing better than playing with friends via the internet.</p>
+						<div class="spacer-48"></div>
+						<h2>Join Game</h2>
 						<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
 
 						<form class="input-group mb-3 needs-validation" novalidate>
-							<div class="form-floating">
+							<div class="form-floating d-grid">
 								<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" value="" required>
 								<label for="searchGameID">Game-ID</label>
 							</div>
 								<button class="btn btn-primary" type="submit" id="joinRemoteGameButton">Join</button>
 						</form>
-
-						<h3>Host Game</h3>
+						<div class="spacer-48"></div>
+						<h2>Host Game</h2>
 						<p>Do your prefer to host your own game to share it with friends?</p>
 						<nav>
-							<b id="hostRemoteGameButton" class="btn btn-primary d-grid generate-game-button">Host Remote Game</b>
-							<!-- <a href=/host-remote id="hostRemoteGameButton" class="btn btn-primary d-grid generate-game-button">Host Remote Game</a> -->
+							<button id="hostRemoteGameButton" class="btn btn-lg btn-primary d-grid generate-game-button">Host Remote Game</b>
 						</nav> 
-						
-					</div>	
 					</div>
-				</div>
-				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
-					<!-- <div class="spacer-48"></div> -->
-					<!-- <h2>GAMING AREA</h2> -->
-					<!-- <pong-game></pong-game> -->
 
+				</div>
+	
+				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
 					
-					<!-- <div>
-						<canvas id="bg"></canvas>
-						<script type="module" src="./js/pong/main.js"></script>
-					</div> -->
 				</div>
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
-					<div class="spacer-48"></div>
-					<h2>WebSocket Client</h2>
-					<!-- <div id="ws-local" class="step">
-						<stepper-titlebar title="Local Game"></stepper-titlebar>
-						<player-list mode ="local"></player-list>
-						<button id="generateLocalGameButtonWS" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-					</div>
-					<div>
-						<button onclick="connectWebSocket()">Connect</button>
-						<button onclick="disconnectWebSocket()">Disconnect</button>
-					</div>
-					<div>
-						<textarea id="messages" rows="10" cols="30" readonly></textarea>
-					</div>
-					<div>
-						<input type="text" id="messageInput" placeholder="Enter message"/>
-						<button onclick="sendMessage()">Send</button>
-					</div> -->
+					
 				</div>
 			</div>
 		</div>

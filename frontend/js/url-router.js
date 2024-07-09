@@ -70,8 +70,8 @@ const urlRoutes = {
 		description: "",
 	},
 
-	"/fill": {
-		template: "/fill.html",
+	"/layout": {
+		template: "/layout.html",
 		title: "Layout Tes",
 		description: "",
 	},
@@ -110,15 +110,24 @@ const urlLocationHandler = async () => {
     const html = await fetch(route.template).then((response) => 
 		response.text());
 
-
 	//PARSE ACTUAL PATH AND 
     let parser = new DOMParser();
     let doc = parser.parseFromString(html, "text/html");
     let title = doc.querySelector('title').innerText;
 
+	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+
+	
 	//WRITE NEW TITLE TO BROWSER TAB
     document.title = title;
-    document.getElementById("content").innerHTML = html;
+
+
+
+	//OVERWRITE CONTENT
+    // document.getElementById("content").innerHTML = html;
+
+	//OVERWRITE COLUMN
+	document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 };
 
 window.onpopstate = urlLocationHandler;
