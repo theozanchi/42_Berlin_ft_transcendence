@@ -101,20 +101,6 @@ def round(request):
         return JsonResponse({'error': 'Game not found.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
-    # if request.method == 'POST':
-    #     try:
-    #         game = Game.objects.get(pk=request.data.get('game_id'))
-    #         game.update_round_status(request.data)
-    #         game.save()
-    #         serializer = GameSerializer(game)
-    #         return Response(serializer.data, status=200)
-        
-    #     except Game.DoesNotExist:
-    #         return JsonResponse({'error': 'Game not found.'}, status=404)
-        
-    #     except ValidationError as e:
-    #         return JsonResponse({'error': e}, status=400)
         
 
 @api_view(['GET'])
