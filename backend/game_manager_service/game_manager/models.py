@@ -6,6 +6,7 @@ from itertools import combinations
 import requests
 import string
 import random
+from .exceptions import InsufficientPlayersError
 
 def generate_game_id():
     while True:
@@ -29,10 +30,10 @@ class Game(models.Model):
         super().save(*args, **kwargs)
 
     def add_players_to_game(self, data):
-        player_names = data.get("players", [])
+        players = data.get("players", [])
 
-        for name in player_names:
-            Player.objects.create(game=self, alias=name)
+        for player in players:
+            Player.objects.create(game=self, alias=player.get('alias'), channel_name=player.get('channel_name'))
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)

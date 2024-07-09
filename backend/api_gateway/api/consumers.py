@@ -65,6 +65,12 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         try:
             content['channel_name'] = self.channel_name
             self.alias = content.get('players')[0]
+
+            # Update players with alias and channel name
+            players = content.get('players', [])
+            updated_players = [{'alias': player, 'channel_name': self.channel_name} for player in players]
+            content['players'] = updated_players
+            
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.game_id = response.json().get('game_id')
@@ -83,6 +89,12 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         try:
             content['channel_name'] = self.channel_name
             self.alias = content.get('players')[0]
+            
+            # Update players with alias and channel name
+            players = content.get('players', [])
+            updated_players = [{'alias': player, 'channel_name': self.channel_name} for player in players]
+            content['players'] = updated_players
+
             response = requests.post(GAME_MANAGER_REST_URL + '/join-game/', json=content, headers=self.get_headers())
             if response.status_code == 404:
                 self.game_id = content.get('game_id')
@@ -99,8 +111,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     'content': response.json()
                 }
             )
-
-            await self.send_json(response.json())
         
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
@@ -126,15 +136,28 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({'error': str(e)})
     
     async def get_player_id(self, content):
+        data = content.get('content')
         if self.mode == 'remote':
-            if content.get('player1') == self.alias:
-                self.player_id = 'player1'
-            elif content.get('player2') == self.alias:
-                self.player_id = 'player2'
-            else:
-                self.player_id = 'spectator'
+                player1_channel = data.get('player1_channel_name')
+                player2_channel = data.get('player2_channel_name')
 
-        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias})
+                # Debugging output
+                print(f"self.channel_name: {self.channel_name}")
+                print(f"player1_channel: {player1_channel}")
+                print(f"player2_channel: {player2_channel}")
+
+                if player1_channel == self.channel_name:
+                    self.player_id = 'player1'
+                elif player2_channel == self.channel_name:
+                    self.player_id = 'player2'
+                else:
+                    self.player_id = 'spectator'
+
+        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias,  'debug': {
+                'self_channel_name': self.channel_name,
+                'player1_channel': player1_channel,
+                'player2_channel': player2_channel
+            }})
 
     async def game_state(self, content):
         if content == self.last_sent_state:

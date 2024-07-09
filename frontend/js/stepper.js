@@ -100,7 +100,7 @@ function openSocket() {
 	return (openPromise);
 }
 
-async function sendJson(json) {
+export async function sendJson(json) {
 	console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
