@@ -20,6 +20,7 @@ from django.views.generic.edit import CreateView
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.core.files.storage import default_storage
 
 CLIENT_ID = 'u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8'
 CLIENT_SECRET = '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'
@@ -33,7 +34,6 @@ def save_avatar_from_url(user_profile, url):
     if response.status_code == 200 and 'image' in response.headers['Content-Type']:
         image_content = ContentFile(response.content)
         filename = url.split("/")[-1]
-        print("--> in save_avatar_from_url")
 
         if user_profile.avatar and filename in user_profile.avatar.name:
             pass
@@ -44,8 +44,6 @@ def save_avatar_from_url(user_profile, url):
 
 def home(request):
     if request.user.is_authenticated:
-        pprint.pprint(request.user.userprofile.avatar)
-        print(f'UserProfile ID in home: {request.user.userprofile.id} : {request.user.userprofile.avatar}')
         return render(request, 'oauth42/home.html', {'user': request.user})
     return render(request, 'oauth42/home.html')
 
@@ -136,7 +134,6 @@ def register(request):
             user = form.save()
             avatar = form.cleaned_data['avatar']
             profile, created = UserProfile.objects.update_or_create(user=user, defaults={'avatar': avatar})
-            print(f'UserProfile ID in register: {profile.id} with {profile.avatar}')
             login(request, user=user)
             return redirect("home")
     else:
@@ -165,14 +162,28 @@ def password(request):
 
     return render(request, 'password.html', {'password_form': password_form})
 
-def update(request):
+def update(request, user_id):
+    if request.user.id != user_id:
+        return HttpResponseForbidden()
     if request.method == "POST":
-        form = UserForm(request.POST, request.FILES, instance=request.user)
+        form = UserForm(request.POST, request.FILES, instance=request.user.userprofile)
 
         if form.is_valid():
-            user = form.save()
-            messages.success(request, 'Your profile was successfully updated!')
-            return redirect('home')
+            if 'avatar' in request.FILES:
+                old_file = request.user.userprofile.avatar.path
+                print(f"--> old_file: { old_file }")
+                print(f"current picture in 'avatar': { request.user.userprofile.avatar.path }")
+                if default_storage.exists(old_file):
+                    default_storage.delete(old_file)
+                    print(f"delted { old_file }")
+                user = form.save()
+                messages.success(request, 'Your profile was successfully updated!')
+                return redirect('home')
+            else:
+                form.save()
+                print(f"current picture: { request.user.userprofile.avatar.path }")
+                messages.success(request, 'Your profile was successfully updated')
+                return redirect('home')
         else:
             messages.error(request, 'Please correct the error below.')
     else:
@@ -273,7 +284,6 @@ def add_friend(request, user_id):
     if friend not in user_profile.friends.all():
         user_profile.friends.add(friend)
         user_profile.save()
-        print("--> user added")
     else:
         messages.info(request, 'This user is already your friend.')
     return redirect('profile', user_profile.user.id)

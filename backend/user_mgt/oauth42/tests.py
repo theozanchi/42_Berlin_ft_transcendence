@@ -3,6 +3,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from .models import UserProfile, UserManager
+from django.utils import timezone
 
 class RegisterViewTest(TestCase):
 	def setUp(self):
@@ -21,7 +22,6 @@ class RegisterViewTest(TestCase):
 				'password2': 'testpassword10',
 				'avatar': avatar,
 			})
-		print(response.content)
 
 		# Check that the user was created
 		User = get_user_model()
@@ -36,7 +36,6 @@ class RegisterViewTest(TestCase):
 		self.assertEqual(profile.user, user)
 		self.assertIsNotNone(profile.avatar)
 
-		print(profile.avatar)
 		# Call the home view
 		response = self.client.get(self.home_url)
 
@@ -45,16 +44,14 @@ class RegisterViewTest(TestCase):
 		self.assertContains(response, profile.avatar.url)
 
 
-from django.test import TestCase
-#from django.contrib.auth.models import User
 from .models import User
 from .models import Tournament, Participation
-from datetime import datetime
+
 
 class RankingTest(TestCase):
 	def setUp(self):
 		# Create a tournament
-		self.tournament = Tournament.objects.create(end_date=datetime.now(), mode_is_local=True)
+		self.tournament = Tournament.objects.create(end_date=timezone.now(), mode_is_local=True)
 
 		# Create 5 users with different scores
 		self.users = [
@@ -68,10 +65,8 @@ class RankingTest(TestCase):
 
 	def test_ranking(self):
 		ranking = User.rankings.get_user_rankings()
-
 		# Get the User objects for each ID in the ranking
 		users = [User.objects.get(id=id) for id, rank in ranking]
-		print(users)
 		# Get the usernames
 		usernames = [user.username for user in users]
 
@@ -79,4 +74,20 @@ class RankingTest(TestCase):
 		self.assertEqual(
 			usernames,
 			[self.users[3].username, self.users[1].username, self.users[4].username, self.users[0].username, self.users[2].username]
+		)
+
+		self.users.append(User.objects.create_user(username='user5', password='123'))
+		self.scores.append(400)
+		self.ranks.append(6)
+		Participation.objects.create(user=self.users[-1], tournament=self.tournament, score=self.scores[-1], rank=self.ranks[-1])
+
+		ranking = User.rankings.get_user_rankings()
+		# Get the User objects for each ID in the ranking
+		users = [User.objects.get(id=id) for id, rank in ranking]
+		# Get the usernames
+		usernames = [user.username for user in users]
+
+		self.assertEqual(
+			usernames,
+			[self.users[5].username, self.users[3].username, self.users[1].username, self.users[4].username, self.users[0].username, self.users[2].username]
 		)

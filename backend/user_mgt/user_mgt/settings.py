@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'oauth42'
+    'oauth42',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 AUTHENTICATION_BACKENDS = [

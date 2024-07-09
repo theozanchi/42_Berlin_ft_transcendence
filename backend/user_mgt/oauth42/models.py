@@ -18,7 +18,6 @@ class UserManager(models.Manager):
 
     def get_user_ranking(self, user_id):
         rankings = list(self.get_user_rankings())
-        # pprint.pprint(rankings)
         for i, user in enumerate(rankings):
             if user[0] == user_id:
                 return (i+1, user[0])
@@ -51,9 +50,9 @@ class UserProfile(models.Model):
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name='userprofiles')
 
-"""     def delete(self, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         self.avatar.delete(save=False)
-        super().delete(*args, **kwargs) """
+        super(UserProfile, self).delete(*args, **kwargs)
 
 User.add_to_class('rankings', UserManager())
 

@@ -11,6 +11,17 @@ class UserProfileInline(admin.TabularInline):
     fields = ('picture_url', 'access_token', 'id42')
     readonly_fields = ('access_token', 'id42')
 
+    def delete_model(self, request, obj):
+        # delete the avatar file
+        obj.picture_url.delete(save=False)
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        # delete the avatar files
+        for obj in queryset:
+            obj.picture_url.delete(save=False)
+        super().delete_queryset(request, queryset)
+
 class ParticipationInline(admin.TabularInline):
     model = Participation
     extra = 1
@@ -25,6 +36,8 @@ class UserAdmin(BaseUserAdmin):
     )
     readonly_fields = ('picture_url', 'id42', 'list_of_friends')
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'list_of_friends')
+
+
 
 
     def picture_url(self, obj):
@@ -51,6 +64,7 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(Participation)
+
 
 admin.site.site_header = "Transcendence User Management"
 admin.site.site_title = "Transcendence User Management"

@@ -18,3 +18,15 @@ class UserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'avatar']
+
+    def save(self, commit=True):
+        user = super(UserForm, self).save(commit=False)
+
+        avatar = self.cleaned_data.get('avatar')
+
+        if avatar:
+            user.avatar.save(avatar.name, avatar)
+        if commit:
+            user.save()
+
+        return user
