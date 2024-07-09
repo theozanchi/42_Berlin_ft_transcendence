@@ -60,7 +60,6 @@ let pivot;
 let pivot2;
 let isTransitioning = false;
 let isTransitioning2 = false;
-let isGameStateUpdating = false; 
 let ballIsHeld = true;
 let wallHits = 0;
 let aimingAngle = 0;
@@ -205,12 +204,14 @@ export function sendGameState() {
 index2;
 
 export async function init() {
-    if (playerId === 'player1')
-        currentPlayer = player;
-    else if (playerId === 'player2')
-        currentPlayer = player2;
-    else
-        currentPlayer = 'spectator';
+    if (remote == true) {
+        if (playerId === 'player1')
+            currentPlayer = player;
+        else if (playerId === 'player2')
+            currentPlayer = player2;
+        else
+            currentPlayer = 'spectator';
+    }
 
     // Create the scene
     scene = new THREE.Scene();
@@ -329,22 +330,6 @@ export async function init() {
     scoreDisplay.style.color = 'white';
     scoreDisplay.style.fontSize = '20px';
     document.body.appendChild(scoreDisplay);
-        // FIRST WAIT FOR THE WEBSOCKET CONNECTION TO BE ESTABLISHED
-        const url = `wss://${window.location.host}/ws/`;
-        console.log('Connecting to WebSocket server...');
-        initializeWebSocket(url)
-        await new Promise((resolve, reject) => {
-            if (!socket) {
-                reject('WebSocket is not initialized.');
-            } else {
-                const checkInterval = setInterval(() => {
-                    if (socket.readyState === WebSocket.OPEN) {
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                }, 1000);
-            }
-        });
 
             //--------EVENT_LISTENERS---------//
 
