@@ -27,16 +27,16 @@ class UserManager(models.Manager):
     def get_by_natural_key(self, username):
             return self.get(username=username)
 
-
-@receiver(post_save, sender=User)
+# @receiver(post_save, sender=User)
+# This signal was overwriting the UserProfile which was created in register...
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.get_or_create(user=instance)
+        UserProfile.objects.update_or_create(user=instance)
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    UserProfile.objects.get_or_create(user=instance)
-    instance.userprofile.save()
+    if hasattr(instance, 'userprofile'):
+        instance.userprofile.save()
 
 
 
