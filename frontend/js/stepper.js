@@ -72,11 +72,14 @@ function openSocket() {
 					}
                 }
 				if (data.type === 'update') {
-					updateGameState(data);
-				}
-				if (data.type === 'finish-game') {
-					unloadLocalGame();
-					console.log('Game finished! Winner is: ' + data.winner);
+					if (data.content.gameOver === true) {
+						console.log('Game Over. Winner is: ' + data.content.winner);
+						unloadLocalGame();
+						playerId = null;
+					}
+					else {
+						updateGameState(data);
+					}
 				}
 		};
 
@@ -148,7 +151,7 @@ function generateLocalGame() {
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
-		
+
 		createStartButton();
     })
     .catch(error => {
@@ -171,15 +174,30 @@ function loadLocalGame() {
     script.src = './js/game.js';
     gameArea.appendChild(script);
 
-	console.log('Creating Game');
-
     // Create and append the canvas
     let canvas = document.createElement('canvas');
     canvas.id = 'bg';
     gameArea.appendChild(canvas);
-	console.log('calling init now+++++')
 	init();
 
+}
+
+function unloadLocalGame() {
+    // Get the game area element
+    const gameArea = document.getElementById('game-column');
+
+    // Remove the script
+    let script = gameArea.querySelector('script[src="./js/game.js"]');
+    if (script) {
+        gameArea.removeChild(script);
+    }
+
+    // Remove the canvas
+    let canvas = gameArea.querySelector('canvas#bg');
+    if (canvas) {
+        gameArea.removeChild(canvas);
+    }
+	gameStarted = false;
 }
 
 function joinRemoteGame() {

@@ -205,6 +205,7 @@ index2;
 
 export async function init() {
     if (remote == true) {
+        console.log('Remote game mode player id is: ', playerId);
         if (playerId === 'player1')
             currentPlayer = player;
         else if (playerId === 'player2')

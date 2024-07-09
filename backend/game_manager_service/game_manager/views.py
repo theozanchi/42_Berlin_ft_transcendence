@@ -60,13 +60,16 @@ def get_game(request):
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
+        logging.debug('request.data: %s', request.data)
         game = Game.objects.get(pk=request.data.get('game_id'))
-        game = Game.objects.get(pk=request.data.get('game_id'))
+        round_played = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
+        
+        round_played.player1_score = request.data.get('playerScore')
+        round_played.player2_score = request.data.get('aiScore')
+        round_played.winner = request.data.get('winner')
+        round_played.save()
 
-        game.update_game(request.data)
-        game.save()
-
-        serializer = GameSerializer(game)
+        serializer = RoundSerializer(game)
         return Response(serializer.data, status=200)
     
     except Game.DoesNotExist:
@@ -81,11 +84,11 @@ def round(request):
     try:
         if request.data.get('game-id') is None:
             return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
+        
         game = Game.objects.filter(game_id=request.data.get('game-id')).first()
         if not Round.objects.filter(game=game).exists():
             game.create_rounds()
             game.save()
-        
         
         round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
         

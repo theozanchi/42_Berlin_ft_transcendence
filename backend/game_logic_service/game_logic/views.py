@@ -50,23 +50,23 @@ def game_update(request):
             cached_game_state = cache.get(game_id)
 
             if cached_game_state is not None:
-                #logging.info(f"Using cached game state for game ID: {game_id}")
                 game_state = cached_game_state
             else:
                 logging.info(f"Creating new game state for game ID: {game_id}")
                 game_state = create_new_game_state(game_id)
-            #print("incoming ballIsHeld: ", new_game_state.get('ballIsHeld'))
+
             if new_game_state:
                 game_state.update(new_game_state)
-            # process data with logic here
+
             update_game_state(game_state)
 
-            #print("updated ballIsHeld: ", game_state.get('ballIsHeld'))
             cache.set(game_id, game_state, timeout=None)
+            
             game_state['type'] = 'update'
-
-        #print("updated Game state: ", game_state)
-        #async_to_sync(channel_layer.group_send)(game_id, game_state)
+            
+            if game_state['playerScore'] >= 5 or game_state['aiScore'] >= 5:
+                game_state['gameOver'] = True
+                game_state['winner'] = 'Player 1' if game_state['playerScore'] >= 5 else 'Player 2'
 
         return JsonResponse(game_state, safe=False, status=200)
     

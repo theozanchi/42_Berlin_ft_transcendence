@@ -182,6 +182,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             logging.error({'error': str(e)})
         
     async def update(self, content):
+        if content.get('gameOver') is True:
+            response = requests.put(GAME_MANAGER_REST_URL + '/update-round-status/', json=content, headers=self.get_headers())
+            content += response.json()
         async with self.lock:
             await self.send_json(content)
 
