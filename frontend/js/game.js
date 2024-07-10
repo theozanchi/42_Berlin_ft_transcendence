@@ -38,7 +38,7 @@ const canvas = document.getElementById('bg');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-
+let direction;
 let ballUpdateEnabled = true;
 const faceMaterials = {};
 let scene, camera, camera2, renderer, cube, player, player2, aiPlayer, ball, collisionMarker, aimingLine;
@@ -48,7 +48,7 @@ const sendInterval = 1000 / 60;
 let keyMoveSpeed = 0.05;
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
-const cubeSize = 2; // Size of the cube
+const cubeSize = 1.8; // Size of the cube
 let playerTurn = true; // Player starts
 let playerScore = 0;
 let aiScore = 0;
@@ -62,7 +62,7 @@ let isGameStateUpdating = false;
 let ballIsHeld = true;
 let wallHits = 0;
 let aimingAngle = 0;
-let remote = true; // Set to false for two-player game
+let remote = false; // Set to false for two-player game
 const initialReconnectInterval = 1000; // Initial reconnect interval in ms
 let reconnectInterval = initialReconnectInterval;
 let currentPlayer;
@@ -168,6 +168,7 @@ export function initializeWebSocket(url){
             aimingAngle = data.aiming_angle;
             resetBall_ = data.reset_ball;
             wallHits = data.wall_hits;
+            direction = data.direction;
             console.log("currentface2", currentFace2);
             //console.log("ballisheld", ballIsHeld);
 
@@ -201,7 +202,8 @@ export function initializeWebSocket(url){
                     ballIsHeld: ballIsHeld,
                     aiming_angle: aimingAngle,
                     reset_ball: resetBall_,
-                    wall_hits: wallHits
+                    wall_hits: wallHits,
+                    direction: direction,
                 };
                 if (remote){
                     if (currentPlayer === player) {
@@ -444,7 +446,41 @@ async function init() {
     }
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
+function calculateDirection() {
+    let direction = { x: 0, y: 0, z: 0 };
+    let face = playerTurn ? currentFace : currentFace2;
 
+    switch (face) {
+        case 0:  // Front
+            direction.x = Math.sin(aimingAngle);
+            direction.z = -Math.cos(aimingAngle);
+            break;
+        case 1:  // Back
+            direction.x = Math.sin(aimingAngle);
+            direction.z = Math.cos(aimingAngle);
+            break;
+        case 2:  // Left
+            direction.x = Math.cos(aimingAngle);
+            direction.z = Math.sin(aimingAngle);
+            break;
+        case 3:  // Right
+            direction.x = -Math.cos(aimingAngle);
+            direction.z = Math.sin(aimingAngle);
+            break;
+        case 4:  // Top
+            direction.x = Math.sin(aimingAngle);
+            direction.y = -Math.cos(aimingAngle);
+            break;
+        case 5:  // Bottom
+            direction.x = Math.sin(aimingAngle);
+            direction.y = Math.cos(aimingAngle);
+            break;
+        default:
+            break;
+    }
+
+    return direction;
+}
 index3;
 
 function moveLoop() {
@@ -574,6 +610,7 @@ function onKeyDownPlayer1() {
                 if (ballIsHeld && !resetBall_) {
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
+                    direction = calculateDirection();
                     sendGameState();
                     ballIsHeld = false;
                 }
@@ -1057,6 +1094,7 @@ function updateAimingLine() {
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
         //sendGameState();
+        direction = calculateDirection();
     }
     else
         aimingLine.material.opacity = 0;
