@@ -23,6 +23,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 game_update_lock = Lock()
 last_update_time = time.time()
+WINNER_SCORE = 3
 
 @csrf_exempt
 @api_view(['POST'])
@@ -64,9 +65,9 @@ def game_update(request):
             
             game_state['type'] = 'update'
             
-            if game_state['playerScore'] >= 5 or game_state['aiScore'] >= 5:
-                game_state['gameOver'] = True
-                game_state['winner'] = 'Player 1' if game_state['playerScore'] >= 5 else 'Player 2'
+            if game_state['playerScore'] >= WINNER_SCORE or game_state['aiScore'] >= WINNER_SCORE:
+                game_state = {'gameOver': True, 'winner': 'Player 1' if game_state['playerScore'] >= WINNER_SCORE else 'Player 2'}
+                cache.delete(game_id)
 
         return JsonResponse(game_state, safe=False, status=200)
     

@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, playerId } from './stepper.js';
+import { sendJson, remote, playerId, gameStarted } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -40,7 +40,7 @@ canvas.height = window.innerHeight;
 
 const faceMaterials = {};
 const cubeSize = 2; // Size of the cube
-let scene, camera, camera2, renderer, cube, player, player2, aiPlayer, ball, collisionMarker, aimingLine;
+let scene, camera, camera2, renderer, cube, player, player2, ball, collisionMarker, aimingLine;
 
 let ballUpdateEnabled = true;
 let ballSpeed = new THREE.Vector3();
@@ -356,9 +356,8 @@ export async function init() {
     
     
     updateScore();
-    
     animate();
-    }
+}
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
 
@@ -1170,7 +1169,11 @@ function movePlayer2(player2, deltaX, deltaY) {
 index9;
 
 function animate() {
-
+    if (gameStarted == false) {
+        console.log('!!!!!!!!!!animate returning');
+        return;
+    }
+    
     requestAnimationFrame(animate);
     TWEEN.update();
     moveLoop();
@@ -1217,6 +1220,109 @@ function animate() {
     
     // Disable the scissor test after rendering
     renderer.setScissorTest(false);
+}
+
+function displayScore(winner) {
+    console.log('DISPLAYING SCORE...');
+
+    // Create a new div element
+let scoreElement = document.createElement('div');
+
+// Set the initial score text
+scoreElement.textContent = 'Score: 0';
+
+// Add the score element to the body
+document.body.appendChild(scoreElement);
+
+ scoreElement.textContent = 'winner: ' + winner;
+
+   /*  // Create a new scene
+    let scoreScene = new THREE.Scene();
+
+    // Create a loader for the font
+    let loader = new THREE.FontLoader();
+
+    // Load the font
+    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font) {
+        // Create a geometry for the score
+        let geometry = new THREE.TextGeometry('Game over. Winner: ' + winner, {
+            font: font,
+            size: 1,
+            height: 0.1,
+        });
+
+        // Create a material for the score
+        let material = new THREE.MeshBasicMaterial({color: 0xffffff});
+
+        // Create a mesh for the score
+        let mesh = new THREE.Mesh(geometry, material);
+
+        // Add the score to the scene
+        scoreScene.add(mesh);
+    });
+
+    return scoreScene; */
+}
+
+function clearScene(object) {
+    console.log('CLEARING SCENE...');
+
+    while(object.children.length > 0){ 
+        clearScene(object.children[0]);
+    }
+    if (object.geometry) {
+        object.geometry.dispose();
+    }
+    if (object.material) {
+        if (Array.isArray(object.material)) {
+            for (let i = 0; i < object.material.length; i++) {
+                object.material[i].dispose();
+            }
+        } else {
+            object.material.dispose();
+        }
+    }
+    if (object.texture) {
+        object.texture.dispose();
+    }
+    if (object.parent) { // this line is added to avoid error when the object is the scene itself
+        object.parent.remove(object);
+    }
+}
+
+export function resetGame() {
+    console.log('RESETTING GAME...');
+
+    clearScene(scene);
+
+    // Reset all variables to their initial state
+    currentPlayer = null;
+    scene = null;
+    camera = null;
+    camera2 = null;
+    renderer = null;
+    cube = null;
+    pivot = null;
+    pivot2 = null;
+    player = null;
+    player2 = null;
+    ball = null;
+    aimingLine = null;
+    collisionMarker = null;
+
+    // Remove score display
+    let scoreDisplay = document.getElementById('scoreDisplay');
+    if (scoreDisplay) {
+        document.body.removeChild(scoreDisplay);
+    }
+
+    // Remove event listeners
+    document.removeEventListener('keydown', onKeyDown);
+    document.removeEventListener('keyup', onKeyUp);
+    document.removeEventListener('mousemove', onMouseMove);
+
+    displayScore(playerScore > aiScore ? 'PLAYER' : 'PLAYER_2');
+
 }
 
 //init();

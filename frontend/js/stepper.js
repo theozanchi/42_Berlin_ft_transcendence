@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, updateGameState } from './game.js';
+import { init, resetGame, updateGameState } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -13,7 +13,7 @@ let messagePromise;
 let game_id;
 
 // For game area
-var gameStarted = false;
+export var gameStarted = false;
 export var remote = false;
 export var playerId;
 
@@ -50,32 +50,38 @@ function openSocket() {
                
 				if (data.type === 'broadcast') {
 					console.log('Broadcast:', data);
+
+					if (data.content.message === 'Game over') {
+						console.log('Game Over. Winner is: ' + data.content.winner);
+						newsocket.close();
+					}
 				}
 				if (data.type === 'create-game') {
 						game_id = data.game_id;
 				}
                 if (data.type === 'start-game') {
+					if (startGameButton) {
+						startGameButton.remove();
+					}
 					if (data.mode === 'remote') {
 						remote = true;
 						playerId = data.player_id;
-						/* if (data.player_id === 'spectator')
-							currentPlayer = null;
-						else
-							currentPlayer = (data.player_id === 'player1') ? player : player2; */
 					}
 
                     gameStarted = true;
                     console.log('Game started!');
 					loadLocalGame();
-					if (startGameButton) {
-						startGameButton.remove();
-					}
                 }
 				if (data.type === 'update') {
+					if (gameStarted === false)
+						return;
 					if (data.content.gameOver === true) {
-						console.log('Game Over. Winner is: ' + data.content.winner);
-						unloadLocalGame();
+						console.log('Round Over. Winner is: ' + data.content.winner);
 						playerId = null;
+						//unloadLocalGame();
+						// Start next round
+						// IF SELF IS HOST...
+						createStartButton();
 					}
 					else {
 						updateGameState(data);
@@ -183,8 +189,9 @@ function loadLocalGame() {
 }
 
 function unloadLocalGame() {
+	console.log('Unloading game...');
     // Get the game area element
-    const gameArea = document.getElementById('game-column');
+/*     const gameArea = document.getElementById('game-column');
 
     // Remove the script
     let script = gameArea.querySelector('script[src="./js/game.js"]');
@@ -196,8 +203,9 @@ function unloadLocalGame() {
     let canvas = gameArea.querySelector('canvas#bg');
     if (canvas) {
         gameArea.removeChild(canvas);
-    }
+    } */
 	gameStarted = false;
+	resetGame();
 }
 
 function joinRemoteGame() {

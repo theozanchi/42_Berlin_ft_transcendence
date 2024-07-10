@@ -69,6 +69,10 @@ def update_round_status(request):
         round_played.winner = request.data.get('winner')
         round_played.save()
 
+        if round.number == game.rounds:
+            game.determine_winner()
+            game.save()
+
         serializer = RoundSerializer(game)
         return Response(serializer.data, status=200)
     
@@ -98,7 +102,9 @@ def round(request):
             serializer = RoundSerializer(round_to_play)
             return JsonResponse(serializer.data, status=200)      
         else:
-            return JsonResponse({'message': 'No rounds to play or all rounds played.'}, status=403)
+            if game.winner:
+                return JsonResponse({'message': 'Game over', 'winner': game.winner}, status=200)
+            return JsonResponse({'message': 'No rounds to play.'}, status=403)
 
     except InsufficientPlayersError as e:
         return JsonResponse({'error': str(e)}, status=418)
