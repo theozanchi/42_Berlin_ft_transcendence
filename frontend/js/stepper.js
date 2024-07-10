@@ -70,6 +70,7 @@ function generateLocalGame() {
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
+		
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);

@@ -34,7 +34,7 @@ class MyPlayer extends HTMLElement {
 			: `${nameAligned}`;
 	
 		const removeButtonElement = hasRemoveButton 
-			? '<button id="removeButton" class="btn btn-outline-danger col-auto"><i class="bi bi-x-lg"></i></button>' 
+			? '<button id="removeButton" class="btn btn-outline-danger col-auto square-button"><i class="bi bi-x-lg"></i></button>' 
 			: '';
 	
 		const imgElement = `<img src="${imageUrl}" class="col-auto player-component">`;

@@ -33,12 +33,12 @@ const urlRoutes = {
 		description: "",
 	},
 	"/host-remote": {
-		template: "/lobby.html",
+		template: "/setup-lobby.html",
 		title: "Setup",
 		description: "",
 	},
 	"/join-remote": {
-		template: "/lobby.html",
+		template: "/setup-lobby.html",
 		title: "Setup",
 		description: "",
 	},
@@ -49,7 +49,7 @@ const urlRoutes = {
 		description: "",
 	},
 	"/game-table": {
-		template: "/game_table.html",
+		template: "/game-table.html",
 		title: "Game Table",
 		description: "",
 	},
@@ -67,12 +67,6 @@ const urlRoutes = {
 	"/profile": {
 		template: "/profile.html",
 		title: "Profile",
-		description: "",
-	},
-
-	"/layout": {
-		template: "/layout.html",
-		title: "Layout Tes",
 		description: "",
 	},
 }

@@ -77,25 +77,20 @@
 }
 
 .player-component {
-    margin: var(--player-component-margin);
-}
-
-.player-component img {
-    height:	48px;
-	width:	48px;
-}
-
-.player-avatar {
     height: 48px;
+	gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 6px;
 }
 
-.player-input {
-    max-width: 100%;
+.square-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.player-name {
-    margin: 0;
-}
 
 /* Game component styles */
 .game-canvas {
@@ -118,11 +113,6 @@
 
 .align-baseline {
 	align-items: baseline;
-}
-
-.player-component {
-    height: var(--player-img-height);
-    margin-right: var(--player-element-margin);
 }
 
 .nav {
