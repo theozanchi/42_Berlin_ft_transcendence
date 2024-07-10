@@ -38,3 +38,14 @@ RUN pip install  -r requirements.txt
 
 # Copy the current directory contents into the container at /app
 COPY . /app/
+
+
+# Version: 1.87.2
+# Commit: 863d2581ecda6849923a2118d93a088b0745d9d6
+# Date: 2024-03-08T15:14:59.643Z
+# Electron: 27.3.2
+# ElectronBuildId: 26836302
+# Chromium: 118.0.5993.159
+# Node.js: 18.17.1
+# V8: 11.8.172.18-electron.0
+# OS: Linux x64 5.15.0-113-generic

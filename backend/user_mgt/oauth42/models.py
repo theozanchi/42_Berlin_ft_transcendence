@@ -6,6 +6,7 @@ from django.db.models.functions import DenseRank, Coalesce
 import pprint
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.http import JsonResponse
 
 
 class UserManager(models.Manager):
@@ -17,15 +18,22 @@ class UserManager(models.Manager):
                 rank=Window(expression=DenseRank(), order_by=F("total_score").desc()),
             )
             .order_by("-total_score")
-            .values_list("id", "rank")
+            .values_list("id", "username", "total_score", "rank")
         )
+
+
 
     def get_user_ranking(self, user_id):
         rankings = list(self.get_user_rankings())
-        for i, user in enumerate(rankings):
+        for user in rankings:
             if user[0] == user_id:
-                return (i + 1, user[0])
-        return None
+                return {
+                    "rank": user[3],
+                    "user_id": user[0],
+                    "username": user[1],
+                    "total_score": user[2]
+                }
+        return {"error": "User not found"}
 
     def get_by_natural_key(self, username):
         return self.get(username=username)

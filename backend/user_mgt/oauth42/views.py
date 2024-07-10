@@ -25,6 +25,8 @@ from django.utils import timezone
 from .middleware import is_user_online
 from django.core import serializers
 import json
+from django.contrib.auth.hashers import make_password
+from django.views.decorators.csrf import csrf_exempt
 
 CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
 CLIENT_SECRET = (
@@ -146,25 +148,26 @@ def delete_cookie(request):
 
 
 # email and password registration
-def register(request):
-    if request.method == "POST":
-        form = RegistrationForm(request.POST, request.FILES)
-        if form.is_valid():
-            user = form.save()
-            avatar = form.cleaned_data["avatar"]
-            profile, created = UserProfile.objects.update_or_create(
-                user=user, defaults={"avatar": avatar}
-            )
-            login(request, user=user)
-            return redirect("home")
-    else:
-        form = RegistrationForm()
-    return render(request, "register.html", {"form": form})
+@csrf_exempt
+def register_view(request):
+    return render(request, "register.html")
 
+@csrf_exempt
+def register_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = User.objects.create(
+            username=data['username'],
+            email=data['email'],
+            password=make_password(data['password'])
+        )
+        return JsonResponse({'message': 'User created successfully.', 'user_id': user.id}, status=201)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-def ranking(request):
-    rankings = User.rankings.get_user_rankings()
-    return render(request, "ranking.html", {"rankings": rankings})
+def rankings(request):
+    rankings_qs = User.rankings.get_user_rankings()
+    rankings = list(rankings_qs.values("id", "username", "total_score", "rank"))
+    return JsonResponse(rankings, safe=False)
 
 
 def password(request):
@@ -269,9 +272,6 @@ def profile(request, user_id):
         player_data["friends"] = friends
 
     return JsonResponse(player_data)
-    return render(
-        request, "profile.html", {"user": request.user, "player_data": player_data}
-    )
 
 
 from django.contrib.auth.views import LoginView
@@ -322,7 +322,7 @@ def remove_friend(request, user_id):
     user_profile.save()
     return redirect("profile", user_profile.user.id)
 
-
+@login_required
 def online_users_view(request):
     five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
     online_user_profiles = UserProfile.objects.filter(
