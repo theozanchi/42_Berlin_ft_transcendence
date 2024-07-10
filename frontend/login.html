@@ -28,19 +28,21 @@
 								</nav>
 							</div>
 
-							<div class="d-grid gap-2">
-								<div class="form-floating">
-										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
+							<form>
+								<div class="d-grid gap-2">
+									<div class="form-floating">
+										<input type="email" class="form-control col" id="loginEmail" placeholder="x@ppg.fun" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
 										<label for="loginEmail">Email</label>
+									</div>
+									<div class="form-floating">
+										<input type="password" class="form-control col" id="loginPassword" placeholder="" required>
+										<label for="loginPassword">Password</label>
+										<a href="#" class="btn btn-link text-decoration-none">Forgot password?</a>
+									</div>
+									<div class="spacer-12"></div>
+									<button id="loginButton" type="submit" class="btn btn-lg btn-primary">Sign in</button>
 								</div>
-								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="" aria-label="">
-									<label for="loginPassword">Password</label>
-									<a href="#" class="btn btn-link text-decoration-none">Forgot password?</a>
-								</div>
-								<div class="spacer-12"></div>
-								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign in</button>
-							</div>
+							</form>
 
 							<div class="spacer-48"></div>
 									<div class="d-flex align-items-center justify-content-center">
@@ -52,8 +54,9 @@
 									<!-- <p>OR</p> -->
 									<div class="d-grid gap-2">
 										<button id="login42SSOButton" class="btn btn-lg btn-outline-dark">
-											<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
-											<span>42 Account</span></button>
+											<img src="./assets/42_Logo.svg" alt="Icon Description" width="26" height="26" fill="currentColor">
+											Intra Login
+										</button>
 									</div>	
 
 							</div>

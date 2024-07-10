@@ -6,7 +6,7 @@ window.onload = function() {
 	// let input = document.getElementById("lobbyGameID");
 	// if (input)
 	// 	input.value = gameID;
-	setGameID();
+	setTimeout(setGameID(), 3000);
 }
 
 function setGameID(gameID) {

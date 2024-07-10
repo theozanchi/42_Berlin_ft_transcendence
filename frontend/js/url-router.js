@@ -28,7 +28,7 @@ const urlRoutes = {
 		description: "",
 	},
 	"/setup-remote": {
-		template: "/remote.html",
+		template: "/setup-remote.html",
 		title: "Lobby",
 		description: "",
 	},

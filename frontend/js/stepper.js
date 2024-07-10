@@ -161,6 +161,7 @@ async function joinRemoteGame(gameID) {
 
 				joinRemoteGame(gameID);
 				urlRoute(`/join-remote?id=${gameID}`);
+				setTimeout(console.log('timeout'), 3000);
 			});
 			};
 
