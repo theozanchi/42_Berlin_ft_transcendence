@@ -1111,9 +1111,6 @@ function updateScore() {
 index7;
 
 let currentBlinkingFace = null;
-let isBlinking = false;
-let blinkInterval = 500; 
-let lastBlinkTime = 0;
 
 function getFaceName(name) {
     let faceName = '';
@@ -1152,13 +1149,9 @@ function startBlinking(faceNumber) {
             return;
         }
 
-        const currentTime = Date.now();
-        
-        face.material.opacity = isBlinking ? 1.0 : 0.5;
+        face.material.opacity = 1.0;
         //console.log("Blinking :", face.material.opacity);
         face.material.needsUpdate = true;
-        isBlinking = !isBlinking;
-        lastBlinkTime = currentTime;
         
 
     }
@@ -1173,7 +1166,6 @@ function stopBlinking() {
         }
     }
     currentBlinkingFace = null;
-    isBlinking = false;
 }
 
 
