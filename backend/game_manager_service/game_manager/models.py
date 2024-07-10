@@ -6,6 +6,7 @@ from itertools import combinations
 import requests
 import string
 import random
+from .exceptions import InsufficientPlayersError
 
 def generate_game_id():
     while True:
@@ -29,10 +30,10 @@ class Game(models.Model):
         super().save(*args, **kwargs)
 
     def add_players_to_game(self, data):
-        player_names = data.get("players", [])
+        players = data.get("players", [])
 
-        for name in player_names:
-            Player.objects.create(game=self, alias=name)
+        for player in players:
+            Player.objects.create(game=self, alias=player.get('alias'), channel_name=player.get('channel_name'))
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -49,38 +50,18 @@ class Game(models.Model):
             Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
             round_number += 1
 
-    def update_round_status(self, data):
-        winner = data.get('winner')
-        round_number = data.get('round_number')
-
-        if round_number is not None and winner:
-                try:
-                    round = Round.objects.get(game=self, round_number=round_number)
-                    round.winner = Player.objects.get(game=self, alias=winner)
-                    round.save()
-                except Round.DoesNotExist:
-                    print(f"No round found for game {self.pk} with round number {round_number}")
-                except Player.DoesNotExist:
-                    print(f"No player found for game {self.pk} with alias {self.pk}")
-        else:
-            raise ValidationError("Invalid data provided for game update.")
+    def determine_winner(self):
+    
+        most_wins_player = None
+        max_wins = 0
         
-        if round_number == self.rounds.count():
-            self.winner = Player.objects.get(game=self, alias=winner)
-            self.save()
-
-        def determine_winner(self):
+        for player in self.players.all():  # Assuming players is related name for players in Game model
+            if player.won_rounds > max_wins:
+                max_wins = player.won_rounds
+                most_wins_player = player
         
-            most_wins_player = None
-            max_wins = 0
-            
-            for player in self.players.all():  # Assuming players is related name for players in Game model
-                if player.won_rounds > max_wins:
-                    max_wins = player.won_rounds
-                    most_wins_player = player
-            
-            self.winner = most_wins_player
-            self.save()
+        self.winner = most_wins_player
+        self.save()
 
     def __str__(self):
         return self.pk

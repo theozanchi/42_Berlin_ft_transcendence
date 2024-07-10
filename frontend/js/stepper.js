@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-//import { updateGameState } from './game.js';
+import { init, resetGame, updateGameState } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -13,7 +13,7 @@ let messagePromise;
 let game_id;
 
 // For game area
-var gameStarted = false;
+export var gameStarted = false;
 export var remote = false;
 export var playerId;
 
@@ -50,33 +50,42 @@ function openSocket() {
                
 				if (data.type === 'broadcast') {
 					console.log('Broadcast:', data);
+
+					if (data.content.message === 'Game over') {
+						console.log('Game Over. Winner is: ' + data.content.winner);
+						newsocket.close();
+					}
 				}
 				if (data.type === 'create-game') {
 						game_id = data.game_id;
 				}
                 if (data.type === 'start-game') {
+					if (startGameButton) {
+						startGameButton.remove();
+					}
 					if (data.mode === 'remote') {
 						remote = true;
 						playerId = data.player_id;
-						/* if (data.player_id === 'spectator')
-							currentPlayer = null;
-						else
-							currentPlayer = (data.player_id === 'player1') ? player : player2; */
 					}
 
                     gameStarted = true;
                     console.log('Game started!');
 					loadLocalGame();
-					if (startGameButton) {
-						startGameButton.remove();
-					}
                 }
 				if (data.type === 'update') {
-					updateGameState(data);
-				}
-				if (data.type === 'finish-game') {
-					unloadLocalGame();
-					console.log('Game finished! Winner is: ' + data.winner);
+					if (gameStarted === false)
+						return;
+					if (data.content.gameOver === true) {
+						console.log('Round Over. Winner is: ' + data.content.winner);
+						playerId = null;
+						//unloadLocalGame();
+						// Start next round
+						// IF SELF IS HOST...
+						createStartButton();
+					}
+					else {
+						updateGameState(data);
+					}
 				}
 		};
 
@@ -100,8 +109,8 @@ function openSocket() {
 	return (openPromise);
 }
 
-async function sendJson(json) {
-	console.log("TRYING TO SEND A JSON");
+export async function sendJson(json) {
+	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         console.log(`Sending json to server: ${json}`);
         await newsocket.send(json);
@@ -148,6 +157,8 @@ function generateLocalGame() {
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
+
+		createStartButton();
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -169,13 +180,32 @@ function loadLocalGame() {
     script.src = './js/game.js';
     gameArea.appendChild(script);
 
-	console.log('Creating Game');
-
     // Create and append the canvas
     let canvas = document.createElement('canvas');
     canvas.id = 'bg';
     gameArea.appendChild(canvas);
+	init();
 
+}
+
+function unloadLocalGame() {
+	console.log('Unloading game...');
+    // Get the game area element
+/*     const gameArea = document.getElementById('game-column');
+
+    // Remove the script
+    let script = gameArea.querySelector('script[src="./js/game.js"]');
+    if (script) {
+        gameArea.removeChild(script);
+    }
+
+    // Remove the canvas
+    let canvas = gameArea.querySelector('canvas#bg');
+    if (canvas) {
+        gameArea.removeChild(canvas);
+    } */
+	gameStarted = false;
+	resetGame();
 }
 
 function joinRemoteGame() {
@@ -234,8 +264,6 @@ async function hostRemoteGame() {
 					event.preventDefault();
 
 					generateLocalGame();
-					console.log("heyhey");
-					loadLocalGame();
 				});
 			};
 
@@ -252,8 +280,6 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
-
-				console.log("HOSTING REMOTE");
 
 				hostRemoteGame();
 

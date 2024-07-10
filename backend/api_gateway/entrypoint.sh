@@ -7,6 +7,7 @@ django-admin createsuperuser --noinput
 # Install Redis CLI
 apt-get update && apt-get install -y redis-tools
 
+
 # Start the Daphne server
 echo "Starting Daphne"
 daphne -b 0.0.0.0 -p 8001 api_gateway.asgi:application &

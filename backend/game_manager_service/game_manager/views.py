@@ -49,6 +49,7 @@ def join_game(request):
 def get_game(request):
     try:
         game = Game.objects.get(pk=request.data.get('game_id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
@@ -59,12 +60,20 @@ def get_game(request):
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
+        logging.debug('request.data: %s', request.data)
         game = Game.objects.get(pk=request.data.get('game_id'))
+        round_played = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
+        
+        round_played.player1_score = request.data.get('playerScore')
+        round_played.player2_score = request.data.get('aiScore')
+        round_played.winner = request.data.get('winner')
+        round_played.save()
 
-        game.update_game(request.data)
-        game.save()
+        if round.number == game.rounds:
+            game.determine_winner()
+            game.save()
 
-        serializer = GameSerializer(game)
+        serializer = RoundSerializer(game)
         return Response(serializer.data, status=200)
     
     except Game.DoesNotExist:
@@ -78,8 +87,9 @@ def update_round_status(request):
 def round(request):
     try:
         if request.data.get('game-id') is None:
-            return JsonResponse({'error': 'Missing game-id parameter'}, status=400)
-        game = Game.objects.get(pk=request.data.get('game-id'))
+            return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
+        
+        game = Game.objects.filter(game_id=request.data.get('game-id')).first()
         if not Round.objects.filter(game=game).exists():
             game.create_rounds()
             game.save()
@@ -92,7 +102,9 @@ def round(request):
             serializer = RoundSerializer(round_to_play)
             return JsonResponse(serializer.data, status=200)      
         else:
-            return JsonResponse({'message': 'No rounds to play or all rounds played.'}, status=403)
+            if game.winner:
+                return JsonResponse({'message': 'Game over', 'winner': game.winner}, status=200)
+            return JsonResponse({'message': 'No rounds to play.'}, status=403)
 
     except InsufficientPlayersError as e:
         return JsonResponse({'error': str(e)}, status=422)
@@ -106,6 +118,7 @@ def round(request):
 @permission_classes([AllowAny])
 def finish_game(request):
     try:
+        game = Game.objects.get(pk=request.data.get('game_id'))
         game = Game.objects.get(pk=request.data.get('game_id'))
         game.determine_winner()
 
