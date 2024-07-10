@@ -13,6 +13,7 @@ from asgiref.sync import sync_to_async
 from django.views import View
 from threading import Lock
 
+import requests
 import json
 import time
 import math
@@ -24,6 +25,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 game_update_lock = Lock()
 last_update_time = time.time()
 WINNER_SCORE = 3
+
+GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 
 @csrf_exempt
 @api_view(['POST'])
@@ -53,7 +56,6 @@ def game_update(request):
             if cached_game_state is not None:
                 game_state = cached_game_state
             else:
-                logging.info(f"Creating new game state for game ID: {game_id}")
                 game_state = create_new_game_state(game_id)
 
             if new_game_state:
@@ -65,10 +67,17 @@ def game_update(request):
             
             game_state['type'] = 'update'
             
-            if game_state['playerScore'] >= WINNER_SCORE or game_state['aiScore'] >= WINNER_SCORE:
-                game_state = {'gameOver': True, 'winner': 'Player 1' if game_state['playerScore'] >= WINNER_SCORE else 'Player 2'}
+            if game_state['player1Score'] >= WINNER_SCORE or game_state['player2Score'] >= WINNER_SCORE:
+                game_state = {'game_id': game_id,
+                              'player1Score': game_state['player1Score'],
+                              'player2Score': game_state['player2Score'],
+                              'winner': 'player1' if game_state['player1Score'] >= WINNER_SCORE else 'player2'}
                 cache.delete(game_id)
-
+                response = requests.post(GAME_MANAGER_REST_URL + '/update-round-status/', json=game_state, headers=request.headers)
+                response.raise_for_status()
+                logging.debug('game manager returned: ', response.json())
+                game_state = {'gameOver': True} + response.json()
+                
         return JsonResponse(game_state, safe=False, status=200)
     
     except Exception as e:
@@ -95,8 +104,8 @@ def create_new_game_state(game_id):
         'ball': {'x': 0, 'y': 0, 'z': 0},
         'ballSpeed': {'x': 0, 'y': 0, 'z': 0},
         'playerTurn': True,  # Initial value, assuming player 1 starts
-        'playerScore': 0,
-        'aiScore': 0,
+        'player1Score': 0,
+        'player2Score': 0,
         'ballIsHeld': True,  # Initial value, assuming ball is held initially
         'current_face': 0,  # Adding initial value for current face
         'current_face2': 1,
@@ -117,8 +126,6 @@ def update_game_state(game_state):
     #update_ai(game_state)
 
 def reset_ball(game_state):
-
-    print("Resetting ball")
 
     game_state['playerTurn'] = not game_state['playerTurn']
     game_state['reset_ball'] = False
@@ -204,7 +211,6 @@ def update_ball(game_state):
 
     # Check for collisions with players
     if check_collision(game_state):
-        print("Collision detected")
         pass
     else:
         game_state['ball'] = next_position  # Update ball position normally
@@ -214,30 +220,27 @@ def update_ball(game_state):
     if game_state['ball']['x'] <= -half_cube_size or game_state['ball']['x'] >= half_cube_size:
         game_state['ballSpeed']['x'] = -game_state['ballSpeed']['x']
         game_state['wall_hits'] += 1
-        logging.info(game_state['wall_hits'])
 
     if game_state['ball']['y'] <= -half_cube_size or game_state['ball']['y'] >= half_cube_size:
         game_state['ballSpeed']['y'] = -game_state['ballSpeed']['y']
         game_state['wall_hits'] += 1
-        logging.info(game_state['wall_hits'])
 
     if game_state['ball']['z'] <= -half_cube_size or game_state['ball']['z'] >= half_cube_size:
         game_state['ballSpeed']['z'] = -game_state['ballSpeed']['z']
         game_state['wall_hits'] += 1
-        logging.info(game_state['wall_hits'])
 
     #logging.info(game_state['wall_hits'])
     #game_state['ballIsHeld'] = False
     # Score handling
     if game_state['wall_hits'] >= 2:
         if not game_state['playerTurn']:
-            game_state['playerScore'] += 1
+            game_state['player1Score'] += 1
         else:
-            game_state['aiScore'] += 1
+            game_state['player2Score'] += 1
         game_state['wall_hits'] = 0
         #game_state['playerTurn'] = not game_state['playerTurn']
         game_state['ballIsHeld'] = True
-        print(f"Scoring update. PlayerScore: {game_state['playerScore']}, AIScore: {game_state['aiScore']}")
+        print(f"Scoring update. player1Score: {game_state['player1Score']}, player2Score: {game_state['player2Score']}")
         update_ball(game_state)
         #reset_ball(game_state)
     # Update the collision marker position
@@ -272,7 +275,6 @@ def check_collision(game_state):
         
         # Place collision marker at the intersection point for debugging
         game_state['collision_marker_position'] = ball_position.copy()
-        logging.info(f'Collision Detected: {"Player" if game_state["playerTurn"] else "AI Player"}')
 
         # Get the paddle involved in the collision
         paddle = game_state['player1'] if game_state['playerTurn'] else game_state['player2']

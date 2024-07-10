@@ -7,6 +7,9 @@ import requests
 import string
 import random
 from .exceptions import InsufficientPlayersError
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def generate_game_id():
     while True:
@@ -47,8 +50,10 @@ class Game(models.Model):
 
         # Generate all possible matchups for league play
         for player1, player2 in combinations(players_list, 2):
-            Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
+            round = Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number, winner=None)
+            logging.debug('round created: %s', round)
             round_number += 1
+        
 
     def determine_winner(self):
     
@@ -87,7 +92,7 @@ class Round(models.Model):
     round_number = models.PositiveIntegerField(null=True) 
     player1 = models.ForeignKey('Player', related_name='player1_rounds', on_delete=models.CASCADE)
     player2 = models.ForeignKey('Player', related_name='player2_rounds', on_delete=models.CASCADE)
-    winner = models.ForeignKey('Player', related_name='won_rounds', null=True, on_delete=models.SET_NULL)
+    winner = models.ForeignKey('Player', related_name='won_rounds', default=None, null=True, on_delete=models.SET_NULL)
     player1_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
     player2_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
 
@@ -100,5 +105,5 @@ class Round(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Round {self.round_number} - {self.player1} vs {self.player2}"
+        return f"Round {self.round_number} - {self.player1} vs {self.player2} - winner: {self.winner}"
 

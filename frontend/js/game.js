@@ -51,8 +51,8 @@ let playerTurn = true; // Player starts
 let currentPlayer;
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 let keyMoveSpeed = 0.05;
-let playerScore = 0;
-let aiScore = 0;
+let player1Score = 0;
+let player2Score = 0;
 
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
 let currentFace2 = 1;
@@ -100,8 +100,8 @@ export function updateGameState(data) {
     }
     // Update game data.content variables
     playerTurn = data.content.playerTurn;
-    playerScore = data.content.playerScore;
-    aiScore = data.content.aiScore;
+    player1Score = data.content.player1Score;
+    player2Score = data.content.player2Score;
     ballIsHeld = data.content.ballIsHeld;
     currentFace = data.content.current_face;
     currentFace2 = data.content.current_face2;
@@ -125,8 +125,8 @@ export function sendGameState() {
         const newGameState = {
             type: 'game-state',
             playerTurn: playerTurn,
-            playerScore: playerScore,
-            aiScore: aiScore,
+            player1Score: player1Score,
+            player2Score: player2Score,
             ball: {
                 x: ball.position.x,
                 y: ball.position.y,
@@ -979,7 +979,7 @@ function updateAimingLine() {
 
 function updateScore() {
     let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player: ${playerScore} | Player_2: ${aiScore}`;
+    scoreDisplay.innerHTML = `Player: ${player1Score} | Player_2: ${player2Score}`;
 }
 
     //////////////////////--------BLINKING-------//////////////////////
@@ -1170,7 +1170,8 @@ index9;
 
 function animate() {
     if (gameStarted == false) {
-        console.log('!!!!!!!!!!animate returning');
+        console.log('GAME STARTED IS FALSE');
+        resetGame();
         return;
     }
     
@@ -1222,46 +1223,46 @@ function animate() {
     renderer.setScissorTest(false);
 }
 
-function displayScore(winner) {
-    console.log('DISPLAYING SCORE...');
+export function displayScore(content) {
+    console.log('DISPLAYING SCORE... ', content);
 
-    // Create a new div element
-let scoreElement = document.createElement('div');
+    let winner = content.winner;
+    let player1Score = content.player1Score;
+    let player2Score = content.player2Score
 
-// Set the initial score text
-scoreElement.textContent = 'Score: 0';
+    // Get the canvas and its parent
+    const canvas = document.getElementById('bg');
+    const parent = canvas.parentNode;
 
-// Add the score element to the body
-document.body.appendChild(scoreElement);
+    // Create a div for the winner
+    let winnerDiv = document.createElement('div');
+    winnerDiv.textContent = 'Winner: ' + winner;
+    winnerDiv.style.color = 'white';
+    winnerDiv.style.position = 'absolute';
+    winnerDiv.style.zIndex = '1';
 
- scoreElement.textContent = 'winner: ' + winner;
+    // Create a div for player 1's score
+    let player1Div = document.createElement('div');
+    player1Div.textContent = 'Player 1: ' + player1Score;
+    player1Div.style.color = 'white';
+    player1Div.style.position = 'absolute';
+    player1Div.style.left = '10px';
+    player1Div.style.top = '10px';
+    player1Div.style.zIndex = '1';
 
-   /*  // Create a new scene
-    let scoreScene = new THREE.Scene();
+    // Create a div for player 2's score
+    let player2Div = document.createElement('div');
+    player2Div.textContent = 'Player 2: ' + player2Score;
+    player2Div.style.color = 'white';
+    player2Div.style.position = 'absolute';
+    player2Div.style.right = '10px';
+    player2Div.style.top = '10px';
+    player2Div.style.zIndex = '1';
 
-    // Create a loader for the font
-    let loader = new THREE.FontLoader();
-
-    // Load the font
-    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font) {
-        // Create a geometry for the score
-        let geometry = new THREE.TextGeometry('Game over. Winner: ' + winner, {
-            font: font,
-            size: 1,
-            height: 0.1,
-        });
-
-        // Create a material for the score
-        let material = new THREE.MeshBasicMaterial({color: 0xffffff});
-
-        // Create a mesh for the score
-        let mesh = new THREE.Mesh(geometry, material);
-
-        // Add the score to the scene
-        scoreScene.add(mesh);
-    });
-
-    return scoreScene; */
+    // Add the divs to the parent of the canvas
+    parent.appendChild(winnerDiv);
+    parent.appendChild(player1Div);
+    parent.appendChild(player2Div);
 }
 
 function clearScene(object) {
@@ -1295,6 +1296,12 @@ export function resetGame() {
 
     clearScene(scene);
 
+    scene = null;
+
+    renderer.clear();
+    renderer.dispose();
+    //const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
+   // context.clearRect(0, 0, canvas.width, canvas.height);
     // Reset all variables to their initial state
     currentPlayer = null;
     scene = null;
@@ -1320,9 +1327,8 @@ export function resetGame() {
     document.removeEventListener('keydown', onKeyDown);
     document.removeEventListener('keyup', onKeyUp);
     document.removeEventListener('mousemove', onMouseMove);
+    //renderer.domElement.removeEventListener('click', requestPointerLock);
 
-    displayScore(playerScore > aiScore ? 'PLAYER' : 'PLAYER_2');
+    //displayScore(player1Score > player2Score ? 'PLAYER 1' : 'PLAYER 2', player1Score, player2Score);
 
 }
-
-//init();

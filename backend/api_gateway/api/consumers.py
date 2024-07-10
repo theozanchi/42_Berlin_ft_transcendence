@@ -131,6 +131,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 await self.send_json({'type': 'Game already over'})
                 return
 
+            self.round_number = response.json().get('round_number')
+
             # Send round info to all players
             await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
             if response.json().get('message') is not 'Game over':
@@ -187,9 +189,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             logging.error({'error': str(e)})
         
     async def update(self, content):
-        if content.get('gameOver') is True:
-            response = requests.put(GAME_MANAGER_REST_URL + '/update-round-status/', json=content, headers=self.get_headers())
-            content += response.json()
         async with self.lock:
             await self.send_json(content)
 
