@@ -158,8 +158,13 @@ export function initializeWebSocket(url){
             playerScore = data.playerScore;
             aiScore = data.aiScore;
             ballIsHeld = data.ballIsHeld;
-            currentFace = data.current_face;
-            currentFace2 = data.current_face2;
+            if (remote){
+                if (currentPlayer === player) {
+                    currentFace2 = data.current_face2;
+                } else {
+                    currentFace = data.current_face;
+                }
+            }
             aimingAngle = data.aiming_angle;
             resetBall_ = data.reset_ball;
             wallHits = data.wall_hits;
@@ -194,12 +199,18 @@ export function initializeWebSocket(url){
                         z: ballSpeed.z
                     },
                     ballIsHeld: ballIsHeld,
-                    current_face: currentFace,
-                    current_face2: currentFace2,
                     aiming_angle: aimingAngle,
                     reset_ball: resetBall_,
                     wall_hits: wallHits
                 };
+                if (remote){
+                    if (currentPlayer === player) {
+                        newGameState.current_face = currentFace;
+                    }
+                    else {
+                        newGameState.current_face2 = currentFace2;
+                    }
+                }
                 if (remote){
                     if (currentPlayer === player) {
                         newGameState.player1 = {
@@ -441,6 +452,7 @@ function moveLoop() {
     let deltaY = 0;
     if(remote){
         if(currentPlayer === player){
+            if (isTransitioning) return;
             if (keysPressed.ArrowUp) {
             deltaY += keyMoveSpeed;
             }
@@ -459,6 +471,7 @@ function moveLoop() {
             sendGameState();
         }
         else{
+            if (isTransitioning2) return;
             if (keysPressed.ArrowUp) {
             deltaY += keyMoveSpeed;
             }
@@ -477,39 +490,41 @@ function moveLoop() {
             sendGameState();
         }
     } else {
-        if (keysPressed.i) {
-        deltaY += keyMoveSpeed;
-        }
-        if (keysPressed.k) {
-        deltaY -= keyMoveSpeed;
-        }
-        if (keysPressed.j) {
-        deltaX -= keyMoveSpeed;
-        }
-        if (keysPressed.l) {
-        deltaX += keyMoveSpeed;
-        }
-    
+        if (!isTransitioning) 
+        {
+            if (keysPressed.i) {
+            deltaY += keyMoveSpeed;
+            }
+            if (keysPressed.k) {
+            deltaY -= keyMoveSpeed;
+            }
+            if (keysPressed.j) {
+            deltaX -= keyMoveSpeed;
+            }
+            if (keysPressed.l) {
+            deltaX += keyMoveSpeed;
+            }
         movePlayer(player, deltaX, deltaY);
+        }
 
         deltaX = 0;
         deltaY = 0;
-    
-        if (keysPressed['8']) {
-        deltaY += keyMoveSpeed;
+        if (!isTransitioning2){
+            if (keysPressed['8']) {
+            deltaY += keyMoveSpeed;
+            }
+            if (keysPressed['5']) {
+            deltaY -= keyMoveSpeed;
+            }
+            if (keysPressed['4']) {
+            deltaX -= keyMoveSpeed;
+            }
+            if (keysPressed['6']) {
+            deltaX += keyMoveSpeed;
+            }
+        
+            movePlayer2(player2, deltaX, deltaY);
         }
-        if (keysPressed['5']) {
-        deltaY -= keyMoveSpeed;
-        }
-        if (keysPressed['4']) {
-        deltaX -= keyMoveSpeed;
-        }
-        if (keysPressed['6']) {
-        deltaX += keyMoveSpeed;
-        }
-    
-        movePlayer2(player2, deltaX, deltaY);
-  
         sendGameState();
 
 }
@@ -706,6 +721,7 @@ function switchFace(direction) {
             ballUpdateEnabled = true; // Disable ball updates during the transition
         })
         .onComplete(() => {
+            updatePlayerPositionForFace(currentFace);
             isTransitioning = false;
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
@@ -861,10 +877,11 @@ function switchFace2(direction) {
         .easing(TWEEN.Easing.Quadratic.Out)
         .onStart(() => {
             
-            updatePlayerPositionForFace2(currentFace2)
+            updatePlayerPositionForFace2(currentFace2);
             ballUpdateEnabled = true; // Disable ball updates during the transition
         })
         .onComplete(() => {
+            updatePlayerPositionForFace2(currentFace2);
             isTransitioning2 = false;
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
