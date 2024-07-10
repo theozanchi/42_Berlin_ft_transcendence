@@ -26,8 +26,8 @@ class MyPlayer extends HTMLElement {
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 	
 		const nameAligned = (tableColumn === "right")
-			? `<p class="col text-end">${name}</p>`
-			: `<p class="col">${name}</p>`
+			? `<p class="col align-middle fs-5 m-0 text-end">${name}</p>`
+			: `<p class="col align-middle fs-5 m-0">${name}</p>`
 
 		const inputElement = hasInput 
 			? `<input type="text" class="form-control col" maxlength="30" value="${name}">` 
@@ -43,9 +43,9 @@ class MyPlayer extends HTMLElement {
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 			<link rel="stylesheet" href="./css/styles.css">
-			<div class="player-component d-flex align-items-center justify-content-center">
+			<div class="player-component d-flex align-items-center">
 				${rightToLeft
-						? removeButtonElement + inputElement + imgElement 
+						? removeButtonElement + inputElement + imgElement
 						: imgElement + inputElement + removeButtonElement}
 			</div>
 		`;
