@@ -19,7 +19,28 @@
 				<div class="col col-lg-6 ppg-pink-light"  id="settings-column">
 					<div class="d-flex flex-column h-100">
 						<div class="spacer-48"></div>
-						<h2>Upcoming Games</h2>
+						<div class="spacer-48"></div>
+						<div class="spacer-48"></div>
+						
+						
+						<h2>Now Playing</h2>
+						<hr>
+						<nav class="nav nav-pills flex-column flex-sm-row">
+							<a class="flex-sm-fill text-sm-center nav-link active" aria-current="page" href="#">Next</a>
+							<a class="flex-sm-fill text-sm-center nav-link" href="#">Finished</a>
+							<a class="flex-sm-fill text-sm-center nav-link" href="#">All Players</a>
+						</nav>
+						<ul class="nav nav-pills flex-column flex-sm-row">
+							<li class="nav-item">
+							  <a class="nav-link active" aria-current="page" data-bs-toggle="pill" href="#">Upcoming</a>
+							</li>
+							<li class="nav-item">
+							  <a class="nav-link" href="#" data-bs-toggle="pill">Finished</a>
+							</li>
+							<li class="nav-item">
+							  <a class="nav-link" href="#" data-bs-toggle="pill">Players</a>
+							</li>
+						  </ul>
 						<div class="d-flex flex-column ppg-green h-100 overflow-auto">
 							<div  class="d-flex gap-2 align-items-center align-baseline">
 								<player-component name="player1" order-right class="flex-grow-1"></player-component>
@@ -39,6 +60,7 @@
 								<player-component name="player2" table-column="right" class="flex-grow-1"></player-component>
 							</div>
 						</div>
+						<div class="spacer-48"></div>
 					</div>
 				</div>
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
