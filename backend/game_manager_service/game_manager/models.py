@@ -107,17 +107,18 @@ class Round(models.Model):
     player1 = models.ForeignKey('Player', related_name='player1_rounds', on_delete=models.CASCADE)
     player2 = models.ForeignKey('Player', related_name='player2_rounds', on_delete=models.CASCADE)
     winner = models.ForeignKey('Player', related_name='won_rounds', null=True, on_delete=models.SET_NULL)
-    player1_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
-    player2_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
+    player1_score = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
+    player2_score = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
 
-    def update_scores_abandon(self, alias):
-        for round in self.round.all():
-            if round.player1.alias == alias:
+    def update_scores_abandon(self, game_id, channel_name):
+        rounds = Round.objects.filter(game__game_id=game_id)
+        for round in rounds:
+            if round.player1.channel_name == channel_name:
                 round.player1_score = 0
                 round.player2_score = 0
                 winner = round.player2
                 round.save()
-            elif round.player2.alias == alias:
+            elif round.player2.channel_name == channel_name:
                 round.player1_score = 0
                 round.player2_score = 0
                 winner = round.player1

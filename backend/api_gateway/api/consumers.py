@@ -4,7 +4,7 @@ import json
 import logging
 import asyncio
 
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
@@ -26,11 +26,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 #  TO DO : the whole routine of somebody leaving should only occur if tournament is not over, if not we just let clients disconnect 
     async def disconnect(self, close_code):
         if self.game_id:
-            self.channel_layer.group_send(self.game_id, 
-                {'type': 'broadcast', 
-                'content': {'player': self.alias, 
-                'message': 'left the game'}})
-            content = {'game_id': self.game_id, 'alias': self.alias, 'channel_name': self.channel_name}
+            content = {'game-id': self.game_id, 'alias': self.alias, 'channel_name': self.channel_name}
             response = requests.post(GAME_MANAGER_REST_URL + '/player-left/', json=content, headers=self.get_headers())
             response.raise_for_status()
             await self.channel_layer.group_send(

@@ -78,12 +78,11 @@ def update_round_status(request):
 def round(request):
     try:
         if request.data.get('game-id') is None:
-            return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
-        game = Game.objects.filter(game_id=request.data.get('game-id')).first()
+            return JsonResponse({'error': 'Missing game-id parameter'}, status=400)
+        game = Game.objects.get(pk=request.data.get('game-id'))
         if not Round.objects.filter(game=game).exists():
             game.create_rounds()
             game.save()
-        
         
         round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
         
@@ -121,13 +120,13 @@ def finish_game(request):
 def update_players(request):
     try:
         game = Game.objects.get(pk=request.data.get('game-id'))
-        if request.data.get('channel_name') is game.host:
+        if request.data.get('channel_name') == game.host:
             next_player = game.players.exclude(channel_name=game.host).first()
             if next_player:
                 game.host = next_player.channel_name
             else:
                 game.host = None
-        game.round.update_scores_abandon(request.data.get('alias'))
+        Round.update_scores_abandon(request.data.get('game-id'), request.data.get('channel_name'))
         game.save()
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
