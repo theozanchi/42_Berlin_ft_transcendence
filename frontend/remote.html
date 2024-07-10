@@ -14,33 +14,34 @@
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
 				<div class="col col-lg-3 ppg-blue-light" id="settings-column">
-					<div class="spacer-48"></div>
-					<stepper-component></stepper-component>
-
-					<stepper-titlebar title="Remote Game"></stepper-titlebar>
-
-					<div class="d-flex flex-column h-100 overflow-auto">
+					<div class="d-flex flex-column h-100">
 						<div class="spacer-48"></div>
-						<p>Fantastic!<br>Nothing better than playing with friends via the internet.</p>
-						<div class="spacer-48"></div>
-						<h2>Join Game</h2>
-						<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
+						<stepper-component></stepper-component>
 
-						<form class="input-group mb-3 needs-validation" novalidate>
-							<div class="form-floating d-grid">
-								<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" value="" required>
-								<label for="searchGameID">Game-ID</label>
-							</div>
-								<button class="btn btn-primary" type="submit" id="joinRemoteGameButton">Join</button>
-						</form>
-						<div class="spacer-48"></div>
-						<h2>Host Game</h2>
-						<p>Do your prefer to host your own game to share it with friends?</p>
-						<nav>
-							<button id="hostRemoteGameButton" class="btn btn-lg btn-primary d-grid generate-game-button">Host Remote Game</b>
-						</nav> 
+						<stepper-titlebar title="Remote Game"></stepper-titlebar>
+
+						<div class="d-flex flex-column h-100 overflow-auto">
+							<div class="spacer-48"></div>
+							<p>Fantastic!<br>Nothing better than playing with friends via the internet.</p>
+							<div class="spacer-48"></div>
+							<h2>Join Game</h2>
+							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
+
+							<form class="input-group mb-3 needs-validation" novalidate>
+								<div class="form-floating d-grid">
+									<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" value="" required>
+									<label for="searchGameID">Game-ID</label>
+								</div>
+									<button class="btn btn-primary" type="submit" id="joinRemoteGameButton">Join</button>
+							</form>
+							<div class="spacer-48"></div>
+							<h2>Host Game</h2>
+							<p>Do your prefer to host your own game to share it with friends?</p>
+							<nav>
+								<button id="hostRemoteGameButton" class="btn btn-lg btn-primary d-grid generate-game-button">Host Remote Game</b>
+							</nav> 
+						</div>
 					</div>
-
 				</div>
 	
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">

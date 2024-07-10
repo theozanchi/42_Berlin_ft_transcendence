@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com;">
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com;"> -->
     <title>3D Pong Game</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-	<canvas id="bg"></canvas>
-	<script src="js/game.js" type="module"></script>
-    <div class="container">
-        <h1>3D Pong Game</h1>
-        <div id="game-container"></div>
-    </div>
+	<div id="game-column">
+		<canvas id="bg"></canvas>
+		<div class="container">
+			<h1>3D Pong Game</h1>
+			<div id="game-container"></div>
+		</div>
+		<script type="module" src="js/game.js"></script>
+	</div>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </html>

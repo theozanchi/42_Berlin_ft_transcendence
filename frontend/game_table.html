@@ -17,27 +17,31 @@
 
 				</div>
 				<div class="col col-lg-6 ppg-pink-light"  id="settings-column">
+					<div class="d-flex flex-column h-100">
+						<div class="spacer-48"></div>
+						<h2>Upcoming Games</h2>
+						<div class="d-flex flex-column ppg-green h-100 overflow-auto">
+							<div  class="d-flex gap-2 align-items-center align-baseline">
+								<player-component name="player1" order-right class="flex-grow-1"></player-component>
+								<p class="mx-2 fw-bold align-self-center">- : -</p>
+								<player-component name="player2" table-column="right" class="flex-grow-1"></player-component>
+							</div>
+							<hr>
+							<div  class="d-flex align-items-center">
+								<player-component name="player1" order-right class="flex-grow-1"></player-component>
+								<p class="mx-2">- : -</p>
+								<player-component name="player2" table-column="right" class="flex-grow-1"></player-component>
+							</div>
+							<hr>
+							<div  class="d-flex align-items-center">
+								<player-component name="player1" order-right class="flex-grow-1"></player-component>
+								<p class="mx-2">- : -</p>
+								<player-component name="player2" table-column="right" class="flex-grow-1"></player-component>
+							</div>
+						</div>
+					</div>
 				</div>
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
-					<div class="spacer-48"></div>
-					<h2>Upcoming Games</h2>
-					<div  class="d-flex align-items-center">
-						<player-component name="player1" order-right class="flex-grow-1"></player-component>
-						<p class="mx-2">:</p>
-						<player-component name="player2" table-column="right" class="flex-grow-1"></player-component>
-					</div>
-					<hr>
-					<div  class="d-flex align-items-center">
-						<player-component name="player1" order-right class="flex-grow-1"></player-component>
-						<p class="mx-2">:</p>
-						<player-component name="player2" table-column="right" class="flex-grow-1"></player-component>
-					</div>
-					<hr>
-					<div  class="d-flex align-items-center">
-						<player-component name="player1" order-right class="flex-grow-1"></player-component>
-						<p class="mx-2">:</p>
-						<player-component name="player2" table-column="right" class="flex-grow-1"></player-component>
-					</div>
 
 				</div>
 			</div>

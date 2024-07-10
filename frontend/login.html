@@ -13,13 +13,14 @@
 	<body>
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col col-lg-3 ppg-blue-light" id="settings-column">
-					<div class="spacer-48"></div>
-					<div class="d-flex row align-self-start">
+				<div class="col col-lg-3 ppg-blue-light" id="settings-column">			
+					<div class="d-flex flex-column h-100">
+						<div class="spacer-48"></div>
 						<stepper-component></stepper-component>
-						<div id="00-login" class="step" >		
-							<!-- <div style="display: flex; align-items: center;"> -->
-							<stepper-titlebar title="Sign in"></stepper-titlebar>
+
+						<stepper-titlebar title="Sign in"></stepper-titlebar>
+
+						<div class="d-flex flex-column ppg-green h-100 overflow-auto">
 							<div class="d-flex justify-content-between align-baseline">
 								<h1>Sign in</h1>
 								<nav>
@@ -33,31 +34,32 @@
 										<label for="loginEmail">Email</label>
 								</div>
 								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<input type="password" class="form-control col" id="loginPassword" placeholder="" aria-label="">
 									<label for="loginPassword">Password</label>
-								</div>
-								<div style="display: flex; justify-content: right;">
 									<a href="#" class="btn btn-link text-decoration-none">Forgot password?</a>
-									<div class="spacer-48"></div>
 								</div>
+								<div class="spacer-12"></div>
 								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign in</button>
 							</div>
+
 							<div class="spacer-48"></div>
-							<div class="d-flex align-items-center justify-content-center">
-								<hr class="flex-grow-1"/>	
-								<span class="text-center mx-2">Or sign in with:</span>
-								<hr class="flex-grow-1"/>	
+									<div class="d-flex align-items-center justify-content-center">
+										<hr class="flex-grow-1"/>	
+										<span class="text-center mx-2">Or sign in with:</span>
+										<hr class="flex-grow-1"/>	
+									</div>
+									<div class="spacer-12"></div>
+									<!-- <p>OR</p> -->
+									<div class="d-grid gap-2">
+										<button id="login42SSOButton" class="btn btn-lg btn-outline-dark">
+											<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
+											<span>42 Account</span></button>
+									</div>	
+
 							</div>
-							<div class="spacer-12"></div>
-							<!-- <p>OR</p> -->
-							<div class="d-grid gap-2">
-								<button id="login42SSOButton" class="btn btn-lg btn-outline-dark">
-									<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
-									<span>42 Account</span></button>
-							</div>							
+
+							<div class="spacer-48"></div>
 						</div>
-						
-						
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">

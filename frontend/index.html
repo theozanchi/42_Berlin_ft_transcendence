@@ -32,21 +32,23 @@
 		</header>
 
 		<div class="container-fluid">
-			<div class="min-vh-100 row row-cols-1 row-cols-lg-3 d-flex">
-				<div class="col-lg-3 ppg-blue-light d-flex flex-column justify-content-between" id="settings-column">
+			<div class="vh-100 row row-cols-1 row-cols-lg-3 d-flex">
+				<div class="col-lg-3 ppg-blue-light d-lg-block d-flex flex-column justify-content-between vh-100" id="settings-column">
 									
 				</div>
 
-				<div class="col-lg-6 ppg-pink-light d-flex flex-column justify-content-between" id="game-column">
-					<!-- Your content -->
+				<div class="col-lg-6 ppg-pink-light d-none d-lg-block d-flex flex-column justify-content-between vh-100" id="game-column">
+					
 				</div>
-				<div class="col-12 col-lg-3 ppg-green-light d-none d-lg-block" id="meta-column">
+				
+				<div class="col-lg-3 ppg-green-light d-lg-block d-none d-lg-block" id="meta-column vh-100" id="meta-column">
 					<!-- Your content -->
 				</div>
 			</div>
 		</div>
 	</body>
     <!-- custom JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 	<script src="js/url-router.js"></script>
 	<script src="js/websocket_connect.js"></script>
 	<script src="js/stepper.js"></script>
@@ -54,5 +56,6 @@
 	<script src="js/player_list.js"></script>
 	<script src="js/player.js"></script>
 	<script src="js/lobby.js"></script>
+	<script src="js/game.js"></script>
 	
 </html>

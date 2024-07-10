@@ -14,17 +14,20 @@
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
 				<div class="col col-lg-3 ppg-blue-light" id="settings-column">
-					<div class="spacer-48"></div>
-					<div class="d-flex row align-self-start">
+				
+					<div class="d-flex flex-column h-100">
+						<div class="spacer-48"></div>
 						<stepper-component></stepper-component>
-						
-						<div id="10-signup" class="step" >		
-							<!-- <div style="display: flex; align-items: center;"> -->
-							<stepper-titlebar title="Sign up"></stepper-titlebar>
-							<div class="d-flex justify-content-between align-baseline">
-								<h1>Sign up</h1>
-							</div>
+						<stepper-titlebar title="Sign up"></stepper-titlebar>
 
+						<div class="spacer-48"></div>
+
+						<div class="d-flex justify-content-between align-baseline">
+							
+							<h1>Sign up</h1>
+						</div>
+
+						<div class="d-flex flex-column h-100 overflow-auto">
 							<div class="d-grid gap-2">
 								<div class="form-floating">
 										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
@@ -39,7 +42,18 @@
 									<label for="loginPassword">Confirm Password</label>
 								</div>
 								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign up</button>
-							</div>							
+							</div>
+						</div>
+						
+						<div>
+							<hr>
+							<h2>You have an Account?</h2>
+							<div class="spacer-24"></div>
+							<nav class="d-grid gap-2 d-md-block">
+								<a href="/login" id="login42Button" class="btn btn-lg btn-outline-primary">Login</a>
+								<a href="/signup" class="btn btn-link text-decoration-none">Create account</a>
+							</nav>
+							<div class="spacer-48"></div>
 						</div>
 					</div>
 				</div>
