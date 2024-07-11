@@ -9,12 +9,12 @@
 <body>
 	<form id="registrationForm">
 		<input type="text" id="username" placeholder="Username" required>
-		<input type="email" id="email" placeholder="Email" required>
 		<input type="password" id="password" placeholder="Password" required>
+		<input type="file" id="image" accept="image/*">
 		<button type="submit">Register</button>
 	</form>
 
 
 </body>
-<script src="{% static 'register.js' %}"></script>
+<script src="{% static 'user_mgt/register.js' %}"></script>
 </html>

@@ -152,17 +152,44 @@ def delete_cookie(request):
 def register_view(request):
     return render(request, "register.html")
 
-@csrf_exempt
-def register_api(request):
+
+def upload_avatar(request, user_id):
+    user = get_object_or_404(User, pk=user_id);
+    user_profile, created = UserProfile.objects.get_or_create(user=user);
     if request.method == 'POST':
-        data = json.loads(request.body)
+        avatar = request.FILES.get('image')
+        if avatar:
+            pprint.pprint(request);
+            user_profile.avatar = avatar
+            user_profile.save()
+            return JsonResponse({'success': 'Avatar uploaded successfully'}, status=201)
+        return JsonResponse({'error': 'No uploaded avatar found'}, status=404)
+    return JsonResponse({'error':'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username');
+        password = request.POST.get('password');
+        image = request.FILES.get('image');
+
+        if not all([username, password]):
+            return JsonResponse({'error': 'Missing required fields'}, status=400)
+
         user = User.objects.create(
-            username=data['username'],
-            email=data['email'],
-            password=make_password(data['password'])
+            username=username,
+            password=make_password(password),
         )
+
+        if image:
+            upload_avatar(request, user.id);
+
         return JsonResponse({'message': 'User created successfully.', 'user_id': user.id}, status=201)
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    # return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return render(request, "register.html")
+
 
 def rankings(request):
     rankings_qs = User.rankings.get_user_rankings()
