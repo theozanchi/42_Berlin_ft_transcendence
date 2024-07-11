@@ -4,9 +4,8 @@ from .models import UserProfile, Round, Tournament, Participation
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth import login, logout, update_session_auth_hash, authenticate
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 import requests
 from django.utils.crypto import get_random_string
@@ -27,11 +26,14 @@ from django.core import serializers
 import json
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
+import os
 
-CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
-CLIENT_SECRET = (
-    "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"
-)
+#CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
+#CLIENT_SECRET = "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"\
+
+CLIENT_ID = os.environ.get('CLIENT_ID')
+CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
+
 REDIRECT_URI = "https://localhost:8443/api/user_mgt/oauth/callback/"
 
 # return Response(response.json(), status=response.status_code)
@@ -147,12 +149,6 @@ def delete_cookie(request):
         return response
 
 
-# email and password registration
-@csrf_exempt
-def register_view(request):
-    return render(request, "register.html")
-
-
 def upload_avatar(request, user_id):
     user = get_object_or_404(User, pk=user_id);
     user_profile, created = UserProfile.objects.get_or_create(user=user);
@@ -234,23 +230,6 @@ def rankings(request):
     rankings = list(rankings_qs.values("id", "username", "total_score", "rank"))
     return JsonResponse(rankings, safe=False)
 
-
-def password(request):
-    if not request.user.is_authenticated or request.user.userprofile.id42:
-        return HttpResponseForbidden
-    if request.method == "POST":
-        password_form = PasswordChangeForm(request.user, request.POST)
-        if password_form.is_valid():
-            user = password_form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, "Password changed")
-            return redirect("home")
-        else:
-            messages.error(request, "please correct the error")
-    else:
-        password_form = PasswordChangeForm(request.user)
-
-    return render(request, "password.html", {"password_form": password_form})
 
 @login_required
 @csrf_exempt
@@ -349,12 +328,22 @@ def profile(request, user_id):
     return JsonResponse(player_data)
 
 
-from django.contrib.auth.views import LoginView
+@csrf_exempt
+def regular_login(request):
+    if request.method == "POST":
+        username = request.POST.get('username');
+        password = request.POST.get('password');
 
+        user = authenticate(request, username=username, password=password);
+        if user is not None:
+            login(request, user);
+            return JsonResponse({'success': 'Login successful'}, status=200)
+        else:
+            return JsonResponse({'error': 'Invalid username or password.'}, status=400)
 
-class CustomLoginView(LoginView):
-    def get_success_url(self):
-        return "/api/user_mgt"
+    else:
+        #return JsonResponse({'success': 'Login successful'}, status=200);
+        return render(request, "login.html");
 
 
 class RegisterView(CreateView):

@@ -76,6 +76,8 @@ services:
       - USR_ADMIN=${DJANGO_SUPERUSER_USERNAME}
       - USR_EMAIL=${DJANGO_SUPERUSER_EMAIL}
       - USR_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
     stop_signal: SIGINT
     stop_grace_period: 2s
 
