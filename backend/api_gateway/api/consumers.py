@@ -27,6 +27,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, close_code):
         if self.game_id:
             content = {'game-id': self.game_id, 'alias': self.alias, 'channel_name': self.channel_name}
+            logging.debug('Player left: ' + str(content))
             response = requests.post(GAME_MANAGER_REST_URL + '/player-left/', json=content, headers=self.get_headers())
             response.raise_for_status()
             await self.channel_layer.group_send(

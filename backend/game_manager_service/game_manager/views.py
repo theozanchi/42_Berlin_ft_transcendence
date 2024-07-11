@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 import logging
 from .exceptions import InsufficientPlayersError
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
@@ -131,15 +131,19 @@ def finish_game(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def update_players(request):
+    logging.debug('Player disconnected, request.data: %s', request.data)
     try:
         game = Game.objects.get(pk=request.data.get('game-id'))
         if request.data.get('channel_name') == game.host:
+            logging.debug('Host disconnected, selecting next player as host')
             next_player = game.players.exclude(channel_name=game.host).first()
             if next_player:
+                logging.debug('Next player: %s', next_player.channel_name)
                 game.host = next_player.channel_name
             else:
+                logging.debug('No more players in game, setting host to None')
                 game.host = None
-        Round.update_scores_abandon(request.data.get('game-id'), request.data.get('channel_name'))
+        game.update_scores_abandon(request.data.get('channel_name'))
         game.save()
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
