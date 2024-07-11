@@ -101,7 +101,6 @@ services:
       - redis
       - game_logic
       - game_manager
-      # - authentication
       - user_mgt
     stop_signal: SIGINT
     stop_grace_period: 2s
@@ -155,22 +154,6 @@ services:
       - db
     stop_signal: SIGINT
     stop_grace_period: 2s
-
-#  authentication:
-#    image: authentication_service # Based on debian:bookworm-slim
-#    container_name: authentication
-#    build: ./backend/authentication_service
-#    volumes:
-#      - ./backend/authentication_service:/code
-#      - ./static:/usr/share/static
-#    networks:
-#      - backend
-#    environment:
-#      - POSTGRES_NAME=${POSTGRES_NAME}
-#      - POSTGRES_USER=${POSTGRES_USER}
-#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-#    depends_on:
-#      - db
 
 networks:
   frontend:
