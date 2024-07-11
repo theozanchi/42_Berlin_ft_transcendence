@@ -8,7 +8,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash, authent
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 import requests
-from django.utils.crypto import get_random_string
+
 from .models import UserProfile, UserManager
 from django.http import HttpResponseForbidden
 from .forms import RegistrationForm, UserForm
@@ -28,13 +28,9 @@ from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 import os
 
-#CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
-#CLIENT_SECRET = "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"\
+# CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
+# CLIENT_SECRET = "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"\
 
-CLIENT_ID = os.environ.get('CLIENT_ID')
-CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
-
-REDIRECT_URI = "https://localhost:8443/api/user_mgt/oauth/callback/"
 
 # return Response(response.json(), status=response.status_code)
 
@@ -59,87 +55,6 @@ def home(request):
     return render(request, "oauth42/home.html")
 
 
-def oauth_login(request):
-    state = get_random_string(32)
-    request.session["oauth_state"] = state
-    authorization_url = f"https://api.intra.42.fr/oauth/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&state={state}&prompt=login"
-    return redirect(authorization_url)
-
-
-def oauth_callback(request):
-    state = request.GET.get("state")
-    if state != request.session.pop("oauth_state", ""):
-        return redirect("/api/user_mgt")
-    code = request.GET.get("code")
-    token_url = "https://api.intra.42.fr/oauth/token"
-    token_data = {
-        "grant_type": "authorization_code",
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "code": code,
-        "redirect_uri": REDIRECT_URI,
-    }
-    token_response = requests.post(token_url, data=token_data)
-    token_json = token_response.json()
-    if token_response.status_code != 200:
-        return render(
-            request,
-            "error.html",
-            {
-                "error": "No access token in 42 server response. API credentials might be outdated"
-            },
-        )
-    access_token = token_json.get("access_token")
-    if not access_token:
-        return render(
-            request,
-            "error.html",
-            {"error": "Server response does not contain access_token"},
-        )
-
-    user_info_url = "https://api.intra.42.fr/v2/me"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    user_info_response = requests.get(user_info_url, headers=headers)
-    if user_info_response.status_code != 200:
-        return redirect("/")
-
-    user_info = user_info_response.json()
-    email = user_info.get("email")
-    username = user_info.get("login")
-    first_name = user_info.get("first_name")
-    last_name = user_info.get("last_name")
-    picture_url = user_info.get("image", {}).get("versions", {}).get("small")
-    id42 = user_info.get("campus_users", [{}])[0].get("user_id")
-
-    try:
-        user_profile = UserProfile.objects.get(id42=id42)
-        user = user_profile.user
-    except UserProfile.DoesNotExist:
-        user, created = User.objects.get_or_create(
-            username=username,
-            defaults={"email": email, "first_name": first_name, "last_name": last_name},
-        )
-
-        user_profile, created = UserProfile.objects.update_or_create(
-            user=user,
-            defaults={
-                "picture_url": picture_url,
-                "access_token": access_token,
-                "id42": id42,
-            },
-        )
-
-        if created:
-            user.set_unusable_password()
-            user.save()
-
-        save_avatar_from_url(user.userprofile, picture_url)
-
-    login(request, user)
-
-    return redirect(settings.LOGIN_REDIRECT_URL)
-
-
 def delete_cookie(request):
     if request.method == "POST":
         logout(request)
@@ -150,18 +65,18 @@ def delete_cookie(request):
 
 
 def upload_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id);
-    user_profile, created = UserProfile.objects.get_or_create(user=user);
-    if request.method == 'POST':
-        avatar = request.FILES.get('image');
+    user = get_object_or_404(User, pk=user_id)
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+    if request.method == "POST":
+        avatar = request.FILES.get("image")
         if avatar:
-            user_profile.avatar = avatar;
-            user_profile.save();
-            return ({'avatar_status': 'Avatar uploaded successfully'});
+            user_profile.avatar = avatar
+            user_profile.save()
+            return {"avatar_status": "Avatar uploaded successfully"}
         else:
-            return ({'avatar_status': 'No uploaded avatar found'});
+            return {"avatar_status": "No uploaded avatar found"}
     else:
-        return ({'avatar_status':'Method not allowed'});
+        return {"avatar_status": "Method not allowed"}
 
 
 def delete_avatar(request, user_id):
@@ -171,54 +86,53 @@ def delete_avatar(request, user_id):
     if user_profile.avatar:
         user_profile.avatar.delete()  # This deletes the file and clears the field
         user_profile.save()
-        return ({'avatar_status': 'Avatar deleted successfully.'});
+        return {"avatar_status": "Avatar deleted successfully."}
     else:
-        return ({'avatar_status': 'No avatar to delete.'});
+        return {"avatar_status": "No avatar to delete."}
 
 
 def update_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id);
-    user_profile = get_object_or_404(UserProfile, user=user);
+    user = get_object_or_404(User, pk=user_id)
+    user_profile = get_object_or_404(UserProfile, user=user)
 
-    if request.method == 'POST':
-        new_avatar = request.FILES.get('image');
+    if request.method == "POST":
+        new_avatar = request.FILES.get("image")
         if new_avatar:
-            user_profile.avatar.delete(save=False);
-            user_profile.avatar = new_avatar;
-            user_profile.save();
-            response_message = f"Avatar successfully updated to {new_avatar}".strip();
-            return ({'avatar_status': response_message});
+            user_profile.avatar.delete(save=False)
+            user_profile.avatar = new_avatar
+            user_profile.save()
+            response_message = f"Avatar successfully updated to {new_avatar}".strip()
+            return {"avatar_status": response_message}
         else:
-            return ({'avatar_status': 'No uploaded avatar for update found'});
+            return {"avatar_status": "No uploaded avatar for update found"}
     else:
-        return ({'avatar_status':'Method not allowed'});
-
+        return {"avatar_status": "Method not allowed"}
 
 
 @csrf_exempt
 def register(request):
-    if request.method == 'POST':
-        username = request.POST.get('username');
-        password = request.POST.get('password');
-        image = request.FILES.get('image');
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        image = request.FILES.get("image")
 
         if User.objects.filter(username=username).exists():
-            return JsonResponse({'error':'Username already exists'}, status=400);
+            return JsonResponse({"error": "Username already exists"}, status=400)
 
         if not all([username, password]):
-            return JsonResponse({'error': 'Missing required fields'}, status=400)
+            return JsonResponse({"error": "Missing required fields"}, status=400)
 
         user = User.objects.create(
             username=username,
             password=make_password(password),
         )
-        response_data = {'message': 'User created successfully.', 'user_id': user.id};
+        response_data = {"message": "User created successfully.", "user_id": user.id}
 
         if image:
-            avatar_status = upload_avatar(request, user.id);
+            avatar_status = upload_avatar(request, user.id)
             response_data.update(avatar_status)
 
-        login(request, user);
+        login(request, user)
         return JsonResponse(response_data, status=201)
 
     # return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -234,24 +148,32 @@ def rankings(request):
 @login_required
 @csrf_exempt
 def update(request):
-    user = request.user;
-    if request.method == 'POST':
-        username = request.POST.get('username');
-        password = request.POST.get('password');
-        image = request.FILES.get('image');
+    user = request.user
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        image = request.FILES.get("image")
 
-        if username and User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
-            return JsonResponse({'error':'Username already exists, please chose another one'}, status=400);
+        if (
+            username
+            and User.objects.exclude(pk=request.user.pk)
+            .filter(username=username)
+            .exists()
+        ):
+            return JsonResponse(
+                {"error": "Username already exists, please chose another one"},
+                status=400,
+            )
 
         if not any([username, password, image]):
-            return JsonResponse({'error': 'No field updated'}, status=400);
+            return JsonResponse({"error": "No field updated"}, status=400)
 
-        fields_to_update = {};
+        fields_to_update = {}
 
         if username:
-            fields_to_update['username'] = username;
+            fields_to_update["username"] = username
         if password:
-            fields_to_update['password'] = make_password(password);
+            fields_to_update["password"] = make_password(password)
 
         if fields_to_update:
             for field, value in fields_to_update.items():
@@ -260,12 +182,12 @@ def update(request):
 
         avatar_status = update_avatar(request, user.id)
 
-        response_data = {'message': 'User updated successfully.', 'user_id': user.id};
-        response_data.update(avatar_status);
+        response_data = {"message": "User updated successfully.", "user_id": user.id}
+        response_data.update(avatar_status)
 
-        return JsonResponse(response_data, status=201);
+        return JsonResponse(response_data, status=201)
     else:
-        return render(request, "update.html");
+        return render(request, "update.html")
 
 
 def profile(request, user_id):
@@ -331,19 +253,19 @@ def profile(request, user_id):
 @csrf_exempt
 def regular_login(request):
     if request.method == "POST":
-        username = request.POST.get('username');
-        password = request.POST.get('password');
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
-        user = authenticate(request, username=username, password=password);
+        user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user);
-            return JsonResponse({'success': 'Login successful'}, status=200)
+            login(request, user)
+            return JsonResponse({"success": "Login successful"}, status=200)
         else:
-            return JsonResponse({'error': 'Invalid username or password.'}, status=400)
+            return JsonResponse({"error": "Invalid username or password."}, status=400)
 
     else:
-        #return JsonResponse({'success': 'Login successful'}, status=200);
-        return render(request, "login.html");
+        # return JsonResponse({'success': 'Login successful'}, status=200);
+        return render(request, "login.html")
 
 
 class RegisterView(CreateView):
@@ -385,6 +307,7 @@ def remove_friend(request, user_id):
     user_profile.friends.remove(friend)
     user_profile.save()
     return redirect("profile", user_profile.user.id)
+
 
 @login_required
 def online_users_view(request):

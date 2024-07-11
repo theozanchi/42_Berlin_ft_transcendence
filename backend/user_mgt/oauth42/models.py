@@ -21,8 +21,6 @@ class UserManager(models.Manager):
             .values_list("id", "username", "total_score", "rank")
         )
 
-
-
     def get_user_ranking(self, user_id):
         rankings = list(self.get_user_rankings())
         for user in rankings:
@@ -31,7 +29,7 @@ class UserManager(models.Manager):
                     "rank": user[3],
                     "user_id": user[0],
                     "username": user[1],
-                    "total_score": user[2]
+                    "total_score": user[2],
                 }
         return {"error": "User not found"}
 

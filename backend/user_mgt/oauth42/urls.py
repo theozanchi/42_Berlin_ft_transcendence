@@ -3,8 +3,6 @@
 from django.urls import path
 from .views import (
     home,
-    oauth_login,
-    oauth_callback,
     delete_cookie,
     register,
     profile,
@@ -16,6 +14,7 @@ from .views import (
     online_users_view,
     regular_login,
 )
+from .oauth import oauth_callback, oauth_login
 
 urlpatterns = [
     path("api/user_mgt", home, name="home"),
