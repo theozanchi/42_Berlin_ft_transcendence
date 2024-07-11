@@ -125,7 +125,7 @@ export function sendGameState() {
         const newGameState = {
             type: 'game-state',
             round_number: round_number,
-            
+
             playerTurn: playerTurn,
             player1Score: player1Score,
             player2Score: player2Score,
@@ -358,7 +358,7 @@ export async function init() {
     
     
     updateScore();
-    animate();
+    //animate();
 }
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
@@ -1170,10 +1170,10 @@ function movePlayer2(player2, deltaX, deltaY) {
 
 index9;
 
-function animate() {
+export function animate() {
     if (gameStarted == false) {
         console.log('GAME STARTED IS FALSE');
-        resetGame();
+        //resetGame();
         return;
     }
     
@@ -1229,8 +1229,8 @@ export function displayScore(content) {
     console.log('DISPLAYING SCORE... ', content);
 
     let winner = content.winner;
-    let player1Score = content.player1Score;
-    let player2Score = content.player2Score
+    let p1Score = content.player1Score;
+    let p2Score = content.player2Score
 
     // Get the canvas and its parent
     const canvas = document.getElementById('bg');
@@ -1245,19 +1245,19 @@ export function displayScore(content) {
 
     // Create a div for player 1's score
     let player1Div = document.createElement('div');
-    player1Div.textContent = 'Player 1: ' + player1Score;
+    player1Div.textContent = 'Player 1: ' + p1Score;
     player1Div.style.color = 'white';
     player1Div.style.position = 'absolute';
-    player1Div.style.left = '10px';
+    player1Div.style.left = '100px';
     player1Div.style.top = '10px';
     player1Div.style.zIndex = '1';
 
     // Create a div for player 2's score
     let player2Div = document.createElement('div');
-    player2Div.textContent = 'Player 2: ' + player2Score;
+    player2Div.textContent = 'Player 2: ' + p2Score;
     player2Div.style.color = 'white';
     player2Div.style.position = 'absolute';
-    player2Div.style.right = '10px';
+    player2Div.style.right = '100px';
     player2Div.style.top = '10px';
     player2Div.style.zIndex = '1';
 
@@ -1318,6 +1318,8 @@ export function resetGame() {
     ball = null;
     aimingLine = null;
     collisionMarker = null;
+    player1Score = 0;
+    player2Score = 0;
 
     // Remove score display
     let scoreDisplay = document.getElementById('scoreDisplay');

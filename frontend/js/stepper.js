@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, resetGame, updateGameState, displayScore } from './game.js';
+import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -47,7 +47,7 @@ function openSocket() {
         });
 
 		newsocket.onmessage = function(event) {
-			console.log('Received: ' + event.data);
+			//console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
 				if (data.type === 'debug')
 					console.log('Debug:', data);
@@ -77,7 +77,7 @@ function openSocket() {
                     gameStarted = true;
 					round_number = data.round_number;
                     console.log('Game started! round number:', round_number);
-					init();
+					animate();
                 }
 				if (data.type === 'update') {
 					if (gameStarted === false)
@@ -195,6 +195,7 @@ function loadLocalGame() {
     let canvas = document.createElement('canvas');
     canvas.id = 'bg';
     gameArea.appendChild(canvas); */
+	init();
 	return;
 }
 
