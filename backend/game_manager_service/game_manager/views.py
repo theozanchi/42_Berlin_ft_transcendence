@@ -119,7 +119,7 @@ def round(request):
             return JsonResponse(serializer.data, status=200)      
         else:
             if game.winner:
-                return JsonResponse({'message': 'Game over', 'winner': game.winner}, status=200)
+                return JsonResponse({'message': 'Game over', 'winner': game.winner.alias}, status=200)
             return JsonResponse({'message': 'No rounds to play.'}, status=403)
 
     except InsufficientPlayersError as e:

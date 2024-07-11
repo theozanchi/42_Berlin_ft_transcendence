@@ -81,10 +81,6 @@ def game_update(request):
                     logging.debug('game manager returned: ', response.json())
                     game_state = {'gameOver': True}
                     game_state.update(response.json())
-
-                    logging.debug('waiting to delete game in cache')
-                    cache.set(game_id, game_state, timeout=None)
-                    time.sleep(1)
                     cache.delete(game_id)
                     
         return JsonResponse(game_state, safe=False, status=200)

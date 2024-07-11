@@ -83,7 +83,8 @@ function openSocket() {
 					if (gameStarted === false)
 						return;
 					if (data.content.gameOver === true) {
-						console.log('Round Over. Winner is: ' + data.content.winner);
+						console.log('UPDATE received ', data.content);
+						console.log('Round Over. Winner is: ', data.content.winner);
 						playerId = null;
 						//unloadLocalGame();
 						// Start next round
