@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Update Form</title>
+	</head>
+	<body>
+		<form id="updateForm" enctype="multipart/form-data">
+			{% csrf_token %}
+			<input type="text" id="username" placeholder="Username">
+			<input type="password" id="password1" placeholder="Password">
+			<input type="password" id="password2" placeholder="Password">
+			<input type="file" id="image" accept="image/*">
+			<button type="submit">Update</button>
+		</form>
+
+		<a href="{% url 'delete_profile' %}">Delete Profile</a>
+	</body>
+	<script src="{% static 'user_mgt/update.js' %}"></script>
+</html>

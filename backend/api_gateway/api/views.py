@@ -7,9 +7,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework import viewsets
 from rest_framework.decorators import action
 import requests
+from django.http import HttpResponse
 
 GAME_MANAGER_URL = 'http://game_manager'
 GAME_LOGIC_URL = 'http://game_logic'
+GAME_LOBBY_URL = 'http://game_lobby'
+USER_MGT_URL = 'http://user_mgt:8000'
 
 @api_view(['GET'])
 def get_game(self, request):
@@ -25,7 +28,7 @@ def create_game(self, request):
 def update_game(self, request):
     response = requests.put(self.GAME_MANAGER_URL + '/update-game/', json=request.data)
     return Response(response.json(), status=response.status_code)
-    
+
 #INITIATE REMOTE GAME
 # MUST PASS ON WEBSOCKET ID OF ALL PLAYERS TO THE GAME LOGIC
 # MUST DELETE LOBBY OBJECT FROM DATABASE SO ONLY ACTIVE LOBBIES ARE SAVED
@@ -42,4 +45,3 @@ def update_game(self, request):
 
     else:
         game_mode = 'local' """
-

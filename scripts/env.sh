@@ -10,6 +10,8 @@ if [ ! -f .env ]; then
 	echo "POSTGRES_NAME=postgres" >> .env
 	echo "POSTGRES_USER=postgres" >> .env
 	echo "POSTGRES_PASSWORD=postgres" >> .env
+	echo "POSTGRES_HOST=db" >> .env
+	echo "POSTGRES_PORT=5432" >> .env
 	echo "REDIS_PASSWORD=redis" >> .env
 	echo "DJANGO_SUPERUSER_USERNAME=admin" >> .env
 	echo "DJANGO_SUPERUSER_EMAIL=admin@pongerpuffgirl.fun" >> .env

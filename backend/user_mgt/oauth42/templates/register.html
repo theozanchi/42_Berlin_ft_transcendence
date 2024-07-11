@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Registration Form</title>
+</head>
+<body>
+	<form id="registrationForm">
+		<input type="text" id="username" placeholder="Username" required>
+		<input type="password" id="password1" placeholder="Password" required>
+		<input type="password" id="password2" placeholder="Password" required>
+		<input type="file" id="image" accept="image/*">
+		<button type="submit">Register</button>
+	</form>
+
+
+</body>
+<script src="{% static 'user_mgt/register.js' %}"></script>
+</html>
