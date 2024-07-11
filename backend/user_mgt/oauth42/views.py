@@ -168,12 +168,46 @@ def upload_avatar(request, user_id):
         return ({'avatar_status':'Method not allowed'});
 
 
+def delete_avatar(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    user_profile = get_object_or_404(UserProfile, user=user)
+
+    if user_profile.avatar:
+        user_profile.avatar.delete()  # This deletes the file and clears the field
+        user_profile.save()
+        return ({'avatar_status': 'Avatar deleted successfully.'});
+    else:
+        return ({'avatar_status': 'No avatar to delete.'});
+
+
+def update_avatar(request, user_id):
+    user = get_object_or_404(User, pk=user_id);
+    user_profile = get_object_or_404(UserProfile, user=user);
+
+    if request.method == 'POST':
+        new_avatar = request.FILES.get('image');
+        if new_avatar:
+            user_profile.avatar.delete(save=False);
+            user_profile.avatar = new_avatar;
+            user_profile.save();
+            response_message = f"Avatar successfully updated to {new_avatar}".strip();
+            return ({'avatar_status': response_message});
+        else:
+            return ({'avatar_status': 'No uploaded avatar for update found'});
+    else:
+        return ({'avatar_status':'Method not allowed'});
+
+
+
 @csrf_exempt
 def register(request):
     if request.method == 'POST':
         username = request.POST.get('username');
         password = request.POST.get('password');
         image = request.FILES.get('image');
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'error':'Username already exists'}, status=400);
 
         if not all([username, password]):
             return JsonResponse({'error': 'Missing required fields'}, status=400)
@@ -188,6 +222,7 @@ def register(request):
             avatar_status = upload_avatar(request, user.id);
             response_data.update(avatar_status)
 
+        login(request, user);
         return JsonResponse(response_data, status=201)
 
     # return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -217,31 +252,41 @@ def password(request):
 
     return render(request, "password.html", {"password_form": password_form})
 
+@login_required
+@csrf_exempt
+def update(request):
+    user = request.user;
+    if request.method == 'POST':
+        username = request.POST.get('username');
+        password = request.POST.get('password');
+        image = request.FILES.get('image');
 
-def update(request, user_id):
-    if request.user.id != user_id:
-        return HttpResponseForbidden()
-    if request.method == "POST":
-        form = UserForm(request.POST, request.FILES, instance=request.user.userprofile)
+        if username and User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
+            return JsonResponse({'error':'Username already exists, please chose another one'}, status=400);
 
-        if form.is_valid():
-            if "avatar" in request.FILES:
-                old_file = request.user.userprofile.avatar.path
-                if default_storage.exists(old_file):
-                    default_storage.delete(old_file)
-                user = form.save()
-                messages.success(request, "Your profile was successfully updated!")
-                return redirect("home")
-            else:
-                form.save()
-                messages.success(request, "Your profile was successfully updated")
-                return redirect("home")
-        else:
-            messages.error(request, "Please correct the error below.")
+        if not any([username, password, image]):
+            return JsonResponse({'error': 'No field updated'}, status=400);
+
+        fields_to_update = {};
+
+        if username:
+            fields_to_update['username'] = username;
+        if password:
+            fields_to_update['password'] = make_password(password);
+
+        if fields_to_update:
+            for field, value in fields_to_update.items():
+                setattr(user, field, value)
+            user.save()
+
+        avatar_status = update_avatar(request, user.id)
+
+        response_data = {'message': 'User updated successfully.', 'user_id': user.id};
+        response_data.update(avatar_status);
+
+        return JsonResponse(response_data, status=201);
     else:
-        form = UserForm(instance=request.user)
-
-    return render(request, "update.html", {"user": request.user, "form": form})
+        return render(request, "update.html");
 
 
 def profile(request, user_id):

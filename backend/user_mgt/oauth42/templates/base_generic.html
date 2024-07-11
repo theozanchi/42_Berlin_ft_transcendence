@@ -3,21 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>{% block title %}Transcendence{% endblock %}</title>
-	<style>
-		.input-group {
-			display: flex;
-			justify-content: space-between;
-			margin-bottom: 10px;
-		}
 
-		.input-group label {
-			width: 30%;  /* Adjust as needed */
-		}
-
-		.input-group input {
-			width: 60%;  /* Adjust as needed */
-		}
-	</style>
 </head>
 <body>
 	{% if messages %}
@@ -37,7 +23,7 @@
 
 			<a href="{% url 'profile' user.id %}">See your stats</a>
 			<br>
-			<a href="{% url 'update' user.id %}">Update credentials</a>
+			<a href="{% url 'update' %}">Update credentials</a>
 			<br>
 			<a href="{% url 'ranking' %}">Ranking</a>
 			<br>

@@ -39,11 +39,10 @@ class UserManager(models.Manager):
         return self.get(username=username)
 
 
-# @receiver(post_save, sender=User)
-# This signal was overwriting the UserProfile which was created in register...
+@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.update_or_create(user=instance)
+        UserProfile.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=User)
