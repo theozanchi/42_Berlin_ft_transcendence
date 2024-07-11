@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 game_update_lock = Lock()
 last_update_time = time.time()
-WINNER_SCORE = 3
+WINNER_SCORE = 1
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 
@@ -45,18 +45,19 @@ def game_update(request):
         #    return JsonResponse(serializer.errors, status=400)
  
         if game_id is None:
-            return JsonResponse("Missing game-ID", status=400)
+            return JsonResponse({"error": "Missing game-ID"}, status=400)
  
         with game_update_lock:
             current_time = time.time()
             if current_time - last_update_time < (1 / 60):
-                return JsonResponse("Too many requests", status=429)
+                return JsonResponse({"error": "Too many requests"}, status=429)
             cached_game_state = cache.get(game_id)
 
             if cached_game_state is not None:
                 game_state = cached_game_state
             else:
-                game_state = create_new_game_state(game_id)
+                logging.info(f'Creating new game state for game {game_id} and round number {new_game_state.get("round_number")}')
+                game_state = create_new_game_state(game_id, new_game_state.get('round_number'))
 
             if new_game_state:
                 game_state.update(new_game_state)
@@ -68,16 +69,24 @@ def game_update(request):
             game_state['type'] = 'update'
             
             if game_state['player1Score'] >= WINNER_SCORE or game_state['player2Score'] >= WINNER_SCORE:
-                game_state = {'game_id': game_id,
-                              'player1Score': game_state['player1Score'],
-                              'player2Score': game_state['player2Score'],
-                              'winner': 'player1' if game_state['player1Score'] >= WINNER_SCORE else 'player2'}
-                cache.delete(game_id)
-                response = requests.post(GAME_MANAGER_REST_URL + '/update-round-status/', json=game_state, headers=request.headers)
-                response.raise_for_status()
-                logging.debug('game manager returned: ', response.json())
-                game_state = {'gameOver': True} + response.json()
-                
+                if game_state.get('gameOver') != True:
+                    game_state = {'game_id': game_id,
+                                'round_number': game_state['round_number'],
+                                'player1Score': game_state['player1Score'],
+                                'player2Score': game_state['player2Score'],
+                                'winner': 'player1' if game_state['player1Score'] >= WINNER_SCORE else 'player2'}
+                    response = requests.post(GAME_MANAGER_REST_URL + '/update-round-status/', json=game_state, headers=request.headers)
+                    response.raise_for_status()
+                    
+                    logging.debug('game manager returned: ', response.json())
+                    game_state = {'gameOver': True}
+                    game_state.update(response.json())
+
+                    logging.debug('waiting to delete game in cache')
+                    cache.set(game_id, game_state, timeout=None)
+                    time.sleep(1)
+                    cache.delete(game_id)
+                    
         return JsonResponse(game_state, safe=False, status=200)
     
     except Exception as e:
@@ -85,9 +94,11 @@ def game_update(request):
         return JsonResponse("Error updating game state", status=500, safe=False)
     
 
-def create_new_game_state(game_id):
+def create_new_game_state(game_id, round_number):
     return {
         'game_id': game_id,
+        'round_number': round_number,
+        'gameOver': False,
 
         'aiming_angle': 0 , # Initialize aiming_angle
         'aimingSpeed': 0.05,  # Example speed value, adjust as needed
@@ -114,6 +125,7 @@ def create_new_game_state(game_id):
         'reset_ball': False,
         'is_processing': False
     }
+
 def update_game_state(game_state):
     current_time = time.time()
         # Handle ball movement and collision detection server-side
@@ -240,7 +252,6 @@ def update_ball(game_state):
         game_state['wall_hits'] = 0
         #game_state['playerTurn'] = not game_state['playerTurn']
         game_state['ballIsHeld'] = True
-        print(f"Scoring update. player1Score: {game_state['player1Score']}, player2Score: {game_state['player2Score']}")
         update_ball(game_state)
         #reset_ball(game_state)
     # Update the collision marker position

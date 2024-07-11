@@ -59,9 +59,6 @@ services:
       - backend
     depends_on:
       - redis
-      - game_logic
-      - game_manager
-      - authentication
 
   redis:
     image: redis:latest # Based on debian:bookworm-slim

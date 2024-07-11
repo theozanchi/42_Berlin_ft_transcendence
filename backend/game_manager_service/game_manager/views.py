@@ -66,15 +66,13 @@ def get_game(request):
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
+        logging.debug('UPDATE ROUND STATUS: request data: %s', request.data)
         game = Game.objects.get(pk=request.data.get('game_id'))
-
-        logging.debug('found game: %s', game)
-        all_rounds = Round.objects.filter(game_id=game.game_id)
-        for round in all_rounds:
-            logging.debug('round: %s, winner: %s', round, round.winner)
         
-        round_played = Round.objects.filter(game_id=request.data.get('game_id'), winner__isnull=True).order_by('round_number').first()
+        round_played = Round.objects.get(game=request.data.get('game_id'), round_number=request.data.get('round_number'))
         logging.debug('found round: %s', round_played)
+        if round_played.winner:
+            return Response({'message': 'Round already played.'}, status=403)
         
         round_played.player1_score = request.data.get('player1Score')
         round_played.player2_score = request.data.get('player2Score')
@@ -84,12 +82,12 @@ def update_round_status(request):
 
         logging.debug('round updated: %s', round_played)
 
-        if round_played.number == game.rounds:
+        if round_played.round_number == game.rounds:
             game.determine_winner()
             game.save()
             logging.debug('game winner determined: %s', game)
 
-        serializer = RoundSerializer(game)
+        serializer = RoundSerializer(round_played)
         return Response(serializer.data, status=200)
     
     except Game.DoesNotExist:
@@ -108,20 +106,16 @@ def round(request):
         if request.data.get('game-id') is None:
             return JsonResponse({'error': 'Missing game_id parameter'}, status=400)
         
-        game = Game.objects.filter(game_id=request.data.get('game-id')).first()
+        game = Game.objects.get(game_id=request.data.get('game-id'))
         if not Round.objects.filter(game=game).exists():
-            logging.debug('creating rounds for game: %s', game)
             game.create_rounds()
-            for round in Round.objects.filter(game=game):
-                logging.debug('round created: %s', round)
             game.save()
         
         round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
         
-        logging.debug('round_to_play being sent back: %s', round_to_play)
-
         if round_to_play:
             serializer = RoundSerializer(round_to_play)
+            logging.debug('round_to_play being sent back: %s', serializer.data)
             return JsonResponse(serializer.data, status=200)      
         else:
             if game.winner:
@@ -130,8 +124,10 @@ def round(request):
 
     except InsufficientPlayersError as e:
         return JsonResponse({'error': str(e)}, status=418)
+    
     except Game.DoesNotExist:
         return JsonResponse({'error': 'Game not found.'}, status=404)
+    
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
         

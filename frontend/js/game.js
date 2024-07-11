@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, playerId, gameStarted } from './stepper.js';
+import { sendJson, remote, playerId, gameStarted, round_number } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -124,6 +124,8 @@ export function sendGameState() {
 
         const newGameState = {
             type: 'game-state',
+            round_number: round_number,
+            
             playerTurn: playerTurn,
             player1Score: player1Score,
             player2Score: player2Score,

@@ -17,6 +17,7 @@ export var gameStarted = false;
 export var gameOver = false;
 export var remote = false;
 export var playerId;
+export var round_number;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -46,7 +47,7 @@ function openSocket() {
         });
 
 		newsocket.onmessage = function(event) {
-			//console.log('Received: ' + event.data);
+			console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
 				if (data.type === 'debug')
 					console.log('Debug:', data);
@@ -62,6 +63,7 @@ function openSocket() {
 				}
 				if (data.type === 'create-game') {
 						game_id = data.game_id;
+						console.log('Game ID:', game_id);
 				}
                 if (data.type === 'start-game') {
 					if (startGameButton) {
@@ -73,7 +75,8 @@ function openSocket() {
 					}
 
                     gameStarted = true;
-                    console.log('Game started!');
+					round_number = data.round_number;
+                    console.log('Game started! round number:', round_number);
 					init();
                 }
 				if (data.type === 'update') {

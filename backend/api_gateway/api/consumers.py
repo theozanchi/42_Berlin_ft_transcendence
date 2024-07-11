@@ -149,11 +149,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 player1_channel = data.get('player1_channel_name')
                 player2_channel = data.get('player2_channel_name')
 
-                # Debugging output
-                print(f"self.channel_name: {self.channel_name}")
-                print(f"player1_channel: {player1_channel}")
-                print(f"player2_channel: {player2_channel}")
-
                 if player1_channel == self.channel_name:
                     self.player_id = 'player1'
                 elif player2_channel == self.channel_name:
@@ -162,7 +157,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     self.player_id = 'spectator'
         else:
             self.player_id = None
-        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias})
+        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias, 'round_number': self.round_number})
 
     async def game_state(self, content):
         if content == self.last_sent_state:
