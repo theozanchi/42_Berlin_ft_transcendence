@@ -268,18 +268,6 @@ def regular_login(request):
         return render(request, "login.html")
 
 
-class RegisterView(CreateView):
-    model = User
-    form_class = RegistrationForm
-    template_name = "register.html"
-    success_url = "/api/user_mgt"
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        login(self.request, self.object)
-        return response
-
-
 @login_required
 def delete_profile(request):
     user = request.user
@@ -287,26 +275,50 @@ def delete_profile(request):
     messages.success(request, "Your profile has been deleted.")
     return redirect("home")
 
-
+@csrf_exempt
 @login_required
 def add_friend(request, user_id):
-    friend = get_object_or_404(User, id=user_id)
-    user_profile = request.user.userprofile
-    if friend not in user_profile.friends.all():
-        user_profile.friends.add(friend)
-        user_profile.save()
+    print(f"friend_id: {user_id}")
+    if request.method == "POST":
+        print("--> post to add_friend")
+        friend = get_object_or_404(User, id=user_id)
+        user_profile = request.user.userprofile
+        print(f"---")
+        pprint.pprint(friend)
+        pprint.pprint(user_profile)
+        if friend not in user_profile.friends.all():
+            user_profile.friends.add(friend)
+            user_profile.save()
+            return JsonResponse(
+                {"status": "success", "message": "Friend added successfully."},
+                status=200,
+            )
+        return JsonResponse(
+            {"status": "info", "message": "This user is already your friend."},
+            status=200,
+        )
     else:
-        messages.info(request, "This user is already your friend.")
-    return redirect("profile", user_profile.user.id)
+        print("in else")
+        return render(request, "add-friend.html", {"user_id": user_id})
+    # return JsonResponse({"status": "error", "message": "Method not valid"}, status=400)
 
 
 @login_required
 def remove_friend(request, user_id):
-    friend = get_object_or_404(User, id=user_id)
-    user_profile = request.user.userprofile
-    user_profile.friends.remove(friend)
-    user_profile.save()
-    return redirect("profile", user_profile.user.id)
+    if request.method == "POST":
+        friend = get_object_or_404(User, id=user_id)
+        user_profile = request.user.userprofile
+        if friend in user_profile.friends.all():
+            user_profile.friends.remove(friend)
+            user_profile.save()
+            return JsonResponse(
+                {"status": "success", "message": "Friend removed successfully."}
+            )
+        return JsonResponse(
+            {"status": "info", "message": "This user was not your friend."}
+        )
+    return render(request, "remove-friend.html")
+    # return JsonResponse({"status": "error", "message": "Method not valid"}, status=400)
 
 
 @login_required
