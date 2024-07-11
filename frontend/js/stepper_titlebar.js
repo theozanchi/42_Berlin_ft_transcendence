@@ -25,7 +25,8 @@ class StepperTitleBar extends HTMLElement {
 				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 				<div class = "stepper-titlebar d-flex align-items-center justify-content-center"> \
 						<button id="backButton" class="btn btn-outline-secondary col-auto"><i class="bi bi-arrow-left"></i></button> \
-						<h2 class="col text-truncate text-center" > ${this.getAttribute('title')} </h2> \
+						<h2 class="col text-truncate m-0 text-center" > ${this.getAttribute('title')} </h2> \
+						<button class="invisible btn btn-outline-secondary col-auto"><i class="invisible bi bi-arrow-left"></i></button> \
 				</div>
 				<hr>
 				`

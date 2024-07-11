@@ -72,6 +72,7 @@
 /* Player component styles */
 :root {
 	--player-img-height: 48px;
+	--player-img-width: 48px;
 	--player-component-margin: 6px;
 	--player-element-margin: 6px;
 }
@@ -115,3 +116,16 @@
 	align-items: baseline;
 }
 
+.game-ticker {
+	/* transform: scale(2); */
+	height: 96px;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

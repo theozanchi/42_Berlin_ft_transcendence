@@ -147,8 +147,9 @@ async function joinRemoteGame(gameID) {
 				myElement.addEventListener('click', (event) => {
 					event.preventDefault();
 
-					generateLocalGame();
-					loadLocalGame();
+					urlRoute(`/game`);
+					// generateLocalGame();
+					// loadLocalGame();
 				});
 			};
 
@@ -161,7 +162,6 @@ async function joinRemoteGame(gameID) {
 
 				joinRemoteGame(gameID);
 				urlRoute(`/join-remote?id=${gameID}`);
-				setTimeout(console.log('timeout'), 3000);
 			});
 			};
 

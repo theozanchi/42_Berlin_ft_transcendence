@@ -15,10 +15,11 @@
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
 				<div class="col col-lg-3 ppg-blue-light" id="settings-column">			
 					<div class="d-flex flex-column h-100">
-						<div class="spacer-48"></div>
-						<stepper-component></stepper-component>
-
-						<stepper-titlebar title="Sign in"></stepper-titlebar>
+						<div>
+							<div class="spacer-48"></div>
+							<stepper-component></stepper-component>
+							<stepper-titlebar title="Log in"></stepper-titlebar>
+						</div>		
 
 						<div class="d-flex flex-column ppg-green h-100 overflow-auto">
 							<div class="d-flex justify-content-between align-baseline">
@@ -79,22 +80,6 @@
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
 					<div class="spacer-48"></div>
 					<h2>WebSocket Client</h2>
-					<!-- <div id="ws-local" class="step">
-						<stepper-titlebar title="Local Game"></stepper-titlebar>
-						<player-list mode ="local"></player-list>
-						<button id="generateLocalGameButtonWS" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-					</div>
-					<div>
-						<button onclick="connectWebSocket()">Connect</button>
-						<button onclick="disconnectWebSocket()">Disconnect</button>
-					</div>
-					<div>
-						<textarea id="messages" rows="10" cols="30" readonly></textarea>
-					</div>
-					<div>
-						<input type="text" id="messageInput" placeholder="Enter message"/>
-						<button onclick="sendMessage()">Send</button>
-					</div> -->
 				</div>
 			</div>
 		</div>

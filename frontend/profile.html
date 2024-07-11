@@ -15,18 +15,18 @@
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
 				<div class="col col-lg-3 ppg-blue-light" id="settings-column">
 					<div class="d-flex flex-column h-100">
-						<div class="spacer-48"></div>
-						<stepper-component></stepper-component>
-
-						<stepper-titlebar title="Account"></stepper-titlebar>
+						<div>
+							<div class="spacer-48"></div>
+							<stepper-component></stepper-component>
+							<stepper-titlebar title="Account"></stepper-titlebar>
+						</div>
+						
 
 						<div class="d-flex flex-column h-100 overflow-auto">
 							<div class="spacer-48"></div>
 							
 							<h1>Your Account</h1>
-
 							<hr>
-							<div class="spacer-48"></div>
 							<h2 class="fs-4">Game Statistics</h2>
 							<div class="d-flex gap-2">
 								<div class="form-floating">
@@ -42,11 +42,16 @@
 									<label>lost</label>
 								</div>
 							</div>
+							<button id="showGameHistory" class="btn btn-lg  btn-outline-primary">Show Game History</button>
 
 							<hr>
 							<div class="spacer-48"></div>
 							<h2>Credentials</h2>
-							<div class="d-column">
+							<div class="d-grid gap-2">
+								<div class="form-floating">
+									<input type="text" class="form-control col" id="accountName" value="Player Name" required>
+									<label for="accountEmail">Name</label>
+								</div>
 								<div class="form-floating">
 									<input type="text" class="form-control col" id="accountEmail" value="buttercup@pongerpuffgirls.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
 									<label for="accountEmail">Email</label>
@@ -77,22 +82,6 @@
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
 					<div class="spacer-48"></div>
 					<h2>WebSocket Client</h2>
-					<!-- <div id="ws-local" class="step">
-						<stepper-titlebar title="Local Game"></stepper-titlebar>
-						<player-list mode ="local"></player-list>
-						<button id="generateLocalGameButtonWS" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-					</div>
-					<div>
-						<button onclick="connectWebSocket()">Connect</button>
-						<button onclick="disconnectWebSocket()">Disconnect</button>
-					</div>
-					<div>
-						<textarea id="messages" rows="10" cols="30" readonly></textarea>
-					</div>
-					<div>
-						<input type="text" id="messageInput" placeholder="Enter message"/>
-						<button onclick="sendMessage()">Send</button>
-					</div> -->
 				</div>
 			</div>
 		</div>

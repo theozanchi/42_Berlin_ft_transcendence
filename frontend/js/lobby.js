@@ -9,6 +9,13 @@ window.onload = function() {
 	setTimeout(setGameID(), 3000);
 }
 
+document.addEventListener("DOMContentLoaded", (event) => {
+	console.log("DOM fully loaded and parsed");
+	setGameID('test');
+  });
+  
+
+
 function setGameID(gameID) {
 	if (!gameID) {
 		let params = new URLSearchParams(window.location.search);

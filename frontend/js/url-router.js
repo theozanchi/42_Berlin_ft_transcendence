@@ -111,20 +111,22 @@ const urlLocationHandler = async () => {
     let doc = parser.parseFromString(html, "text/html");
     let title = doc.querySelector('title').innerText;
 
-	let fetchedSettingsColumnContent 
+	// let fetchedSettingsColumnContent 
 	
-	if (location === '/game') {
+	// if (location === '/game') {
 		// console.log("TRYING TO LAUNCH A GAME");
-		fetchedSettingsColumnContent = doc.getElementById('game-column').innerHTML;
+		let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
 		//OVERWRITE COLUMN
-		document.getElementById("game-column").innerHTML = fetchedSettingsColumnContent;	
-	}
-	else {
-		fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+		if (fetchedGameColumnContent)
+			document.getElementById("game-column").innerHTML = fetchedGameColumnContent;	
+	// }
+	// else {
+		let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
 		//OVERWRITE COLUMN
-		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;	
+		if (fetchedSettingsColumnContent)
+			document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;	
 
-	}
+	// }
 
 	
 	//WRITE NEW TITLE TO BROWSER TAB

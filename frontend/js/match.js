@@ -2,7 +2,28 @@ class match extends HTMLElement {
 	constructor() {
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
+        this.player1Name = '';
+        this.player2Name = '';
+        this.player1Score = 0;
+        this.player2Score = 0;
 
+	}
+
+	static get observedAttributes() {
+		return ['player1', 'player2', 'player1_score', 'player2_score'];
+	}
+
+	attributeChangedCallback(name, oldValue, newValue) {
+		if (name === 'player1') {
+			this.player1Name = newValue;
+		} else if (name === 'player2') {
+			this.player2Name = newValue;
+		} else if (name === 'player1_score') {
+			this.player1Score = newValue;
+		} else if (name === 'player2_score') {
+			this.player2Score = newValue;
+		}
+		this.render();
 	}
 
 	connectedCallback() {
@@ -13,33 +34,9 @@ class match extends HTMLElement {
 		
 		let isHistory = this.hasAttribute('history');
 
-///// START DUMMY CONTENT TO TEST UI /////
-		let date = new Date(2024, 7, 10);
-		// console.log(date);
-
-		let gameData = {
-			date: date.toISOString(),
-			player1: "USER",
-			player2: "ThisWillChange",
-			winner: null,
-			player1_score: 0,
-			player2_score: 0,
-			player1_channel_name: "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-			player2_channel_name: "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-		};
-		
-		let gameDataStringified = JSON.stringify(gameData);
-///// END DUMMY CONTENT /////
-
-		let data = JSON.parse(gameDataStringified)
-		let player1Name = data['player1'];
-		let player2Name = data['player2'];
-		let player1Score = data['player1_score'];
-		let player2Score = data['player2_score'];
-
 		// console.log(data);
 
-		date = new Date(data['date']);
+		let date = new Date();
 
 		const dateFormatted = isHistory
 			? `<small class="text-center mx-2">${date.getDate()}.${date.getMonth()}.${date.getFullYear()}</small>`
@@ -52,12 +49,12 @@ class match extends HTMLElement {
 			<link rel="stylesheet" href="./css/styles.css">
 
 			<div  class="d-flex align-items-center">
-				<player-component name="${player1Name}" order-right class="flex-grow-1"></player-component>
+				<player-component name="${this.player1Name}" order-right class="flex-grow-1"></player-component>
 				<div class="d-grid g2">
-					<p class="text-center fs-4 my-0 mx-3">${player1Score} : ${player2Score} </p>
+					<p class="text-center fs-4 my-0 mx-3">${this.player1Score} : ${this.player2Score} </p>
 					${dateFormatted}
 				</div>
-				<player-component name="${player2Name}" table-column="right" class="flex-grow-1"></player-component>
+				<player-component name="${this.player2Name}" table-column="right" class="flex-grow-1"></player-component>
 			</div>
 		`;
 	}
