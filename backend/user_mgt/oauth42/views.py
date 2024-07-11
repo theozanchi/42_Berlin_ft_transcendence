@@ -157,14 +157,15 @@ def upload_avatar(request, user_id):
     user = get_object_or_404(User, pk=user_id);
     user_profile, created = UserProfile.objects.get_or_create(user=user);
     if request.method == 'POST':
-        avatar = request.FILES.get('image')
+        avatar = request.FILES.get('image');
         if avatar:
-            pprint.pprint(request);
-            user_profile.avatar = avatar
-            user_profile.save()
-            return JsonResponse({'success': 'Avatar uploaded successfully'}, status=201)
-        return JsonResponse({'error': 'No uploaded avatar found'}, status=404)
-    return JsonResponse({'error':'Method not allowed'}, status=405)
+            user_profile.avatar = avatar;
+            user_profile.save();
+            return ({'avatar_status': 'Avatar uploaded successfully'});
+        else:
+            return ({'avatar_status': 'No uploaded avatar found'});
+    else:
+        return ({'avatar_status':'Method not allowed'});
 
 
 @csrf_exempt
@@ -181,11 +182,13 @@ def register(request):
             username=username,
             password=make_password(password),
         )
+        response_data = {'message': 'User created successfully.', 'user_id': user.id};
 
         if image:
-            upload_avatar(request, user.id);
+            avatar_status = upload_avatar(request, user.id);
+            response_data.update(avatar_status)
 
-        return JsonResponse({'message': 'User created successfully.', 'user_id': user.id}, status=201)
+        return JsonResponse(response_data, status=201)
 
     # return JsonResponse({'error': 'Method not allowed'}, status=405)
     return render(request, "register.html")
