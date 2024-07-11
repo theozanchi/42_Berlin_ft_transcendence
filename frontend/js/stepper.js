@@ -49,9 +49,6 @@ function openSocket() {
 		newsocket.onmessage = function(event) {
 			//console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
-				if (data.type === 'debug')
-					console.log('Debug:', data);
-               
 				if (data.type === 'broadcast') {
 					console.log('Broadcast:', data);
 
@@ -77,6 +74,7 @@ function openSocket() {
                     gameStarted = true;
 					round_number = data.round_number;
                     console.log('Game started! round number:', round_number);
+					init();
 					animate();
                 }
 				if (data.type === 'update') {
@@ -196,7 +194,7 @@ function loadLocalGame() {
     let canvas = document.createElement('canvas');
     canvas.id = 'bg';
     gameArea.appendChild(canvas); */
-	init();
+	//init();
 	return;
 }
 

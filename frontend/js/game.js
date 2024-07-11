@@ -1173,7 +1173,7 @@ index9;
 export function animate() {
     if (gameStarted == false) {
         console.log('GAME STARTED IS FALSE');
-        //resetGame();
+        resetGame();
         return;
     }
     
@@ -1302,9 +1302,10 @@ export function resetGame() {
 
     renderer.clear();
     renderer.dispose();
-    //const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
-   // context.clearRect(0, 0, canvas.width, canvas.height);
-    // Reset all variables to their initial state
+    const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
+    //context.clearRect(0, 0, canvas.width, canvas.height);
+    
+   // Reset all variables to their initial state
     currentPlayer = null;
     scene = null;
     camera = null;
