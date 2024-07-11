@@ -82,10 +82,10 @@ def update_round_status(request):
 
         logging.debug('round updated: %s', round_played)
 
-        if round_played.round_number == game.rounds:
+        if round_played.round_number == game.rounds.count():
             game.determine_winner()
             game.save()
-            logging.debug('game winner determined: %s', game)
+            logging.debug('game winner determined: %s', game.winner.alias)
 
         serializer = RoundSerializer(round_played)
         return Response(serializer.data, status=200)
@@ -132,7 +132,7 @@ def round(request):
         return JsonResponse({'error': str(e)}, status=400)
         
 
-@api_view(['GET'])
+""" @api_view(['GET'])
 @permission_classes([AllowAny])
 def finish_game(request):
     try:
@@ -146,4 +146,4 @@ def finish_game(request):
         return Response({'message': 'Game finished.', 'winner': game.winner}, status=200)
                              
     except Game.DoesNotExist:
-        return Response({'error': 'Game not found.'}, status=404)
+        return Response({'error': 'Game not found.'}, status=404) """

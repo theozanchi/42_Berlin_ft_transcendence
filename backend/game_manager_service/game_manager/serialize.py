@@ -24,6 +24,13 @@ class RoundSerializer(serializers.ModelSerializer):
 class GameSerializer(serializers.ModelSerializer):
     rounds = RoundSerializer(many=True, read_only=True)
     players = serializers.SlugRelatedField(slug_field='alias', many=True, queryset=Player.objects.all())
+    winner = serializers.SerializerMethodField()
+
+    def get_winner(self, obj):
+        if obj.winner and hasattr(obj.winner, 'alias'):
+            return obj.winner.alias
+        else:
+            return None
 
     class Meta:
         model = Game

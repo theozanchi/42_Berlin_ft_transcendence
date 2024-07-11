@@ -63,13 +63,12 @@ class Game(models.Model):
         
 
     def determine_winner(self):
-    
         most_wins_player = None
         max_wins = 0
         
-        for player in self.players.all():  # Assuming players is related name for players in Game model
-            if player.won_rounds > max_wins:
-                max_wins = player.won_rounds
+        for player in self.players.all():
+            if player.won_rounds.count() > max_wins:
+                max_wins = player.won_rounds.count()
                 most_wins_player = player
         
         self.winner = most_wins_player
