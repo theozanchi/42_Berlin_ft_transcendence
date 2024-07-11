@@ -2,6 +2,7 @@ class match extends HTMLElement {
 	constructor() {
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
+
 	}
 
 	connectedCallback() {
@@ -14,7 +15,7 @@ class match extends HTMLElement {
 
 ///// START DUMMY CONTENT TO TEST UI /////
 		let date = new Date(2024, 7, 10);
-		console.log(date);
+		// console.log(date);
 
 		let gameData = {
 			date: date.toISOString(),
@@ -31,30 +32,32 @@ class match extends HTMLElement {
 ///// END DUMMY CONTENT /////
 
 		let data = JSON.parse(gameDataStringified)
+		let player1Name = data['player1'];
+		let player2Name = data['player2'];
+		let player1Score = data['player1_score'];
+		let player2Score = data['player2_score'];
+
+		// console.log(data);
 
 		date = new Date(data['date']);
-		player1Score = data['player1_score'];
-		player2Score = data['player2_score'];
 
 		const dateFormatted = isHistory
 			? `<small class="text-center mx-2">${date.getDate()}.${date.getMonth()}.${date.getFullYear()}</small>`
 			: ""
 		
-		if (status === "coming")
-			score = ['-','-'];
-		
+			
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 			<link rel="stylesheet" href="./css/styles.css">
 
 			<div  class="d-flex align-items-center">
-				<player-component name="${players[0]}" order-right class="flex-grow-1"></player-component>
+				<player-component name="${player1Name}" order-right class="flex-grow-1"></player-component>
 				<div class="d-grid g2">
-					<p class="text-center fs-4 my-0 mx-3">${score[0]} : ${score[1]} </p>
+					<p class="text-center fs-4 my-0 mx-3">${player1Score} : ${player2Score} </p>
 					${dateFormatted}
 				</div>
-				<player-component name="${players[1]}" table-column="right" class="flex-grow-1"></player-component>
+				<player-component name="${player2Name}" table-column="right" class="flex-grow-1"></player-component>
 			</div>
 		`;
 	}
