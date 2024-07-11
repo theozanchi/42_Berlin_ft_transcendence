@@ -6,7 +6,6 @@ services:
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
-      - ./static:/usr/share/nginx/html/static
     networks:
       - frontend
       - backend
@@ -24,7 +23,8 @@ services:
     container_name: frontend
     image: nginx:latest # Based on debian:bookworm-slim
     volumes:
-      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend:/usr/share/nginx/html
+      - ./static:/usr/share/nginx/html/static
     networks:
       - frontend
 
@@ -52,6 +52,9 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - SERVER_NAME=${SERVER_NAME}
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
     networks:
       - backend
     depends_on:
@@ -63,8 +66,12 @@ services:
   redis:
     image: redis:latest # Based on debian:bookworm-slim
     container_name: redis
-    environment:
-    - REDIS_PASSWORD=${REDIS_PASSWORD}
+   # environment:
+ #   - REDIS_PASSWORD=${REDIS_PASSWORD}  # Set Redis password if needed
+ #   - REDIS_MAXCLIENTS=10000            # Example: Set maximum clients
+ #   - REDIS_MAXMEMORY=2GB               # Example: Set maximum memory
+  #  - REDIS_MAXMEMORY_POLICY=volatile-lru 
+  #  - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - backend
 

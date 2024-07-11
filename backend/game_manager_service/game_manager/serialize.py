@@ -4,15 +4,19 @@ from rest_framework import serializers
 
 class RoundSerializer(serializers.ModelSerializer):
     player1 = serializers.CharField(source='player1.alias')
+    player1_channel_name = serializers.CharField(source='player1.channel_name')
+
     player2 = serializers.CharField(source='player2.alias')
+    player2_channel_name = serializers.CharField(source='player2.channel_name')
 
     class Meta:
         model = Round
-        fields = ['round_number', 'player1', 'player2', 'winner', 'player1_score', 'player2_score']
+        fields = ['round_number', 'player1', 'player2', 'winner', 'player1_score', 'player2_score', 'player1_channel_name', 'player2_channel_name']
 
 class GameSerializer(serializers.ModelSerializer):
     rounds = RoundSerializer(many=True, read_only=True)
+    players = serializers.SlugRelatedField(slug_field='alias', many=True, queryset=Player.objects.all())
 
     class Meta:
         model = Game
-        fields = ['id', 'mode', 'winner', 'rounds']
+        fields = ['game_id', 'mode', 'winner', 'rounds', 'players', 'host']

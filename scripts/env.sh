@@ -11,6 +11,9 @@ if [ ! -f .env ]; then
 	echo "POSTGRES_USER=postgres" >> .env
 	echo "POSTGRES_PASSWORD=postgres" >> .env
 	echo "REDIS_PASSWORD=redis" >> .env
+	echo "DJANGO_SUPERUSER_USERNAME=admin" >> .env
+	echo "DJANGO_SUPERUSER_EMAIL=admin@pongerpuffgirl.fun" >> .env
+	echo "DJANGO_SUPERUSER_PASSWORD=admin" >> .env
 	echo "Done"
 else
 	echo "Using local .env file"
