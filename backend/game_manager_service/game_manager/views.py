@@ -49,6 +49,7 @@ def join_game(request):
 def get_game(request):
     try:
         game = Game.objects.get(pk=request.data.get('game_id'))
+        game = Game.objects.get(pk=request.data.get('game_id'))
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
     
@@ -59,6 +60,7 @@ def get_game(request):
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
+        game = Game.objects.get(pk=request.data.get('game_id'))
         game = Game.objects.get(pk=request.data.get('game_id'))
 
         game.update_game(request.data)
@@ -101,26 +103,13 @@ def round(request):
         return JsonResponse({'error': 'Game not found.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
-    # if request.method == 'POST':
-    #     try:
-    #         game = Game.objects.get(pk=request.data.get('game_id'))
-    #         game.update_round_status(request.data)
-    #         game.save()
-    #         serializer = GameSerializer(game)
-    #         return Response(serializer.data, status=200)
-        
-    #     except Game.DoesNotExist:
-    #         return JsonResponse({'error': 'Game not found.'}, status=404)
-        
-    #     except ValidationError as e:
-    #         return JsonResponse({'error': e}, status=400)
         
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def finish_game(request):
     try:
+        game = Game.objects.get(pk=request.data.get('game_id'))
         game = Game.objects.get(pk=request.data.get('game_id'))
         game.determine_winner()
 
