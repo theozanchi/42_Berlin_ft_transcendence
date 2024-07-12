@@ -2,6 +2,7 @@ const LogInObserver = new MutationObserver(() => {
 	const loginUser = document.getElementById('loginUser');
 	const loginPassword = document.getElementById('loginPassword');
 	const loginButton = document.getElementById('loginUserButton');
+    const loginForm = document.getElementById('loginForm');
 
 	if (loginUser && loginPassword && loginButton) {
 		// If all elements exist, stop observing
@@ -18,6 +19,44 @@ const LogInObserver = new MutationObserver(() => {
 		loginUser.addEventListener('input', validateForm);
 		loginPassword.addEventListener('input', validateForm);
 	}
+
+	if (loginForm) {
+		loginForm.addEventListener('submit', function(e) {
+			e.preventDefault();
+
+
+			const formData = new FormData();
+			formData.append('username', loginUser.value);
+			formData.append('password', loginPassword.value);
+
+			if (!loginUser || !loginPassword) {
+				alert('Username and password cannot be empty.');
+				return;
+			}
+
+			fetch('/api/user_mgt/login/', {
+				method: 'POST',
+				body: formData,
+			})
+			.then(response => {
+				// Check if the response is ok and content type is JSON
+				if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+					return response.json();
+				}
+				throw new Error('Non-JSON response received');
+			})
+			.then(data => {
+				console.log('Success:', data);
+				urlRoute('/');
+
+			})
+			.catch((error) => {
+				console.error('Error:', error);
+
+			});
+		});
+	}
+
 });
 
 // Start observing the document with the configured parameters
@@ -85,6 +124,7 @@ const signupObserver = new MutationObserver(() => {
             })
             .then(data => {
                 console.log('Success:', data);
+				urlRoute('/');
 
             })
             .catch((error) => {

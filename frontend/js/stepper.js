@@ -280,7 +280,6 @@ async function hostRemoteGame() {
 
 				// Copy the input field's value to the clipboard
 				navigator.clipboard.writeText(input.value).then(function() {
-					console.log('Copying to clipboard was successful!');
 										
 					// Change the icon to bi-clipboard-check
 					iconSpan.className = 'bi bi-clipboard-check';
