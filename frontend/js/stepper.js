@@ -110,12 +110,13 @@ function setGameID(gameID) {
 
 async function hostRemoteGame() {
 	const { openPromise, messagePromise } = openSocket('/ws/host/');
-	await openPromise;
-	// console.log('MY RESPONSE');
+	await openPromise;;
 	const message = await messagePromise;
 	console.log('MY RESPONSE', message);
 	const data = JSON.parse(message);
 	const gameID = data['game-id'];
+
+	return gameID;
 }
 
 async function joinRemoteGame(gameID) {
@@ -172,9 +173,9 @@ async function joinRemoteGame(gameID) {
 
 				console.log("HOSTING REMOTE");
 
-				hostRemoteGame();
+				let gameID = hostRemoteGame();
 				urlRoute(`/join-remote?id=${gameID}`);
-
+				hostRemoteGame();
 			});
 			};
 

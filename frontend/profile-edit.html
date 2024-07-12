@@ -25,45 +25,26 @@
 						
 						<div class="d-flex flex-column h-100 overflow-auto">
 							<div>
-								<div class="d-grid gap-2">
-									<h2>Avatar</h2>
-									<form class="d-grid gap-2">
-										<input class="form-control" type="file" id="fileUpload">
-										<button type="submit" class="btn btn-lg btn-primary">Upload</button>
-									</form>
-
+								<form class="d-grid gap-2">
+									<label for="fileUpload">Avatar</label>
+									<input class="form-control" type="file" id="fileUpload">
+									<div class="form-floating">
+										<input type="text" class="form-control col" id="profileUserName" value="userpuffgirl" required>
+										<label for="accountEmail">User Name</label>
+									</div>
 									<div class="spacer-24"></div>
-									<h2>Credentials</h2>
-									<form class="d-grid gap-2">
-										<div class="form-floating">
-											<input type="text" class="form-control col" id="userName" value="userpuffgirl" required>
-											<label for="accountEmail">User Name</label>
-										</div>
-										<div class="form-floating">
-											<input type="text" class="form-control col" id="accountName" value="Player Name" required>
-											<label for="accountEmail">Name</label>
-										</div>
-										<div class="form-floating">
-											<input type="text" class="form-control col" id="accountEmail" value="buttercup@pongerpuffgirls.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
-											<label for="accountEmail">Email</label>
-										</div>
-										<button type="submit" class="btn btn-lg btn-primary">Update Credentials</button>
-									</form>
-									<div class="spacer-24"></div>
-									<h2>Change Password</h2>
-									<form class="d-grid gap-2">
-										<div class="form-floating">
-											<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
-											<label for="loginPassword">New Password</label>
-										</div>
-										<div class="form-floating">
-											<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
-											<label for="loginPassword">Confirm Password</label>
-										</div>
-										<button type="submit" class="btn btn-lg btn-primary">Update Password</button>
-									</form>
+									<h2 class="fs-4">Change Password</h2>
+									<div class="form-floating">
+										<input type="password" class="form-control col" id="profileLoginPassword" placeholder="">
+										<label for="loginPassword">New Password</label>
+									</div>
+									<div class="form-floating">
+										<input type="password" class="form-control col" id="profileULoginPasswordConfirm" placeholder="">
+										<label for="loginPassword">Confirm Password</label>
+									</div>
 									<div class="spacer-48"></div>
-								</div>
+									<button id="editProfileButton" class="btn btn-lg btn-primary" disabled>Save Changes</button>
+								</form>
 							</div>
 							
 							<div class="d-grid gap-0">
