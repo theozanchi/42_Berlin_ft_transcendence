@@ -1,10 +1,10 @@
 # views.py
 
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.permissions import allow_any, IsAuthenticated
 
 from channels.layers import get_channel_layer
 from django.core.cache import cache
@@ -28,7 +28,7 @@ WINNER_SCORE = 1
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 
-@csrf_exempt
+@permissionclasses([allow_any])
 @api_view(['POST'])
 def game_update(request):
     try:
