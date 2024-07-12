@@ -12,8 +12,8 @@ window.onload = function() {
 document.addEventListener("DOMContentLoaded", (event) => {
 	console.log("DOM fully loaded and parsed");
 	setGameID('test');
-  });
-  
+});
+
 
 
 function setGameID(gameID) {

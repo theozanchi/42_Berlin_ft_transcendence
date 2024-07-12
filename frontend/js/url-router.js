@@ -69,47 +69,52 @@ const urlRoutes = {
 		title: "Profile",
 		description: "",
 	},
+	"/edit-profile": {
+		template: "/profile-edit.html",
+		title: "Profile",
+		description: "",
+	},
 }
 
 const urlRoute = (eventOrUrl) => {
-    let url;
+	let url;
 	// console.log(eventOrUrl);
 	// console.log(typeof eventOrUrl);
-    if (typeof eventOrUrl === 'string') {
-        url = eventOrUrl;
-    } else {
-        eventOrUrl = window.event || eventOrUrl;
-        eventOrUrl.preventDefault();
-        url = eventOrUrl.target.href;
-    }
+	if (typeof eventOrUrl === 'string') {
+		url = eventOrUrl;
+	} else {
+		eventOrUrl = window.event || eventOrUrl;
+		eventOrUrl.preventDefault();
+		url = eventOrUrl.target.href;
+	}
 	// console.log(url);
-    window.history.pushState({}, "", url);
-    urlLocationHandler();
+	window.history.pushState({}, "", url);
+	urlLocationHandler();
 }
 
 const urlLocationHandler = async () => {
-    let location = window.location.pathname;
-    if (location.length == 0) {
-        location = "/"
-    }
+	let location = window.location.pathname;
+	if (location.length == 0) {
+		location = "/"
+	}
 	// console.log(`MY LOCATION: ${location}`);
 
-    // console.log(`MY LOCATION`);
+	// console.log(`MY LOCATION`);
 
-    const route = urlRoutes[location] || urlRoutes[404]
+	const route = urlRoutes[location] || urlRoutes[404]
 
-    // console.log(`MY ROUTE: ${route.template}`);
+	// console.log(`MY ROUTE: ${route.template}`);
 
-    let imageUrl = new URL(route, baseUrl);
-    // console.log(imageUrl);
+	let imageUrl = new URL(route, baseUrl);
+	// console.log(imageUrl);
 
-    const html = await fetch(route.template).then((response) => 
+	const html = await fetch(route.template).then((response) => 
 		response.text());
 
 	//PARSE ACTUAL PATH AND 
-    let parser = new DOMParser();
-    let doc = parser.parseFromString(html, "text/html");
-    let title = doc.querySelector('title').innerText;
+	let parser = new DOMParser();
+	let doc = parser.parseFromString(html, "text/html");
+	let title = doc.querySelector('title').innerText;
 
 	// let fetchedSettingsColumnContent 
 	
@@ -126,16 +131,19 @@ const urlLocationHandler = async () => {
 		if (fetchedSettingsColumnContent)
 			document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;	
 
+	if (location === "/join-remote" || location === "host-remote")
+		console.log("FUCK");
+		// setGameID();
 	// }
 
 	
 	//WRITE NEW TITLE TO BROWSER TAB
-    document.title = title;
+	document.title = title;
 
 
 
 	//OVERWRITE CONTENT
-    // document.getElementById("content").innerHTML = html;
+	// document.getElementById("content").innerHTML = html;
 
 	
 };

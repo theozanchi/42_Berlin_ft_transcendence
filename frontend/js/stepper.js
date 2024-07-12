@@ -10,45 +10,45 @@ let newsocket;
 let openPromise;
 
 function openSocket(path) {
-    let openPromise, messagePromise;
-    if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
-        console.log('Opening new WebSocket');
-        const url = `wss://${window.location.host}${path}`;
-        newsocket = new WebSocket(url);
+	let openPromise, messagePromise;
+	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
+		console.log('Opening new WebSocket');
+		const url = `wss://${window.location.host}${path}`;
+		newsocket = new WebSocket(url);
 
-        openPromise = new Promise((resolve) => {
-            newsocket.onopen = function(event) {
-                console.log('Connected to WebSocket server.');
-                resolve();
-            };
-        });
+		openPromise = new Promise((resolve) => {
+			newsocket.onopen = function(event) {
+				console.log('Connected to WebSocket server.');
+				resolve();
+			};
+		});
 
-        messagePromise = new Promise((resolve) => {
-            newsocket.onmessage = function(event) {
-                console.log('Received: ' + event.data);
-                resolve(event.data);
-            };
-        });
+		messagePromise = new Promise((resolve) => {
+			newsocket.onmessage = function(event) {
+				console.log('Received: ' + event.data);
+				resolve(event.data);
+			};
+		});
 
-        newsocket.onclose = function(event) {
-            console.log('Disconnected from WebSocket server.');
-        };
+		newsocket.onclose = function(event) {
+			console.log('Disconnected from WebSocket server.');
+		};
 
-        newsocket.onerror = function(error) {
-            console.log('WebSocket error: ' + error.message);
-        };
-    }
-    return { openPromise, messagePromise };
+		newsocket.onerror = function(error) {
+			console.log('WebSocket error: ' + error.message);
+		};
+	}
+	return { openPromise, messagePromise };
 }
 
 async function sendJson(json) {
 	console.log("TRYING TO SEND A JSON");
-    if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-        console.log(`Sending json to server: ${json}`);
-        newsocket.send(json);
-    } else {
-        console.log('WebSocket is not connected.');
-    }
+	if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+		console.log(`Sending json to server: ${json}`);
+		newsocket.send(json);
+	} else {
+		console.log('WebSocket is not connected.');
+	}
 }
 
 function generateLocalGame() {
@@ -65,35 +65,35 @@ function generateLocalGame() {
 	data.players = playerNames;
 
 	openSocket('/ws/local/')
-    .then(() => {
+	.then(() => {
 		// console.log("PREPARING JSON");
-        var json = JSON.stringify(data);
+		var json = JSON.stringify(data);
 		console.log(json);
-        sendJson(json);
+		sendJson(json);
 		
-    })
-    .catch(error => {
-        console.error('Failed to open WebSocket connection:', error);
-    });
+	})
+	.catch(error => {
+		console.error('Failed to open WebSocket connection:', error);
+	});
 }
 
 function loadLocalGame() {
 	// Get the game area element
-    const gameArea = document.getElementById('game-column');
+	const gameArea = document.getElementById('game-column');
 
-    // Create and append the script
-    let script = document.createElement('script');
-    script.type = 'module';
-    // script.src = './js/pong/main.js';
-    script.src = './js/game.js';
-    gameArea.appendChild(script);
+	// Create and append the script
+	let script = document.createElement('script');
+	script.type = 'module';
+	// script.src = './js/pong/main.js';
+	script.src = './js/game.js';
+	gameArea.appendChild(script);
 
 	console.log('Creating Game');
 
-    // Create and append the canvas
-    let canvas = document.createElement('canvas');
-    canvas.id = 'bg';
-    gameArea.appendChild(canvas);
+	// Create and append the canvas
+	let canvas = document.createElement('canvas');
+	canvas.id = 'bg';
+	gameArea.appendChild(canvas);
 
 }
 
@@ -111,7 +111,7 @@ function setGameID(gameID) {
 async function hostRemoteGame() {
 	const { openPromise, messagePromise } = openSocket('/ws/host/');
 	await openPromise;
-    // console.log('MY RESPONSE');
+	// console.log('MY RESPONSE');
 	const message = await messagePromise;
 	console.log('MY RESPONSE', message);
 	const data = JSON.parse(message);
@@ -119,7 +119,7 @@ async function hostRemoteGame() {
 }
 
 async function joinRemoteGame(gameID) {
-    console.log(`JOINING: ${gameID}`);
+	console.log(`JOINING: ${gameID}`);
 	const { openPromise, messagePromise } = openSocket(`/ws/join/${gameID}`);
 	await openPromise;
 	const message = await messagePromise;
