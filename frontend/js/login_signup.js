@@ -24,26 +24,74 @@ const LogInObserver = new MutationObserver(() => {
 LogInObserver.observe(document, { childList: true, subtree: true });
 
 const signupObserver = new MutationObserver(() => {
+	const signupImage =document.getElementById('signupAvatar'); 
     const signupUser = document.getElementById('signupUser');
-    const loginPassword = document.getElementById('signupPassword');
-    const loginPasswordConfirm = document.getElementById('signupPasswordConfirm');
-    const loginButton = document.getElementById('signupButton');
+    const signupPassword = document.getElementById('signupPassword');
+    const signupPasswordConfirm = document.getElementById('signupPasswordConfirm');
+    const signupButton = document.getElementById('signupButton');
+    const registrationForm = document.getElementById('registrationForm');
 
-    if (signupUser && loginPassword && loginPasswordConfirm && loginButton) {
+    if (signupUser && signupPassword && signupPasswordConfirm && signupButton) {
         // If all elements exist, stop observing
         signupObserver.disconnect();
 
         function validateForm() {
-            if (signupUser.value && loginPassword.value && loginPasswordConfirm.value && loginPassword.value === loginPasswordConfirm.value) {
-                loginButton.disabled = false;
+            if (signupUser.value && signupPassword.value && signupPasswordConfirm.value && signupPassword.value === signupPasswordConfirm.value) {
+                signupButton.disabled = false;
             } else {
-                loginButton.disabled = true;
+                signupButton.disabled = true;
             }
         }
 
         signupUser.addEventListener('input', validateForm);
-        loginPassword.addEventListener('input', validateForm);
-        loginPasswordConfirm.addEventListener('input', validateForm);
+        signupPassword.addEventListener('input', validateForm);
+        signupPasswordConfirm.addEventListener('input', validateForm);
+    }
+
+	if (registrationForm) {
+        registrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password1 = signupPassword.value;
+            const password2 = signupPasswordConfirm.value;
+			const username = signupUser.value;
+
+
+
+            if (password1 != password2) {
+                alert('Passwords do not match.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password1);
+
+            const imageInput = signupImage;
+            if (imageInput.files.length > 0) {
+                const imageFile = imageInput.files[0];
+                formData.append('image', imageFile);
+            }
+
+            fetch('/api/user_mgt/register/', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                // Check if the response is ok and content type is JSON
+                if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+                    return response.json();
+                }
+                throw new Error('Non-JSON response received');
+            })
+            .then(data => {
+                console.log('Success:', data);
+
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+
+            });
+        });
     }
 });
 
