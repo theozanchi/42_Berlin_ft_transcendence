@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>{% block title %}Transcendence{% endblock %}</title>
+
+</head>
+<body>
+	{% if messages %}
+		<ul class="messages">
+			{% for message in messages %}
+			<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+	<main>
+
+		{% block content %}
+		{% endblock %}
+
+		<hr>
+		{% if user.is_authenticated %}
+
+			<a href="{% url 'profile' user.id %}">See your stats</a>
+			<br>
+			<a href="{% url 'update' %}">Update credentials</a>
+			<br>
+			<a href="{% url 'ranking' %}">Ranking</a>
+			<br>
+			<form method="post" action="{% url 'logout' %}">
+				{% csrf_token %}
+				<button type="submit">Logout</button>
+			</form>
+
+		{% else %}
+
+			<h2>You are not logged in</h2>
+			<a href="{% url 'oauth_login' %}">Login with 42</a>
+			<br>
+			<a href="{% url 'login' %}">Login with username and password</a>
+			<br>
+			<a href="{% url 'register' %}">Register</a>
+		{% endif %}
+
+		<br>
+		<a href="{% url 'admin:index' %}">Admin panel</a>
+		<br>
+		<a href = "{% url 'home' %}">Home</a>
+		<br>
+		<a href = "{% url 'ranking' %}">Ranking</a>
+		<br>
+		<a href = "{% url 'online_users' %}">Online Users</a>
+	</main>
+</body>
+</html>
