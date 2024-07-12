@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 function removeFriend(user_id) {
-    fetch(`/remove_friend/`, {
+    fetch(`/api/user_mgt/remove_friend/`, {
         method: 'POST', headers: {
             'friend': user_id,
             'Content-Type': 'application/json'
