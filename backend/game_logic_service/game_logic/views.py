@@ -70,6 +70,7 @@ def game_update(request):
             
             if game_state['player1Score'] >= WINNER_SCORE or game_state['player2Score'] >= WINNER_SCORE:
                     game_state = handle_game_over(game_state, game_id, request.headers)
+                    
         logging.info(f'SENDING Game state: {game_state}')
         return JsonResponse(game_state, safe=False, status=200)
     
