@@ -27,7 +27,7 @@ startGameButton.style.marginTop = '100px';  // Adjust this value as needed
 function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
 		console.log('Opening new WebSocket');
-		const url = `wss://${window.location.host}/ws/`;
+		const url = `wss://${window.location.host}/ws/?csrftoken=${encodeURIComponent(csrftoken)}`;
 		newsocket = new WebSocket(url);
 
 		openPromise = new Promise((resolve) => {
@@ -151,7 +151,7 @@ function generateLocalGame() {
 	// Add players to JSON
 	data.players = playerNames;
 
-	openSocket('/ws/local/')
+	openSocket()
     .then(() => {
 		console.log("PREPARING JSON");
         var json = JSON.stringify(data);
@@ -213,7 +213,7 @@ function joinRemoteGame() {
 	const playerAlias = 'NewPlayer';
 	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', players: [playerAlias]};
 
-	openSocket('/ws/')
+	openSocket()
 	.then(() => {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
@@ -224,17 +224,11 @@ function joinRemoteGame() {
     });
 }
 
-async function hostRemoteGame() {
-	// const { openPromise, messagePromise } = openSocket('/ws/host/');
-	// await openPromise;
-    // console.log('MY RESPONSE');
-    // const message = await messagePromise;
-    // console.log('MY RESPONSE', message);
-	
+async function hostRemoteGame() {	
 	// Create data object with type key
 	let data = {type: 'create-game', 'game-mode': 'remote', 'players': ['Player1']};
 
-	openSocket('/ws/')
+	openSocket()
     .then(() => {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);

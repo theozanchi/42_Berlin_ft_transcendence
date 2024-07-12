@@ -8,8 +8,15 @@ function connectWebSocket() {
 		return;
 	}
 
+	const wsUrl = `wss://${baseUrlWithoutProtocol}/ws/local/`;
+	const headers = {
+		'X-CSRFToken': 'csrftoken',
+	};
+
 	// Connect to WebSocket server
-	socket = new WebSocket(`wss://${baseUrlWithoutProtocol}/ws/local/`);
+	socket = new WebSocket(webSocketUrl, {
+		headers: headers
+	});
 
 	socket.onopen = function(event) {
 		logMessage('Connected to WebSocket server.');
