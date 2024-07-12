@@ -27,7 +27,7 @@ startGameButton.style.marginTop = '100px';  // Adjust this value as needed
 function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
 		console.log('Opening new WebSocket');
-		const url = `wss://${window.location.host}/ws/?csrftoken=${encodeURIComponent(csrftoken)}`;
+		const url = `wss://${window.location.host}/ws/`;
 		newsocket = new WebSocket(url);
 
 		openPromise = new Promise((resolve) => {

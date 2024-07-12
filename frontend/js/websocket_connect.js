@@ -9,9 +9,6 @@ function connectWebSocket() {
 	}
 
 	const wsUrl = `wss://${baseUrlWithoutProtocol}/ws/local/`;
-	const headers = {
-		'X-CSRFToken': 'csrftoken',
-	};
 
 	// Connect to WebSocket server
 	socket = new WebSocket(webSocketUrl, {
