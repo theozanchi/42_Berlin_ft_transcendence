@@ -82,6 +82,7 @@ services:
       - USR_EMAIL=${DJANGO_SUPERUSER_EMAIL}
       - USR_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
       - SERVER_NAME=${SERVER_NAME}
+      - SPORT=${SPORT}
     stop_signal: SIGINT
     stop_grace_period: 2s
 

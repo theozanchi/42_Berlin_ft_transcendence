@@ -60,8 +60,8 @@ LOGOUT_REDIRECT_URL = "/api/user_mgt"
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = "localhost"
-CSRF_TRUSTED_ORIGINS = ["localhost:8443"]
+CSRF_COOKIE_DOMAIN = os.getenv('SERVER_NAME')
+CSRF_TRUSTED_ORIGINS = [os.getenv('SERVER_NAME') + ':' + os.getenv('SPORT')]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -73,9 +73,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "oauth42.middleware.LastActivityMiddleware",
 ]
-
-# Set up CSRF trusted origins if needed (e.g., for CORS requests)
-CSRF_TRUSTED_ORIGINS = ['https://' + os.getenv('SERVER_NAME')]
 
 ROOT_URLCONF = "user_mgt.urls"
 
