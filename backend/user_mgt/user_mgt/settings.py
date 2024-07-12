@@ -74,6 +74,9 @@ MIDDLEWARE = [
     "oauth42.middleware.LastActivityMiddleware",
 ]
 
+# Set up CSRF trusted origins if needed (e.g., for CORS requests)
+CSRF_TRUSTED_ORIGINS = ['https://' + os.getenv('SERVER_NAME')]
+
 ROOT_URLCONF = "user_mgt.urls"
 
 TEMPLATES = [
