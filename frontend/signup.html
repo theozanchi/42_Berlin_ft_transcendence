@@ -25,27 +25,30 @@
 
 						<div class="spacer-48"></div>
 
-						<div class="d-flex justify-content-between align-baseline">
+						<div class="d-grid">
 							
 							<h1>Sign up</h1>
+							<p>Choose a username and password to create a new account.</p>
 						</div>
 
 						<div class="d-flex flex-column h-100 overflow-auto">
-							<div class="d-grid gap-2">
+							<form class="d-grid gap-2" id="signupForm">
+								<input class="form-control" type="file" id="signupAvatar" required>
 								<div class="form-floating">
-										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
-										<label for="loginEmail">Email</label>
+									<input type="text" class="form-control col" id="signupUser" placeholder="username" required>
+									<label for="signupUser">Username</label>
 								</div>
+								<div class="spacer-12"></div>
 								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<input type="password" class="form-control col" id="signupPassword" placeholder="" required>
 									<label for="loginPassword">Password</label>
 								</div>
 								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
-									<label for="loginPassword">Confirm Password</label>
+									<input type="password" class="form-control col" id="signupPasswordConfirm" placeholder="" required>
+									<label for="loginPasswordConfirm">Confirm Password</label>
 								</div>
-								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign up</button>
-							</div>
+								<button id="signupButton" class="btn btn-lg btn-primary" disabled>Sign up</button>
+							</form>
 						</div>
 						
 						<div>
@@ -54,11 +57,11 @@
 							<div class="spacer-24"></div>
 							<nav class="d-grid gap-2 d-md-block">
 								<a href="/login" id="login42Button" class="btn btn-lg btn-outline-primary">Login</a>
-								<a href="/signup" class="btn btn-link text-decoration-none">Create account</a>
 							</nav>
 							<div class="spacer-48"></div>
 						</div>
 					</div>
+					<script src="js/login_signup.js"></script>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
 				</div>
