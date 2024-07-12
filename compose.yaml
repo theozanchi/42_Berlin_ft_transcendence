@@ -6,7 +6,6 @@ services:
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
-      - ./static:/usr/share/nginx/html/static
     networks:
       - frontend
       - backend
@@ -24,7 +23,8 @@ services:
     container_name: frontend
     image: nginx:latest # Based on debian:bookworm-slim
     volumes:
-      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend:/usr/share/nginx/html
+      - ./static:/usr/share/nginx/html/static
     networks:
       - frontend
 
@@ -59,15 +59,16 @@ services:
       - backend
     depends_on:
       - redis
-      - game_logic
-      - game_manager
-      - authentication
 
   redis:
     image: redis:latest # Based on debian:bookworm-slim
     container_name: redis
-    environment:
-    - REDIS_PASSWORD=${REDIS_PASSWORD}
+   # environment:
+ #   - REDIS_PASSWORD=${REDIS_PASSWORD}  # Set Redis password if needed
+ #   - REDIS_MAXCLIENTS=10000            # Example: Set maximum clients
+ #   - REDIS_MAXMEMORY=2GB               # Example: Set maximum memory
+  #  - REDIS_MAXMEMORY_POLICY=volatile-lru 
+  #  - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - backend
 
