@@ -16,30 +16,34 @@
 
 //     emailInput.addEventListener('input', enableOrDisableLoginButton);
 //     passwordInput.addEventListener('input', enableOrDisableLoginButton);
- 
+
 //     // Initially disable the button
 //     loginButton.disabled = true;
 // });
 
-
-/// SIGN UP LISTENER
-document.addEventListener('DOMContentLoaded', function() {
+const observer = new MutationObserver(() => {
 	const signupUser = document.getElementById('signupUser');
 	const loginPassword = document.getElementById('signupPassword');
 	const loginPasswordConfirm = document.getElementById('signupPasswordConfirm');
 	const loginButton = document.getElementById('signupButton');
 
-	console.log(signupUser + loginPassword + loginPasswordConfirm + loginButton);
+	if (signupUser && loginPassword && loginPasswordConfirm && loginButton) {
+		// If all elements exist, stop observing
+		observer.disconnect();
 
-	function validateForm() {
-		if (signupUser.value && loginPassword.value && loginPasswordConfirm.value && loginPassword.value === loginPasswordConfirm.value) {
-			loginButton.disabled = false;
-		} else {
-			loginButton.disabled = true;
+		function validateForm() {
+			if (signupUser.value && loginPassword.value && loginPasswordConfirm.value && loginPassword.value === loginPasswordConfirm.value) {
+				loginButton.disabled = false;
+			} else {
+				loginButton.disabled = true;
+			}
 		}
-	}
 
-	signupUser.addEventListener('input', validateForm);
-	loginPassword.addEventListener('input', validateForm);
-	loginPasswordConfirm.addEventListener('input', validateForm);
+		signupUser.addEventListener('input', validateForm);
+		loginPassword.addEventListener('input', validateForm);
+		loginPasswordConfirm.addEventListener('input', validateForm);
+	}
 });
+
+// Start observing the document with the configured parameters
+observer.observe(document, { childList: true, subtree: true });
