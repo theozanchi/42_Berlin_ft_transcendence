@@ -1,14 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     var user_id = document.body.getAttribute('data-user-id');
     if (user_id) {
-        addFriend(user_id);
-
+        removeFriend(user_id);
     }
 });
 
-function addFriend(user_id) {
-    fetch(`/api/user_mgt/add_friend/${user_id}/`, {
+
+function removeFriend(user_id) {
+    fetch(`/remove_friend/`, {
         method: 'POST', headers: {
+            'friend': user_id,
             'Content-Type': 'application/json'
         },
     })
@@ -21,7 +22,6 @@ function addFriend(user_id) {
         .then(data => {
             alert(data.message);
             if (data.status === "success") {
-
             }
         })
         .catch(error => console.error('Error:', error));

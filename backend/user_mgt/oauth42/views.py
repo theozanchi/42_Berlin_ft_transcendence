@@ -264,7 +264,7 @@ def regular_login(request):
             return JsonResponse({"error": "Invalid username or password."}, status=400)
 
     else:
-        # return JsonResponse({'success': 'Login successful'}, status=200);
+        # return JsonResponse({'success': 'Wrong method'}, status=400);
         return render(request, "login.html")
 
 
@@ -275,17 +275,32 @@ def delete_profile(request):
     messages.success(request, "Your profile has been deleted.")
     return redirect("home")
 
+
 @csrf_exempt
 @login_required
-def add_friend(request, user_id):
-    print(f"friend_id: {user_id}")
+def add_friend(request):
     if request.method == "POST":
-        print("--> post to add_friend")
-        friend = get_object_or_404(User, id=user_id)
+        user_id = request.headers.get("friend")
+        try:
+            user_id = int(user_id)  # Ensure user_id is an integer
+            friend = User.objects.get(id=user_id)
+            pprint.pprint(friend)
+        except ValueError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid user ID."},
+                status=200,
+            )
+        except User.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "User not found."},
+                status=200,
+            )
+        except:
+            return JsonResponse(
+                {"status": "other error"},
+                status=200,
+            )
         user_profile = request.user.userprofile
-        print(f"---")
-        pprint.pprint(friend)
-        pprint.pprint(user_profile)
         if friend not in user_profile.friends.all():
             user_profile.friends.add(friend)
             user_profile.save()
@@ -298,9 +313,15 @@ def add_friend(request, user_id):
             status=200,
         )
     else:
-        print("in else")
-        return render(request, "add-friend.html", {"user_id": user_id})
-    # return JsonResponse({"status": "error", "message": "Method not valid"}, status=400)
+        return JsonResponse(
+            {"status": "error", "message": "Method not valid"}, status=400
+        )
+
+
+@csrf_exempt
+@login_required
+def add_friend_view(request, user_id):
+    return render(request, "add-friend.html", {"user_id": user_id})
 
 
 @login_required
@@ -319,6 +340,12 @@ def remove_friend(request, user_id):
         )
     return render(request, "remove-friend.html")
     # return JsonResponse({"status": "error", "message": "Method not valid"}, status=400)
+
+
+@csrf_exempt
+@login_required
+def remove_friend_view(request, user_id):
+    return render(request, "remove-friend.html", {"user_id": user_id})
 
 
 @login_required
