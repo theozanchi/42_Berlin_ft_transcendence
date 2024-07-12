@@ -4,6 +4,10 @@ import json
 import logging
 import asyncio
 
+#from django.contrib.auth.models import AnonymousUser
+#from django.contrib.auth import get_user_model
+#from rest_framework.authtoken.models import Token
+
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -20,8 +24,24 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.player_id = None
         self.last_sent_state = None
         self.lock = asyncio.Lock()
-
+        self.csrftoken = self.extract_csrftoken()
+        if self.csrftoken is None:
+            return
         await self.accept()
+
+    def extract_csrftoken(self):
+        """
+        Extracts the csrftoken from the cookie header in the raw headers.
+        """
+        for key, value in self.scope['headers']:
+            if key.decode('utf-8') == 'cookie':
+                cookies = value.decode('utf-8').split('; ')
+                for cookie in cookies:
+                    if cookie.startswith('csrftoken='):
+                        token = cookie.split('=')[1]
+                        # ISSUE validate token with authentication server
+                        return token
+        return None  # Return None if csrftoken is not found or not validated
 
     async def disconnect(self, close_code):
         if self.game_id:
@@ -127,15 +147,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             response = requests.post(GAME_MANAGER_REST_URL + '/round/', json=content, headers=self.get_headers())
             response.raise_for_status()
 
-            if response.json().get('type') is 'game-over':
-                await self.send_json({'type': 'Game already over'})
-                return
-
-            self.round_number = response.json().get('round_number')
-
             # Send round info to all players
             await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
-            if response.json().get('message') is not 'Game over':
+            if response.json().get('message') != 'tournament-over':
                 # Send player id to pther players
                 await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
 
@@ -145,6 +159,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     
     async def get_player_id(self, content):
         data = content.get('content')
+        self.round_number = data.get('round_number')
         if self.mode == 'remote':
                 player1_channel = data.get('player1_channel_name')
                 player2_channel = data.get('player2_channel_name')

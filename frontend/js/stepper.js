@@ -47,12 +47,12 @@ function openSocket() {
         });
 
 		newsocket.onmessage = function(event) {
-			//console.log('Received: ' + event.data);
+			console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
 				if (data.type === 'broadcast') {
 					console.log('Broadcast:', data);
 
-					if (data.content.message === 'Game over') {
+					if (data.content.message === 'tournament-over') {
 						console.log('Game Over. Winner is: ' + data.content.winner);
 						newsocket.close();
 						displayScore(data.content.winner);
@@ -81,12 +81,10 @@ function openSocket() {
 					if (gameStarted === false)
 						return;
 					if (data.content.gameOver === true) {
-						console.log('UPDATE received ', data.content);
 						console.log('Round Over. Winner is: ', data.content.winner);
 						playerId = null;
 						//unloadLocalGame();
 						// Start next round
-						// IF SELF IS HOST...
 						gameStarted = false;
 						displayScore(data.content);
 						createStartButton();
