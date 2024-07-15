@@ -1303,22 +1303,22 @@ export function resetGame() {
     aimingLine = null;
     aimingAngle = 0;
     resetBall_ = false;
-    currentFace = 0;
-    currentFace2 = 0;
+
     isTransitioning = false;
     isTransitioning2 = false;
     wallHits = 0;
     collisionMarker = null;
+
+    if (player1Score > player2Score)
+        playerTurn = true; // Player starts
     player1Score = 0;
     player2Score = 0;
     ballIsHeld = true;
 
     ballUpdateEnabled = true;
     ballSpeed = new THREE.Vector3();
-    ballRadius = 0.05; // Radius of the ball
     resetBall_ = false;
 
-    playerTurn = true; // Player starts
     playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
     keyMoveSpeed = 0.05;
     player1Score = 0;
