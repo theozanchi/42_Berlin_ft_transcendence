@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, playerId, gameStarted, round_number } from './stepper.js';
+import { sendJson, remote, currentPlayer, gameStarted, round_number } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -39,16 +39,15 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const faceMaterials = {};
-const cubeSize = 2; // Size of the cube
 let scene, camera, camera2, renderer, cube, player, player2, ball, collisionMarker, aimingLine;
 
+const cubeSize = 2; // Size of the cube
 let ballUpdateEnabled = true;
 let ballSpeed = new THREE.Vector3();
 const ballRadius = 0.05; // Radius of the ball
 let resetBall_ = false;
 
 let playerTurn = true; // Player starts
-let currentPlayer;
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 let keyMoveSpeed = 0.05;
 let player1Score = 0;
@@ -69,11 +68,6 @@ let lastGameState = null;
 let timingStarted = false;
 let isGameStateUpdating = false; 
 const sendInterval = 1000 / 60;
-
-const initialReconnectInterval = 1000; // Initial reconnect interval in ms
-let reconnectInterval = initialReconnectInterval;
-let reconnectAttempts = 0;
-let maxReconnectAttempts = 10;
 
 
 export function updateGameState(data) {
@@ -206,16 +200,6 @@ export function sendGameState() {
 index2;
 
 export async function init() {
-    if (remote == true) {
-        console.log('Remote game mode player id is: ', playerId);
-        if (playerId === 'player1')
-            currentPlayer = player;
-        else if (playerId === 'player2')
-            currentPlayer = player2;
-        else
-            currentPlayer = 'spectator';
-    }
-
     // Create the scene
     scene = new THREE.Scene();
     
@@ -1268,7 +1252,7 @@ export function displayScore(content) {
 }
 
 function clearScene(object) {
-    console.log('CLEARING SCENE...');
+    console.log('CLEARING SCENE: ', object.name || 'NO NAME');
 
     while(object.children.length > 0){ 
         clearScene(object.children[0]);
@@ -1306,7 +1290,6 @@ export function resetGame() {
     //context.clearRect(0, 0, canvas.width, canvas.height);
     
    // Reset all variables to their initial state
-    currentPlayer = null;
     scene = null;
     camera = null;
     camera2 = null;
@@ -1318,9 +1301,39 @@ export function resetGame() {
     player2 = null;
     ball = null;
     aimingLine = null;
+    aimingAngle = 0;
+    resetBall_ = false;
+    currentFace = 0;
+    currentFace2 = 0;
+    isTransitioning = false;
+    isTransitioning2 = false;
+    wallHits = 0;
     collisionMarker = null;
     player1Score = 0;
     player2Score = 0;
+    ballIsHeld = true;
+
+    ballUpdateEnabled = true;
+    ballSpeed = new THREE.Vector3();
+    ballRadius = 0.05; // Radius of the ball
+    resetBall_ = false;
+
+    playerTurn = true; // Player starts
+    playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
+    keyMoveSpeed = 0.05;
+    player1Score = 0;
+    player2Score = 0;
+
+    currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
+    currentFace2 = 1;
+    pivot;
+    pivot2;
+    isTransitioning = false;
+    isTransitioning2 = false;
+    ballIsHeld = true;
+    wallHits = 0;
+    aimingAngle = 0;
+
 
     // Remove score display
     let scoreDisplay = document.getElementById('scoreDisplay');

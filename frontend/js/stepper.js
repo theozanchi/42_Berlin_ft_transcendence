@@ -16,8 +16,8 @@ let game_id;
 export var gameStarted = false;
 export var gameOver = false;
 export var remote = false;
-export var playerId;
 export var round_number;
+export let currentPlayer;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -68,9 +68,15 @@ function openSocket() {
 					}
 					if (data.mode === 'remote') {
 						remote = true;
-						playerId = data.player_id;
-					}
 
+						if (data.player_id === 'player1')
+							currentPlayer = player;
+						else if (data.player_id === 'player2')
+							currentPlayer = player2;
+						else
+							currentPlayer = 'spectator';
+					}
+				
                     gameStarted = true;
 					round_number = data.round_number;
                     console.log('Game started! round number:', round_number);
@@ -82,12 +88,19 @@ function openSocket() {
 						return;
 					if (data.content.gameOver === true) {
 						console.log('Round Over. Winner is: ', data.content.winner);
-						playerId = null;
+						currentPlayer = null;
 						//unloadLocalGame();
 						// Start next round
-						gameStarted = false;
 						displayScore(data.content);
-						createStartButton();
+
+						gameStarted = false;
+						//createStartButton();
+						if (gameStarted) {
+							console.log('Game already started!');
+							return;
+						}
+						console.log('SENDING Starting game...');
+						sendJson(JSON.stringify({ type: 'start-game' }));
 					}
 					else {
 						updateGameState(data);
@@ -118,7 +131,6 @@ function openSocket() {
 export async function sendJson(json) {
 	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-        //console.log(`Sending json to server: ${json}`);
         await newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
@@ -165,7 +177,6 @@ function generateLocalGame() {
 		console.log(json);
         sendJson(json);
 
-		loadLocalGame();
 		createStartButton();
     })
     .catch(error => {
@@ -228,7 +239,6 @@ async function hostRemoteGame() {
 		console.log('Sending JSON:', data);
         sendJson(json);
 
-		loadLocalGame();
 		createStartButton();
     })
     .catch(error => {

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from rest_framework.permissions import allow_any, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from channels.layers import get_channel_layer
 from django.core.cache import cache
@@ -28,7 +28,7 @@ WINNER_SCORE = 1
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 
-@permissionclasses([allow_any])
+@permission_classes([AllowAny])
 @api_view(['POST'])
 def game_update(request):
     try:
@@ -96,7 +96,7 @@ def create_new_game_state(game_id, round_number):
         'round_number': round_number,
         'gameOver': False,
 
-        'aiming_angle': 0 , # Initialize aiming_angle
+        'aiming_angle': 0, # Initialize aiming_angle
         'aimingSpeed': 0.05,  # Example speed value, adjust as needed
         'maxaiming_angle': 1.57,  # Example max angle value (90 degrees in radians)
         'minaiming_angle': -1.57, 
