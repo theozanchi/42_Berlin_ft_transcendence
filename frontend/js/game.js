@@ -61,10 +61,8 @@ let isTransitioning2 = false;
 let ballIsHeld = true;
 let wallHits = 0;
 let aimingAngle = 0;
-let remote = true; // Set to false for two-player game
 const initialReconnectInterval = 1000; // Initial reconnect interval in ms
 let reconnectInterval = initialReconnectInterval;
-let currentPlayer;
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 10;
 let resetBall_ = false;
@@ -90,12 +88,8 @@ export function updateGameState(data) {
         player2.rotation.set(data.content.player2.rotation.x, data.content.player2.rotation.y, data.content.player2.rotation.z);
     }
     // Update ball position and speed
-    if (data.content.ball) {
-        ball.position.set(data.content.ball.x, data.content.ball.y, data.content.ball.z);
-    }
-    if (data.content.ballSpeed) {
-        ballSpeed.set(data.content.ballSpeed.x, data.content.ballSpeed.y, data.content.ballSpeed.z);
-    }
+    ball.position.set(data.content.ball.x, data.content.ball.y, data.content.ball.z);
+    ballSpeed.set(data.content.ballSpeed.x, data.content.ballSpeed.y, data.content.ballSpeed.z);
     // Update game data.content variables
     playerTurn = data.content.playerTurn;
     player1Score = data.content.player1Score;
@@ -146,7 +140,8 @@ export function sendGameState() {
             ballIsHeld: ballIsHeld,
             aiming_angle: aimingAngle,
             reset_ball: resetBall_,
-            wall_hits: wallHits
+            wall_hits: wallHits,
+            direction: direction,
         };
         if (remote){
             if (currentPlayer === player) {
@@ -206,7 +201,6 @@ export function sendGameState() {
 
         //if (!ballIsHeld) console.log("Sending new game state with ballIsHeld:", newGameState.ballIsHeld);
 
-        lastSentTime = now;
         sendJson(JSON.stringify(newGameState));
 }  
 
@@ -1381,7 +1375,6 @@ export function resetGame() {
     ballSpeed = new THREE.Vector3();
     resetBall_ = false;
 
-    playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
     keyMoveSpeed = 0.05;
     player1Score = 0;
     player2Score = 0;
