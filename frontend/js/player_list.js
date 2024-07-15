@@ -9,7 +9,7 @@ class PlayerList extends HTMLElement {
 		this.shadow = this.attachShadow({mode: 'open'});
 		this.count = 1;
 		// this.gameMode = "local";
-		const gameModes = ["local", "host", "join"];
+		const gameModes = ["local", "host", "join", "friends", "online"];
 		const 	PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
 	}
 
@@ -93,10 +93,27 @@ class PlayerList extends HTMLElement {
 	}
 
 	render() {
+
+		//MODES: local, remote-host, remote-join, friends, online
 		this.gameMode = this.getAttribute('mode');
+		this.userID = this.getAttribute('userID');
 
 		// if (!gameModes.includes(gameMode))
 			// console.error(`invalid game mode: ${gameMode}`);
+
+		if (this.gameMode === 'friends' && this.userID) {
+			this.shadow.innerHTML = `
+				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
+				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+	
+				<div id="list-of-players">
+				`
+			
+			
+
+			this.shadow.innerHTML +='</div>';
+
+		}
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>

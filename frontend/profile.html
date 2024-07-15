@@ -21,28 +21,28 @@
 							<stepper-titlebar title="Account"></stepper-titlebar>
 						</div>
 						
-						<div class="col d-flex flex-column justify-content-center align-items-center">
-							<img id="userAvatar" src="" class="game-ticker">
-							<div class="spacer-24"></div>
-							<h1 id="userNickname" class="text-center">ACCOUNT</h1>
-							<div class="mb-1 d-flex gap-3 justify-content-center">
-								<div class="d-flex flex-column align-items-start text-left">
-									<p class="mb-1">Rank:</p>
-									<p>Points:</p>
-								</div>
-								<div class="d-flex flex-column align-items-start text-left ml-3">
-									<p id="userRank" class="fw-bold mb-1 text-end">-1</p>
-									<p id="userScore" class="fw-bold text-end">-100</p>
+						
+						
+						<div class="d-flex flex-column h-100 overflow-auto">
+							<div class="col d-flex flex-column justify-content-center align-items-center">
+								<img id="userAvatar" src="" class="game-ticker">
+								<div class="spacer-24"></div>
+								<h1 id="userNickname" class="text-center">ACCOUNT</h1>
+								<div class="mb-1 d-flex gap-3 justify-content-center">
+									<div class="d-flex flex-column align-items-start text-left">
+										<p class="mb-1">Rank:</p>
+										<p>Points:</p>
+									</div>
+									<div class="d-flex flex-column align-items-start text-left ml-3">
+										<p id="userRank" class="fw-bold mb-1 text-end">-1</p>
+										<p id="userScore" class="fw-bold text-end">-100</p>
+									</div>
 								</div>
 							</div>
-							<div class="spacer-24"></div>
-						</div>
-						
-						<div id="userGameStats" class="d-flex flex-column h-100 overflow-auto">
-							<div>
-								<div class="spacer-48"></div>
-								<hr>
-
+							<div class="spacer-12"></div>
+							<hr class="mb-0">
+							<div id="userGameStats">
+								<div class="spacer-24"></div>
 								<div class="d-flex justify-content-between align-baseline">
 									<h2 class="fs-4">Game Statistics</h2>
 									<a id="showUserGameHistory" href="/game-statistics?profile=" class="btn btn-link text-decoration-none">Show history</a>
@@ -63,29 +63,27 @@
 									</div>
 								</div>
 								<div class="spacer-24"></div>
-							</div>
 							
-							<div id="userFriendlist">
-								<hr>
-								<div class="d-flex justify-content-between align-baseline">
-									<h2 class="fs-4">Friends</h2>
-									<a id="userShowAllAccounts" href="/users" class="btn btn-link text-decoration-none">Find more</a>
-								</div>
-								<div class="d-grid gap-2">
-									<!-- <player-list mode="friends"></player-list> -->
-									<div id="UserFriendsList">
-										<div id="emptyState">
-											<p>It seems as if you currently do not have any friends...</p>
-										<div>
-										<player-component name="USER" remove-button></player-component>
-										<player-component name="hey" remove-button></player-component>
-										<player-component name="what" remove-button></player-component>
+								<div id="userFriendlist">
+									<hr>
+									<div class="d-flex justify-content-between align-baseline">
+										<h2 class="fs-4">Friends</h2>
+										<a id="userShowAllAccounts" href="/users" class="btn btn-link text-decoration-none">Find more</a>
 									</div>
-									<div class="spacer-24"></div>
+									<div class="d-grid gap-2">
+										<!-- <player-list mode="friends"></player-list> -->
+										<div id="UserFriendsList">
+											<div id="emptyState">
+												<p>It seems as if you currently do not have any friends...</p>
+											<div>
+										</div>
+										<div class="spacer-24"></div>
+									</div>
 								</div>
+							</div>
 							</div>
 						</div>
-
+						</div>
 						<div id="userEditAccount" class="d-grid gap-2">
 							<hr class="m-0">
 							<div class="spacer-12"></div>
@@ -94,14 +92,14 @@
 							<div class="spacer-48"></div>
 						</div>
 
-						<!-- <div id="userEditFriend" class="d-grid gap-2">
+						<div id="userEditFriend" class="d-grid gap-2">
 							<hr class="m-0">
 							<div class="spacer-12"></div>
-							<button id="userBefriendButton" class="btn btn-lg btn-primary">Befriend</button>
-							<button id="userUnfriendButton" class="btn btn-lg btn-danger hidden">Unfriend</button>
+							<button id="userBefriendButton" class="btn btn-lg btn-success"><i class="bi bi-plus-lg me-2"></i>Befriend</button>
+							<button id="userUnfriendButton" class="btn btn-lg btn-danger" >Unfriend</button>
 							<button id="userUnfriendButton" class="btn btn-lg btn-danger" disabled><i class="spinner-border"></i></button>
 							<div class="spacer-48"></div>
-						</div> -->
+						</div>
 					</div>
 				<script src="js/profile.js"></script>
 				</div>

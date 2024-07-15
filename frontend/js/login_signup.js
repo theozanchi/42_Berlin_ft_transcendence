@@ -1,16 +1,32 @@
 let logged_in = false;
 let user_id = -1;
 
+// const LogIn42Observer = new MutationObserver(() => {
+// 	const login42OAuth = document.getElementById('login42SSOButton');
+
+// 	if (login42OAuth) {
+// 		// console.log('logging out'); 
+// 		fetch('/api/user_mgt/oauth/login/', {
+// 			method: 'POST',
+// 			body: formData,
+// 		})
+// 	}
+// });
+
+// Start observing the document with the configured parameters
+// LogIn42Observer.observe(document, { childList: true, subtree: true });
+
 const LogInObserver = new MutationObserver(() => {
 	const loginUser = document.getElementById('loginUser');
 	const loginPassword = document.getElementById('loginPassword');
 	const loginButton = document.getElementById('loginUserButton');
 	const loginForm = document.getElementById('loginForm');
 	const logoutUser = document.getElementById('logoutUserButton');
+	const login42OAuth = document.getElementById('');
 
 	if (loginUser && loginPassword && loginButton) {
 		// If all elements exist, stop observing
-		LogInObserver.disconnect();
+		// LogInObserver.disconnect();
 
 		function validateForm() {
 			if (loginUser.value && loginPassword.value) {
@@ -50,8 +66,11 @@ const LogInObserver = new MutationObserver(() => {
 				throw new Error('Non-JSON response received');
 			})
 			.then(data => {
-				console.log('Success:', data);
-				urlRoute('/');
+				console.log('Response:', data);
+				if (!data.error)
+					urlRoute('/');
+				else
+					alert("Invalid username or password.")
 
 			})
 			.catch((error) => {
@@ -61,7 +80,7 @@ const LogInObserver = new MutationObserver(() => {
 	};
 
 	if (logoutUser) {
-		console.log('logging out');
+		// console.log('logging out');
 		fetch('/api/user_mgt/logout/', {
 			method: 'POST',
 			body: formData,

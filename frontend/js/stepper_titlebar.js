@@ -28,7 +28,7 @@ class StepperTitleBar extends HTMLElement {
 						<h1 class="col text-truncate m-0 text-center fs-2" > ${this.getAttribute('title')} </h1> \
 						<button class="invisible btn btn-outline-secondary col-auto"><i class="invisible bi bi-arrow-left"></i></button> \
 				</div>
-				<hr>
+				<hr class="mb-0">
 				`
 			resolve();
 		});
