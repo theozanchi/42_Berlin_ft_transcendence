@@ -135,8 +135,8 @@ def register(request):
         login(request, user)
         return JsonResponse(response_data, status=201)
 
-    # return JsonResponse({'error': 'Method not allowed'}, status=405)
-    return render(request, "register.html")
+    # return render(request, "register.html")
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 def rankings(request):
@@ -187,7 +187,8 @@ def update(request):
 
         return JsonResponse(response_data, status=201)
     else:
-        return render(request, "update.html")
+        #return render(request, "update.html")
+        return JsonResponse({"status":"error", "message":"Method not allowed."})
 
 
 def profile(request, user_id):
@@ -249,6 +250,12 @@ def profile(request, user_id):
 
     return JsonResponse(player_data)
 
+def who_am_i(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "User is not logged in."});
+    if request.user.is_authenticated:
+        return JsonResponse({"status": "success", "message":"User is logged in.", "user_id": request.user.id});
+    return JsonResponse({"status": "error", "message": "View can't handle this. This error should not happen."})
 
 @csrf_exempt
 def regular_login(request):
@@ -259,13 +266,13 @@ def regular_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({"success": "Login successful"}, status=200)
+            return JsonResponse({"success": "Login successful", "user_id": user.id})
         else:
-            return JsonResponse({"error": "Invalid username or password."}, status=400)
+            return JsonResponse({"error": "Invalid username or password."})
 
     else:
-        # return JsonResponse({'success': 'Wrong method'}, status=400);
-        return render(request, "login.html")
+        #return render(request, "login.html")
+        return JsonResponse({'success': 'Wrong method'});
 
 
 @login_required
@@ -282,9 +289,57 @@ def add_friend(request):
     if request.method == "POST":
         user_id = request.headers.get("friend")
         try:
-            user_id = int(user_id)  # Ensure user_id is an integer
+            user_id = int(user_id)
             friend = User.objects.get(id=user_id)
-            pprint.pprint(friend)
+        except ValueError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid user ID."},
+                status=200,
+            )
+        except User.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "User not found."},
+                status=200,
+            )
+        except:
+            return JsonResponse(
+                {"status": "other error"},
+                status=200,
+            )
+        if friend.id == request.user.id:
+            return JsonResponse(
+                {"status": "info", "message": "You cannot add yourself."}
+            )
+        user_profile = request.user.userprofile
+        if friend not in user_profile.friends.all():
+            user_profile.friends.add(friend)
+            user_profile.save()
+            return JsonResponse(
+                {"status": "success", "message": "Friend added successfully."},
+                status=200,
+            )
+        return JsonResponse(
+            {"status": "info", "message": "This user is already your friend."},
+            status=200,
+        )
+    else:
+        return JsonResponse({"status": "error", "message": "Method not valid"})
+
+
+@csrf_exempt
+@login_required
+def add_friend_view(request, user_id):
+    return render(request, "add-friend.html", {"user_id": user_id})
+
+
+@csrf_exempt
+@login_required
+def remove_friend(request):
+    if request.method == "POST":
+        user_id = request.headers.get("friend")
+        try:
+            user_id = int(user_id)
+            friend = User.objects.get(id=user_id)
         except ValueError:
             return JsonResponse(
                 {"status": "error", "message": "Invalid user ID."},
@@ -301,34 +356,6 @@ def add_friend(request):
                 status=200,
             )
         user_profile = request.user.userprofile
-        if friend not in user_profile.friends.all():
-            user_profile.friends.add(friend)
-            user_profile.save()
-            return JsonResponse(
-                {"status": "success", "message": "Friend added successfully."},
-                status=200,
-            )
-        return JsonResponse(
-            {"status": "info", "message": "This user is already your friend."},
-            status=200,
-        )
-    else:
-        return JsonResponse(
-            {"status": "error", "message": "Method not valid"}, status=400
-        )
-
-
-@csrf_exempt
-@login_required
-def add_friend_view(request, user_id):
-    return render(request, "add-friend.html", {"user_id": user_id})
-
-
-@login_required
-def remove_friend(request, user_id):
-    if request.method == "POST":
-        friend = get_object_or_404(User, id=user_id)
-        user_profile = request.user.userprofile
         if friend in user_profile.friends.all():
             user_profile.friends.remove(friend)
             user_profile.save()
@@ -338,8 +365,7 @@ def remove_friend(request, user_id):
         return JsonResponse(
             {"status": "info", "message": "This user was not your friend."}
         )
-    return render(request, "remove-friend.html")
-    # return JsonResponse({"status": "error", "message": "Method not valid"}, status=400)
+    return JsonResponse({"status": "error", "message": "Method not valid"})
 
 
 @csrf_exempt
