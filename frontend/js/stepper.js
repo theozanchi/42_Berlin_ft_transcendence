@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, resetGame, updateGameState } from './game.js';
+import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -14,8 +14,10 @@ let game_id;
 
 // For game area
 export var gameStarted = false;
+export var gameOver = false;
 export var remote = false;
-export var playerId;
+export var round_number;
+export let currentPlayer;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -47,17 +49,18 @@ function openSocket() {
 		newsocket.onmessage = function(event) {
 			console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
-               
 				if (data.type === 'broadcast') {
 					console.log('Broadcast:', data);
 
-					if (data.content.message === 'Game over') {
+					if (data.content.message === 'tournament-over') {
 						console.log('Game Over. Winner is: ' + data.content.winner);
 						newsocket.close();
+						displayScore(data.content.winner);
 					}
 				}
 				if (data.type === 'create-game') {
 						game_id = data.game_id;
+						console.log('Game ID:', game_id);
 				}
                 if (data.type === 'start-game') {
 					if (startGameButton) {
@@ -65,23 +68,39 @@ function openSocket() {
 					}
 					if (data.mode === 'remote') {
 						remote = true;
-						playerId = data.player_id;
-					}
 
+						if (data.player_id === 'player1')
+							currentPlayer = player;
+						else if (data.player_id === 'player2')
+							currentPlayer = player2;
+						else
+							currentPlayer = 'spectator';
+					}
+				
                     gameStarted = true;
-                    console.log('Game started!');
-					loadLocalGame();
+					round_number = data.round_number;
+                    console.log('Game started! round number:', round_number);
+					init();
+					animate();
                 }
 				if (data.type === 'update') {
 					if (gameStarted === false)
 						return;
 					if (data.content.gameOver === true) {
-						console.log('Round Over. Winner is: ' + data.content.winner);
-						playerId = null;
+						console.log('Round Over. Winner is: ', data.content.winner);
+						currentPlayer = null;
 						//unloadLocalGame();
 						// Start next round
-						// IF SELF IS HOST...
-						createStartButton();
+						displayScore(data.content);
+
+						gameStarted = false;
+						//createStartButton();
+						if (gameStarted) {
+							console.log('Game already started!');
+							return;
+						}
+						console.log('SENDING Starting game...');
+						sendJson(JSON.stringify({ type: 'start-game' }));
 					}
 					else {
 						updateGameState(data);
@@ -112,7 +131,6 @@ function openSocket() {
 export async function sendJson(json) {
 	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-        // console.log(`Sending json to server: ${json}`);
         await newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
@@ -133,6 +151,7 @@ function createStartButton() {
 			console.log('Game already started!');
 			return;
 		}
+		console.log('SENDING Starting game...');
 		sendJson(JSON.stringify({ type: 'start-game' }));
 	});
 }
@@ -166,7 +185,7 @@ function generateLocalGame() {
 }
 
 function loadLocalGame() {
-	if (!gameStarted) {
+/* 	if (!gameStarted) {
 		console.error('Game not started yet!');
 		return;
 	}
@@ -183,29 +202,9 @@ function loadLocalGame() {
     // Create and append the canvas
     let canvas = document.createElement('canvas');
     canvas.id = 'bg';
-    gameArea.appendChild(canvas);
-	init();
-
-}
-
-function unloadLocalGame() {
-	console.log('Unloading game...');
-    // Get the game area element
-/*     const gameArea = document.getElementById('game-column');
-
-    // Remove the script
-    let script = gameArea.querySelector('script[src="./js/game.js"]');
-    if (script) {
-        gameArea.removeChild(script);
-    }
-
-    // Remove the canvas
-    let canvas = gameArea.querySelector('canvas#bg');
-    if (canvas) {
-        gameArea.removeChild(canvas);
-    } */
-	gameStarted = false;
-	resetGame();
+    gameArea.appendChild(canvas); */
+	//init();
+	return;
 }
 
 function joinRemoteGame() {

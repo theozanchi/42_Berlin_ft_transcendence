@@ -34,10 +34,16 @@ class Game(models.Model):
         super().save(*args, **kwargs)
 
     def add_players_to_game(self, data):
+        # ISSUE make sure alias is unique and send back the unique alias to the client
         players = data.get("players", [])
 
         for player in players:
-            Player.objects.create(game=self, alias=player.get('alias'), channel_name=player.get('channel_name'))
+            alias = player.get('alias')
+            # make unqiue alias for player if the alias already exists in this game
+            #if Player.objects.get(alias=alias, game=self):
+            #    alias = player.get('alias') + ''.join(random.choices(string.digits, k=3))
+            logging.debug('creating player: %s', alias)
+            Player.objects.create(game=self, alias=alias, channel_name=player.get('channel_name'))
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -51,17 +57,19 @@ class Game(models.Model):
 
         # Generate all possible matchups for league play
         for player1, player2 in combinations(players_list, 2):
-            Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number)
+            round = Round.objects.create(game=self, player1=player1, player2=player2, round_number=round_number, winner=None)
+            logging.debug('round created: %s', round)
+            round.save()
             round_number += 1
+        
 
     def determine_winner(self):
-    
         most_wins_player = None
         max_wins = 0
         
-        for player in self.players.all():  # Assuming players is related name for players in Game model
-            if player.won_rounds > max_wins:
-                max_wins = player.won_rounds
+        for player in self.players.all():
+            if player.won_rounds.count() > max_wins:
+                max_wins = player.won_rounds.count()
                 most_wins_player = player
         
         self.winner = most_wins_player
@@ -87,7 +95,7 @@ class Game(models.Model):
     
 
 class Player(models.Model):
-    ###### ISSUE:truncate name for player in case it's too long
+    ###### ISSUE:truncate name for player in case it's too long AND unique alias
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, null=True, blank=True)
@@ -103,12 +111,13 @@ class Player(models.Model):
     
 class Round(models.Model):
     game = models.ForeignKey(Game, related_name='rounds', on_delete=models.CASCADE)
-    round_number = models.PositiveIntegerField(null=True) 
+    round_number = models.PositiveIntegerField(null=True)
+    status = models.CharField(max_length=10, choices=[('pending', 'pending'), ('started', 'started'), ('completed', 'completed')], default='pending')
     player1 = models.ForeignKey('Player', related_name='player1_rounds', on_delete=models.CASCADE)
     player2 = models.ForeignKey('Player', related_name='player2_rounds', on_delete=models.CASCADE)
-    winner = models.ForeignKey('Player', related_name='won_rounds', null=True, on_delete=models.SET_NULL)
-    player1_score = models.IntegerField(default=-1, validators=[MinValueValidator(-1), MaxValueValidator(10)])
-    player2_score = models.IntegerField(default=-1, validators=[MinValueValidator(-1), MaxValueValidator(10)])
+    winner = models.ForeignKey('Player', related_name='won_rounds', default=None, null=True, on_delete=models.SET_NULL)
+    player1_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
+    player2_score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
 
     def clean(self):
         if self.player1 == self.player2:
@@ -119,5 +128,5 @@ class Round(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Round {self.round_number} - {self.player1} vs {self.player2}"
+        return f"Round {self.round_number} - status: {self.status} - {self.player1} vs {self.player2} - winner: {self.winner}"
 

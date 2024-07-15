@@ -1,10 +1,10 @@
 # views.py
 
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from channels.layers import get_channel_layer
 from django.core.cache import cache
@@ -13,6 +13,7 @@ from asgiref.sync import sync_to_async
 from django.views import View
 from threading import Lock
 
+import requests
 import json
 import time
 import math
@@ -23,79 +24,96 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 game_update_lock = Lock()
 last_update_time = time.time()
-WINNER_SCORE = 3
+WINNER_SCORE = 1
 
+GAME_MANAGER_REST_URL = 'http://game_manager:8000'
+
+@permission_classes([AllowAny])
 @api_view(['POST'])
 def game_update(request):
     try:
         global last_update_time
-        channel_layer = get_channel_layer()
 
         new_game_state = json.loads(request.body)
-        #print("ballisheld: ", new_game_state.get('ballIsHeld'))
         game_id = new_game_state.get('game_id')
 
-        #if not(new_game_state.get('ballIsHeld')) : print("ballisheld: ", new_game_state.get('ballIsHeld'))
-        #serializer = GameStateSerializer(data=new_game_state)
-        #if not serializer.is_valid():
-        #    return JsonResponse(serializer.errors, status=400)
- 
         if game_id is None:
-            return JsonResponse("Missing game-ID", status=400)
+            return JsonResponse({"error": "Missing game-ID"}, status=400)
  
         with game_update_lock:
             current_time = time.time()
             if current_time - last_update_time < (1 / 60):
-                return JsonResponse("Too many requests", status=429)
+                return JsonResponse({"error": "Too many requests"}, status=429)
+            
             cached_game_state = cache.get(game_id)
-
-            if cached_game_state is not None:
+            # Check if cached game is the same round as the new game state
+            if cached_game_state is not None and new_game_state.get('round_number') == cached_game_state.get('round_number'):
+                #logging.info(f'Using cached game state for game {game_id}, round number {new_game_state.get("round_number")}')
+                if cached_game_state.get('gameOver') == True:
+                    return JsonResponse({'error': 'Game over'}, safe=False, status=200)
                 game_state = cached_game_state
             else:
-                logging.info(f"Creating new game state for game ID: {game_id}")
-                game_state = create_new_game_state(game_id)
+                game_state = create_new_game_state(game_id, new_game_state.get('round_number'))
+                logging.info(f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}: {game_state}')
 
             if new_game_state:
                 game_state.update(new_game_state)
 
+            # Perform game logic
             update_game_state(game_state)
 
-            cache.set(game_id, game_state, timeout=None)
+            cache.set(game_id, game_state, timeout=30)
             
             game_state['type'] = 'update'
             
-            if game_state['playerScore'] >= WINNER_SCORE or game_state['aiScore'] >= WINNER_SCORE:
-                game_state = {'gameOver': True, 'winner': 'Player 1' if game_state['playerScore'] >= WINNER_SCORE else 'Player 2'}
-                cache.delete(game_id)
-
+            if game_state['player1Score'] >= WINNER_SCORE or game_state['player2Score'] >= WINNER_SCORE:
+                    game_state = handle_game_over(game_state, game_id, request.headers)
+                    
         return JsonResponse(game_state, safe=False, status=200)
     
     except Exception as e:
         logging.error(f'Error updating game state: {str(e)}')
         return JsonResponse("Error updating game state", status=500, safe=False)
     
+def handle_game_over(game_state, game_id, headers):
+    game_state = {'game_id': game_id,
+                'round_number': game_state['round_number'],
+                'player1Score': game_state['player1Score'],
+                'player2Score': game_state['player2Score'],
+                'winner': 'player1' if game_state['player1Score'] >= WINNER_SCORE else 'player2'}
+    response = requests.post(GAME_MANAGER_REST_URL + '/update-round-status/', json=game_state, headers=headers)
+    #response.raise_for_status()
+    
+    game_state.update({'gameOver': True})
+    game_state.update(response.json())
+    logging.info(f'Setting gamestate to game over: {game_state}')
+    cache.set(game_id, game_state, timeout=30)
+    return game_state
 
-def create_new_game_state(game_id):
+def create_new_game_state(game_id, round_number):
     return {
         'game_id': game_id,
+        'round_number': round_number,
+        'gameOver': False,
 
-        'aiming_angle': 0 , # Initialize aiming_angle
+        'aiming_angle': 0, # Initialize aiming_angle
         'aimingSpeed': 0.05,  # Example speed value, adjust as needed
         'maxaiming_angle': 1.57,  # Example max angle value (90 degrees in radians)
         'minaiming_angle': -1.57, 
-        'cube_size': 2,
+        'cube_size': 1.8,
         'ball_radius': 0.05,
         'resetting_ball': False,
         'last_update_time': time.time(),
         'update_interval': 1 / 60,
+        'direction': {'x': 0, 'y': 0, 'z': 0},
 
         'player1': {'x': 0, 'y': 0, 'z': 1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
         'player2': {'x': 0, 'y': 0, 'z': -1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
         'ball': {'x': 0, 'y': 0, 'z': 0},
         'ballSpeed': {'x': 0, 'y': 0, 'z': 0},
         'playerTurn': True,  # Initial value, assuming player 1 starts
-        'playerScore': 0,
-        'aiScore': 0,
+        'player1Score': 0,
+        'player2Score': 0,
         'ballIsHeld': True,  # Initial value, assuming ball is held initially
         'current_face': 0,  # Adding initial value for current face
         'current_face2': 1,
@@ -104,6 +122,7 @@ def create_new_game_state(game_id):
         'reset_ball': False,
         'is_processing': False
     }
+
 def update_game_state(game_state):
     current_time = time.time()
         # Handle ball movement and collision detection server-side
@@ -117,14 +136,11 @@ def update_game_state(game_state):
 
 def reset_ball(game_state):
 
-    print("Resetting ball")
-
     game_state['playerTurn'] = not game_state['playerTurn']
     game_state['reset_ball'] = False
     game_state['ballIsHeld'] = False
     # Calcular la dirección en base a la cara actual y el ángulo de puntería
-    direction = calculate_direction(game_state['playerTurn'], game_state['current_face'], game_state['current_face2'], game_state['aiming_angle'])
-
+    direction = game_state['direction']
     # Normalizar la dirección para asegurarse de que sea un vector unitario
     direction_length = vector_length(direction)
     if direction_length > 0:
@@ -203,7 +219,6 @@ def update_ball(game_state):
 
     # Check for collisions with players
     if check_collision(game_state):
-        print("Collision detected")
         pass
     else:
         game_state['ball'] = next_position  # Update ball position normally
@@ -213,30 +228,26 @@ def update_ball(game_state):
     if game_state['ball']['x'] <= -half_cube_size or game_state['ball']['x'] >= half_cube_size:
         game_state['ballSpeed']['x'] = -game_state['ballSpeed']['x']
         game_state['wall_hits'] += 1
-        logging.info(game_state['wall_hits'])
 
     if game_state['ball']['y'] <= -half_cube_size or game_state['ball']['y'] >= half_cube_size:
         game_state['ballSpeed']['y'] = -game_state['ballSpeed']['y']
         game_state['wall_hits'] += 1
-        logging.info(game_state['wall_hits'])
 
     if game_state['ball']['z'] <= -half_cube_size or game_state['ball']['z'] >= half_cube_size:
         game_state['ballSpeed']['z'] = -game_state['ballSpeed']['z']
         game_state['wall_hits'] += 1
-        logging.info(game_state['wall_hits'])
 
     #logging.info(game_state['wall_hits'])
     #game_state['ballIsHeld'] = False
     # Score handling
     if game_state['wall_hits'] >= 2:
         if not game_state['playerTurn']:
-            game_state['playerScore'] += 1
+            game_state['player1Score'] += 1
         else:
-            game_state['aiScore'] += 1
+            game_state['player2Score'] += 1
         game_state['wall_hits'] = 0
         #game_state['playerTurn'] = not game_state['playerTurn']
         game_state['ballIsHeld'] = True
-        print(f"Scoring update. PlayerScore: {game_state['playerScore']}, AIScore: {game_state['aiScore']}")
         update_ball(game_state)
         #reset_ball(game_state)
     # Update the collision marker position
@@ -271,7 +282,6 @@ def check_collision(game_state):
         
         # Place collision marker at the intersection point for debugging
         game_state['collision_marker_position'] = ball_position.copy()
-        logging.info(f'Collision Detected: {"Player" if game_state["playerTurn"] else "AI Player"}')
 
         # Get the paddle involved in the collision
         paddle = game_state['player1'] if game_state['playerTurn'] else game_state['player2']

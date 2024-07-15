@@ -4,7 +4,7 @@ import json
 import logging
 import asyncio
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
@@ -20,8 +20,24 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.player_id = None
         self.last_sent_state = None
         self.lock = asyncio.Lock()
-
+        self.csrftoken = self.extract_csrftoken()
+        if self.csrftoken is None:
+            return
         await self.accept()
+
+    def extract_csrftoken(self):
+        """
+        Extracts the csrftoken from the cookie header in the raw headers.
+        """
+        for key, value in self.scope['headers']:
+            if key.decode('utf-8') == 'cookie':
+                cookies = value.decode('utf-8').split('; ')
+                for cookie in cookies:
+                    if cookie.startswith('csrftoken='):
+                        token = cookie.split('=')[1]
+                        # ISSUE validate token with authentication server
+                        return token
+        return None  # Return None if csrftoken is not found or not validated
 
 #  TO DO : the whole routine of somebody leaving should only occur if tournament is not over, if not we just let clients disconnect 
     async def disconnect(self, close_code):
@@ -135,15 +151,17 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             response = requests.post(GAME_MANAGER_REST_URL + '/round/', json=content, headers=self.get_headers())
             response.raise_for_status()
 
-            if response.json().get('type') is 'game-over':
-                await self.send_json({'type': 'Game already over'})
-                return
-
+            round_info = None
+            for round_data in response.json():
+                if round_data.get('status') == 'pending':
+                    round_info = round_data
+                    break
+        
             # Send round info to all players
             await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
-            if response.json().get('message') is not 'Game over':
+            if round_info is not None:
                 # Send player id to pther players
-                await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
+                await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': round_info})
 
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
@@ -151,14 +169,10 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     
     async def get_player_id(self, content):
         data = content.get('content')
+        self.round_number = data.get('round_number')
         if self.mode == 'remote':
                 player1_channel = data.get('player1_channel_name')
                 player2_channel = data.get('player2_channel_name')
-
-                # Debugging output
-                print(f"self.channel_name: {self.channel_name}")
-                print(f"player1_channel: {player1_channel}")
-                print(f"player2_channel: {player2_channel}")
 
                 if player1_channel == self.channel_name:
                     self.player_id = 'player1'
@@ -168,7 +182,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     self.player_id = 'spectator'
         else:
             self.player_id = None
-        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias})
+        await self.send_json({'type': 'start-game', 'mode': self.mode, 'player_id': self.player_id, 'alias': self.alias, 'round_number': self.round_number})
 
     async def game_state(self, content):
         if content == self.last_sent_state:
@@ -195,9 +209,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             logging.error({'error': str(e)})
         
     async def update(self, content):
-        if content.get('gameOver') is True:
-            response = requests.put(GAME_MANAGER_REST_URL + '/update-round-status/', json=content, headers=self.get_headers())
-            content += response.json()
         async with self.lock:
             await self.send_json(content)
 
