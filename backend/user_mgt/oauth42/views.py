@@ -64,6 +64,11 @@ def delete_cookie(request):
         return response
 
 
+# email and password registration
+def register_view(request):
+    return render(request, "register.html")
+
+
 def upload_avatar(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     user_profile, created = UserProfile.objects.get_or_create(user=user)
@@ -109,7 +114,6 @@ def update_avatar(request, user_id):
         return {"avatar_status": "Method not allowed"}
 
 
-@csrf_exempt
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -146,7 +150,6 @@ def rankings(request):
 
 
 @login_required
-@csrf_exempt
 def update(request):
     user = request.user
     if request.method == "POST":

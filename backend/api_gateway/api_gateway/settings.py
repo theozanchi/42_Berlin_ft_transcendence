@@ -56,6 +56,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Set up CSRF trusted origins if needed (e.g., for CORS requests)
+CSRF_TRUSTED_ORIGINS = ['https://' + os.getenv('SERVER_NAME')]
+
 ROOT_URLCONF = 'api_gateway.urls'
 
 TEMPLATES = [

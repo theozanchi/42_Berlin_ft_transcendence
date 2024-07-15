@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export DJANGO_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(50))')
+
 python manage.py makemigrations
 python manage.py migrate
 
