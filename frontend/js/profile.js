@@ -75,16 +75,14 @@ const ProfileObserver = new MutationObserver(() => {
 	});
 });
 
+ProfileObserver.observe(document, { childList: true, subtree: true });
 
 const ProfileEditObserver = new MutationObserver(() => {
 	const userEditAvatar = document.getElementById('profileEditAvatar');
-	const userEditNickname = document.getElementById('profileEditNickname');
+	let	 userEditNickname = document.getElementById('profileEditNickname');
 	const userPassword = document.getElementById('userEditPassword');
 	const userPasswordConfirm = document.getElementById('userEditPasswordConfirm');
 	const userAccountDelete = document.getElementById('userEditProfileButton');
-
-
-	console.log('PROFILE')
 
 	fetch('/api/user_mgt/profile/2/')
 
@@ -108,17 +106,17 @@ const ProfileEditObserver = new MutationObserver(() => {
 		// fetch(`/api/user_mgt/profile/${response.user_id}`);
 	})
 	.then(data => {
-		ProfileObserver.disconnect();
-
+		ProfileEditObserver.disconnect();
+		console.log(data.nickname)
+		userEditNickname.value = data.nickname;
 		// Use the data here
 		// console.log("USER DATA");
 		// console.log(data);
 		// userAvatar.src = data.avatar;
-		userNickname.userEditNickname = data.nickname;
 	})
 	.catch(error => {
 		console.error('Error:', error);
 	});
 });
 
-ProfileObserver.observe(document, { childList: true, subtree: true });
+ProfileEditObserver.observe(document, { childList: true, subtree: true });
