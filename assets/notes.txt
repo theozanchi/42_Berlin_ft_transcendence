@@ -1,12 +1,3 @@
-
-curl -k -b cookies.txt -d 
-'{"host": "test"}' -H 
-"Content-Type: application/json" -H 
-"X-CSRFToken: $csrf_token" https://localhost:8443/api/create_lobby/
-
-14/06 issues:
-	Successful communication flow from client -> nginx -> api -> micro service <---|
-
 MICROSERVICE ARCHITECTURE
 
     API Gateway Service:
@@ -14,12 +5,6 @@ MICROSERVICE ARCHITECTURE
         Handles authentication, routing, and load balancing.
         Directs incoming requests to the appropriate services.        
         Manages real-time communication between clients and the game server.
-        Handles WebSocket connections for real-time updates.
-        Broadcasts game events and updates to connected clients.
-
-    Game Lobby Service:
-        Responsible for managing game lobbies and sessions.
-        Keeps track of players in each game lobby and their statuses.
   
     Game Management Service:
         Handles the creation of new games and generation of game IDs.
@@ -30,12 +15,13 @@ MICROSERVICE ARCHITECTURE
     Game Logic Service:
         Implements the game mechanics and logic.
         Updates the game state based on player actions.
+        Broadcasts game events and updates to connected clients.
         Determines game outcomes and scores.
         
-    Player/User Service:
+    User Management Service:
         Manages guest and user players.
         Handles authentication and authorization.
-        Stores player data such as guest_namees, avatars.
+        Stores user data such as usernames, avatars...
 
 
 Here's how the flow might look for a remote game setup:
@@ -46,13 +32,13 @@ Here's how the flow might look for a remote game setup:
     
     3. Other players join the game lobby using the provided game ID.
     
-    4. The Game Configuration Service coordinates with the Communication Service to establish connections between players.
+	4. Via WebSocket connections, the clients are notified when a new player joins.
     
     5. Once all players are connected, the host initiates the game.
     
-    6. The Game Configuration Service signals the Game Logic Service to start the game.
+    6. The Game Manager Service signals the Game Logic Service to start the game.
     
-    7. The Game Logic Service updates the game state and communicates with the Communication Service to send real-time updates to connected clients.
+    7. The Game Logic Service updates the game state and communicates with the API Service to send real-time updates to connected clients.
     
     8. Players interact with the game using their devices, and the Game Logic Service handles their inputs and updates the game accordingly.
 
@@ -64,13 +50,13 @@ When a client sends an HTTP request, it first reaches the Nginx server.
 2. Nginx routes the request: 
 Nginx examines the URL path of the request and determines which backend service should handle it based on the configuration in its nginx.conf file. For example, if the request URL matches a location block configured to proxy_pass to the game_manager service, Nginx forwards the request to that service.
 
-3. Gunicorn serves the Django application: 
+3. Gunicorn/Daphne serves the Django application: 
 Once Nginx has determined the appropriate backend service, it forwards the request to that service. In our case, since we're using Django applications, Nginx forwards the request to Gunicorn, which is serving the Django application within the game_manager or game_logic container.
 
 4. Gunicorn forwards the request to Django: 
 Gunicorn receives the request from Nginx and passes it to the Django application running within the container. The Django application then processes the request, executes the corresponding view function, interacts with the database if needed, and generates an HTTP response.
 
-5. Django sends the response back to Gunicorn: 
+5. Django sends the response back to Gunicorn/Daphne: 
 Once the Django application has generated the response, it sends it back to Gunicorn.
 
 6. Gunicorn sends the response back to Nginx: 
@@ -78,32 +64,3 @@ Gunicorn forwards the response back to Nginx.
 
 7. Nginx sends the response to the client: 
 Finally, Nginx forwards the response back to the client that originally made the request.
-
-
-
-ENDPOINT /api/create_lobby/ [POST]
-    $ curl -k -d '{"host": "test"}' -H "Content-Type: application/json" https://localhost:8443/api/create_lobby/
-    
-    - Returns lobby_id, Lobby is saved in the database.
-    - Accepts POST, expects (for now) host name: 'host': '[value]'
-    - *Issues: user management, then only users will be able to host.*
-
-ENDPOINT /api/join_lobby/ [POST]
-    $ curl -k -d '{"lobby_id": "12345", "guest_name": "myname"}' -H "Content-Type: application/json" https://localhost:8443/api/join_lobby/
-
-    - Returns message indicating success or error
-    - Accepts POST, expects (for now): 'lobby-id': '[value]', 'guest_name': '[value]' 
-    - *Issues: user management, then join either as guest_name or user.*
-
-ENDPOINT /api/start_game/ [POST]
-    $ curl -k -d '{"player-1": "me", "player-2": "you"}' -H "Content-Type: application/json" https://localhost:8443/api/start_game/
-
-    - Returns game_id, game_mode, players and rounds. Game is saved in the database.
-    - Accepts POST, expects players in Json: 'player-1': '[value]' etc.
-    - *Issues: remote games based on lobby_id, user management, communication with game_logic to actually play*
-
-
-
-
-WEBSOCKETS  
-The Lobby ID is used as the group_name for the channel layer. channel_name is used as WebSocket ID for each Player object. 

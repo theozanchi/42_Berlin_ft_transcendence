@@ -1,6 +1,8 @@
 FROM python:3.9-slim
 
 # Set environment variables
+ENV DJANGO_SETTINGS_MODULE=game_logic_service.settings
+ENV PYTHONPATH=/code:$PYTHONPATH
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -21,10 +23,9 @@ RUN pip install  -r requirements.txt
 # Copy Django project files
 COPY . /code/
 
-ENV DJANGO_SECRET_KEY python -c 'import secrets; print(secrets.token_urlsafe(50))'
+# Copy the entrypoint script
+COPY entrypoint.sh /code/entrypoint.sh
+RUN chmod +x /code/entrypoint.sh
 
-# Collect static files, makemigration migrate data model and run daphne
-CMD	python manage.py collectstatic --noinput && \
-	python manage.py makemigrations game_logic && \
-	python manage.py migrate game_logic && \
-	daphne -b 0.0.0.0 game_logic_service.asgi:application
+# Use the entrypoint script to start the application
+CMD ["/code/entrypoint.sh"]

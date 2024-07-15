@@ -11,153 +11,37 @@
 
   	</head>
 	<body>
-		<header>
-			<div class="d-flex justify-content-center fixed-top header-logo">
-				<img src="/assets/logo_ppg.png" alt="Logo"></img>
+
+		<header class="d-flex fixed-top">
+
+			<nav>
+				<a href="/">Home</a>
+				<a href="/setup-local">Setup</a>
+				<a href="/setup-remote">Lobby</a>
+				<a href="/game">Game</a>
+				<a href="/profile">Profile</a>
+				<a href="/login">Login</a>
+				<a href="/signup">Sign up</a>
+				<a href="/game-table">Game table</a>
+				<a href="/fill">Layout test</a>
+			</nav>
+
+			<div class="d-flex justify-content-center">
+				<img src="/assets/logo_ppg.png" class="header-logo" alt="Logo"></img>
 			</div>
 		</header>
-		<div  class="container-fluid">
-			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col col-lg-3 ppg-blue-light">
-					<div class="spacer-48"></div>
-					<div class="d-flex row align-self-start">
-						<stepper-component></stepper-component>
-						<div id="00-welcome" class="step" >
-							<h1>WELCOME</h1>
-							<p>to our ponger puff girl. There are a lot of things to do in this app.
-							Do you want to play locally or remotely with friends?</p>
 
-							<p>We have you assigned the following Character. You can change its name or login with your 42 Credentials:</p>
-							<!-- <div class="d-flex align-items-stretch gap-2 d-md-block"> -->
-								<player-component name="Blossom" avatar="assets/avatar_blossom.png" input remove-button></player-component>
-								<button id="login42Button" class="btn btn-outline-secondary">Login</button>
-							<!-- </div> -->
 
-							<h2>Play Pong</h2>
-							<div class="d-flex align-items-stretch gap-2 d-md-block">
-								<button id="localGameButton" class="btn btn-primary btn-lg">Local Game</button>
-								<button id="remoteGameButton" class="btn btn-secondary btn-lg">Remote Game</button>
-							</div>
-						</div>
-						
-						<div id="10-local" class="step hidden">
-							<stepper-titlebar title="Local Game"></stepper-titlebar>
-							<player-list mode ="local"></player-list>
-							<button id="generateLocalGameButton" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-						</div>
-						
-						<div id="20-remote-switch" class="step hidden">
-							<stepper-titlebar title="Remote Game"></stepper-titlebar>
-							<p></p>
-							<p>Fantastic! Nothing better than playing with friends via the internet.</p>
-							<h3>Join Game</h3>
-							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
+		<div id="content"></div>
 
-							<form class="input-group mb-3 needs-validation" novalidate>
-								<div class="form-floating">
-									<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" required>
-									<label for="searchGameID">Game-ID</label>
-									<!-- VALIDATION TBD -->
-									<!-- <div class="valid-feedback">
-									  Looks good!
-									</div>
-									<div class="invalid-feedback">
-										Please provide a valid city.
-									</div> -->
-								</div>
-								<button class="btn btn-primary" type="submit" id="joinRemoteGameButton">Join</button>
-							</form>
-
-							<h3>Host Game</h3>
-							<p>Do your prefer to host your own game to share it with friends?</p>
-							<button id="hostRemoteGameButton" class="btn btn-primary d-grid generate-game-button">Host Remote Game</button>
-							
-						</div>
-						
-						<div id="21-remote-join" class="step hidden">
-							<stepper-titlebar title="Remote Game ID"></stepper-titlebar>
-							<div class="input-group mb-3">
-								<span class="input-group-text" id="basic-addon1">Game ID</span>
-								<input type="search" name="game_id" class="form-control" value="FGZ6" readonly>
-								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton"><span class="bi bi-clipboard"></span></button>
-							</div>
-								<div class="input-group mb-3">
-									<div class="form-floating">
-											<input type="search" class="form-control" value="FGZ6" id="SearchGameID" readonly></textarea>
-										<label for="SearchGameID">Game ID</label>
-									</div>
-								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton"><span class="bi bi-clipboard"></span>&nbsp;&nbsp;Copy</button>
-							</div>
-							<player-list mode="join"></player-list>
-						</div>
-						
-						<div id="22-remote-host" class="step hidden">
-							<stepper-titlebar title="Host Remote Game"></stepper-titlebar>
-							<div class="input-group mb-3">
-								<span class="input-group-text" id="basic-addon1">Game ID</span>
-								<input type="search" name="game_id" class="form-control" value="FGZ6" readonly>
-								<button class="btn btn-primary" type="button" id="shareRemoteGameIDButton">Copy</button>
-							</div>
-							<player-list mode ="host"></player-list>
-							<button id="startRemoteGameButton"  class="btn btn-primary btn-lg d-grid generate-game-button">Start Game</button>
-						</div>
-						
-						<div id="30-game-mode" class="step hidden">
-							<stepper-titlebar title="Game running"></stepper-titlebar>
-							<h2>Game Instructions</h2>
-							<p>To play the 3D Ponger Puff Pong, use the following keys</p>
-							<ul>
-								<li><b>IJKL</b><br>
-									Move the rackets position on active plane up, left, down or right.
-								</li>
-								<li><b>WASD</b><br>
-									Rotate the cube to switch the active plane.</li>
-								<li><b>SPACE</b><br>
-									Serve the ball if static and start the game</li>
-							</ul>
-							<button id="exitGameButton"  class="btn btn-secondary btn-lg d-grid">Exit Game</button>
-						</div>					
-					</div>
-				</div>
-				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
-					<!-- <div class="spacer-48"></div> -->
-					<!-- <h2>GAMING AREA</h2> -->
-					<!-- <pong-game></pong-game> -->
-
-					
-					<!-- <div>
-						<canvas id="bg"></canvas>
-						<script type="module" src="./js/pong/main.js"></script>
-					</div> -->
-				</div>
-				<div class="col col-lg-3 ppg-green-light" id="meta-column">
-					<div class="spacer-48"></div>
-					<h2>WebSocket Client</h2>
-					<!-- <div id="ws-local" class="step">
-						<stepper-titlebar title="Local Game"></stepper-titlebar>
-						<player-list mode ="local"></player-list>
-						<button id="generateLocalGameButtonWS" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-					</div>
-					<div>
-						<button onclick="connectWebSocket()">Connect</button>
-						<button onclick="disconnectWebSocket()">Disconnect</button>
-					</div>
-					<div>
-						<textarea id="messages" rows="10" cols="30" readonly></textarea>
-					</div>
-					<div>
-						<input type="text" id="messageInput" placeholder="Enter message"/>
-						<button onclick="sendMessage()">Send</button>
-					</div> -->
-				</div>
-			</div>
-		</div>
 	</body>
     <!-- custom JS -->
+	<script src="js/url-router.js"></script>
 	<script src="js/websocket_connect.js"></script>
-	<script src="js/stepper.js"></script>
+	<script type="module" src="js/stepper.js"></script>
 	<script src="js/stepper_titlebar.js"></script>
 	<script src="js/player_list.js"></script>
 	<script src="js/player.js"></script>
-	<script src="js/static_game.js"></script>
+	<script src="js/utility.js"></script>
+	
 </html>

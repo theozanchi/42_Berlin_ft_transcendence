@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'game_logic',
     'channels',
+    'redis',
 ]
 
 MIDDLEWARE = [
@@ -61,6 +62,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Set up CSRF trusted origins if needed (e.g., for CORS requests)
+CSRF_TRUSTED_ORIGINS = ['https://' + os.getenv('SERVER_NAME')]
 
 ROOT_URLCONF = 'game_logic_service.urls'
 
@@ -83,12 +87,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'game_logic.wsgi.application'
 ASGI_APPLICATION = 'game_logic_service.asgi.application'
 
-
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            #"hosts": [('redis://:{REDIS_PASSWORD}@localhost:6379/0')],
+            "hosts": [("redis", 6379)],
+        },
     },
 }
+
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 

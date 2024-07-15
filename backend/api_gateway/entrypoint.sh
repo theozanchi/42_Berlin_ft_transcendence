@@ -1,8 +1,14 @@
 #!/bin/sh
 
+export DJANGO_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(50))')
+
 python manage.py makemigrations api
 python manage.py migrate
 django-admin createsuperuser --noinput
+
+# Install Redis CLI
+apt-get update && apt-get install -y redis-tools
+
 
 # Start the Daphne server
 echo "Starting Daphne"

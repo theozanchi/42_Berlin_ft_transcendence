@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>{% block title %}Transcendence{% endblock %}</title>
-
+	<meta name="csrf-token" content="{{ csrf_token }}">
 </head>
 <body>
 	{% if messages %}
