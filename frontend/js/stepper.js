@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+// import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -13,11 +13,11 @@ let messagePromise;
 let game_id;
 
 // For game area
-export var gameStarted = false;
-export var gameOver = false;
-export var remote = false;
-export var round_number;
-export let currentPlayer;
+// export var gameStarted = false;
+// export var gameOver = false;
+// export var remote = false;
+// export var round_number;
+// export let currentPlayer;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -128,7 +128,8 @@ function openSocket() {
 	return (openPromise);
 }
 
-export async function sendJson(json) {
+// export async function sendJson(json) {
+	async function sendJson(json) {
 	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         await newsocket.send(json);
