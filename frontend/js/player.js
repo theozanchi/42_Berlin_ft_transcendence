@@ -16,13 +16,14 @@ class MyPlayer extends HTMLElement {
 	render() {
 		const hasInput = this.hasAttribute('input');
 		const hasRemoveButton = this.hasAttribute('remove-button');
+		const hasAvatar = this.hasAttribute('avatar');
 		const rightToLeft = this.hasAttribute('order-right');
 		const tableColumn = this.getAttribute('table-column');
 		const baseUrl = document.location.href;
-		let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 		const name = this.getAttribute('name');
+		let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 	
-		if (this.hasAttribute('avatar'))
+		if (hasAvatar)
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 	
 		const nameAligned = (tableColumn === "right")
