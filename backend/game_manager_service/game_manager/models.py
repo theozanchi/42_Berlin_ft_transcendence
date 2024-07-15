@@ -95,7 +95,8 @@ class Player(models.Model):
     
 class Round(models.Model):
     game = models.ForeignKey(Game, related_name='rounds', on_delete=models.CASCADE)
-    round_number = models.PositiveIntegerField(null=True) 
+    round_number = models.PositiveIntegerField(null=True)
+    status = models.CharField(max_length=10, choices=[('pending', 'pending'), ('started', 'started') ('completed', 'completed')], default='pending')
     player1 = models.ForeignKey('Player', related_name='player1_rounds', on_delete=models.CASCADE)
     player2 = models.ForeignKey('Player', related_name='player2_rounds', on_delete=models.CASCADE)
     winner = models.ForeignKey('Player', related_name='won_rounds', default=None, null=True, on_delete=models.SET_NULL)

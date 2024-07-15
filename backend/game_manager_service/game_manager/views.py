@@ -78,6 +78,7 @@ def update_round_status(request):
         round_played.player2_score = request.data.get('player2Score')
         winner = request.data.get('winner')
         round_played.winner = round_played.player1 if winner == 'player1' else round_played.player2
+        round_played.status = 'completed'
         round_played.save()
 
         logging.debug('round updated: %s', round_played)
@@ -111,12 +112,13 @@ def round(request):
             game.create_rounds()
             game.save()
         
-        round_to_play = Round.objects.filter(game=game, winner__isnull=True).order_by('round_number').first()
+        round_to_play = Round.objects.filter(game=game, status='pending').order_by('round_number').first()
         
         if round_to_play:
+            round_to_play.status = 'started'
             serializer = RoundSerializer(round_to_play)
             logging.debug('round_to_play being sent back: %s', serializer.data)
-            return JsonResponse(serializer.data, status=200)      
+            return JsonResponse(serializer.data, status=200)
         else:
             if game.winner:
                 return JsonResponse({'message': 'tournament-over', 'winner': game.winner.alias}, status=200)
