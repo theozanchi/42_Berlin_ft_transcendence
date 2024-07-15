@@ -14,7 +14,8 @@ from .views import (
     online_users_view,
     regular_login,
     add_friend_view,
-    remove_friend_view
+    remove_friend_view,
+    who_am_i,
 )
 from .oauth import oauth_callback, oauth_login
 
@@ -36,4 +37,5 @@ urlpatterns = [
     ),
     path("api/user_mgt/remove_friend_view/<int:user_id>", remove_friend_view, name="remove_friend_view"),
     path("api/user_mgt/online_users/", online_users_view, name="online_users"),
+    path("api/user_mgt/me", who_am_i, name="me"),
 ]

@@ -43,7 +43,7 @@ def oauth_callback(request):
         return error_response("User information incomplete.")
     login_user(request, user)
 
-    return success_response("Login successful.")
+    return success_response(user.id)
 
 
 def validate_state(request):
@@ -132,9 +132,9 @@ def error_response(message, status=400):
     return JsonResponse(data, status=status)
 
 
-def success_response(message):
+def success_response(user_id):
     return JsonResponse(
-        {"success": "Login with 42 oauth Login was successful"}, status=200
+        {"success": "Login with 42 oauth Login was successful", "user_id": user_id}, status=200
     )
 
 

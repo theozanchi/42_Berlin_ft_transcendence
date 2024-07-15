@@ -250,6 +250,12 @@ def profile(request, user_id):
 
     return JsonResponse(player_data)
 
+def who_am_i(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "User is not logged in."});
+    if request.user.is_authenticated:
+        return JsonResponse({"status": "success", "message":"User is logged in.", "user_id": request.user.id});
+    return JsonResponse({"status": "error", "message": "View can't handle this. This error should not happen."})
 
 @csrf_exempt
 def regular_login(request):
@@ -260,7 +266,7 @@ def regular_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({"success": "Login successful"})
+            return JsonResponse({"success": "Login successful", "user_id": user.id})
         else:
             return JsonResponse({"error": "Invalid username or password."})
 
