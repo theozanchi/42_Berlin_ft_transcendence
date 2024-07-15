@@ -16,6 +16,7 @@ if [ ! -f .env ]; then
 	echo "DJANGO_SUPERUSER_USERNAME=admin" >> .env
 	echo "DJANGO_SUPERUSER_EMAIL=admin@pongerpuffgirl.fun" >> .env
 	echo "DJANGO_SUPERUSER_PASSWORD=admin" >> .env
+	echo "DJANGO_SECRET_KEY=secret" >> .env
 	echo "Done"
 else
 	echo "Using local .env file"
