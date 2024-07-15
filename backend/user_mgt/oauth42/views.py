@@ -148,7 +148,6 @@ def delete_cookie(request):
 
 
 # email and password registration
-@csrf_exempt
 def register_view(request):
     return render(request, "register.html")
 
@@ -199,7 +198,6 @@ def update_avatar(request, user_id):
 
 
 
-@csrf_exempt
 def register(request):
     if request.method == 'POST':
         username = request.POST.get('username');
@@ -253,7 +251,6 @@ def password(request):
     return render(request, "password.html", {"password_form": password_form})
 
 @login_required
-@csrf_exempt
 def update(request):
     user = request.user;
     if request.method == 'POST':

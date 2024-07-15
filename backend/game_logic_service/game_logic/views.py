@@ -25,7 +25,6 @@ game_update_lock = Lock()
 last_update_time = time.time()
 WINNER_SCORE = 3
 
-@csrf_exempt
 @api_view(['POST'])
 def game_update(request):
     try:
