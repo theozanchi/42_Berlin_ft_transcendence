@@ -1,0 +1,11 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+<h2> Ranking </h2>
+
+{% for ranking in rankings %}
+<p>Rank: {{ ranking.1 }} <a href="{% url 'profile' ranking.0 %}"> {{ ranking.0 }}</a></p>
+{% endfor%}
+
+{% endblock %}

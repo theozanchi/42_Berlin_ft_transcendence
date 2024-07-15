@@ -9,7 +9,8 @@ import random
 from .exceptions import InsufficientPlayersError
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def generate_game_id():
     while True:
@@ -76,6 +77,21 @@ class Game(models.Model):
 
     def __str__(self):
         return self.pk
+
+    def update_scores_abandon(self, channel_name):
+        rounds = self.rounds.all()
+        for round in rounds:
+            if round.player1.channel_name == channel_name:
+                logging.debug('Player1 abandoned round %s, set score', round.round_number)
+                round.player1_score = 0
+                round.player2_score = 0
+                round.winner = round.player2
+            elif round.player2.channel_name == channel_name:
+                logging.debug('Player2 abandoned round %s, set score', round.round_number)
+                round.player1_score = 0
+                round.player2_score = 0
+                round.winner = round.player1
+            round.save()
     
 
 class Player(models.Model):

@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python dependencies
 COPY requirements.txt /code/
-RUN pip install -r requirements.txt
+RUN pip install  -r requirements.txt
+
 
 # Copy Django project files
 COPY . /code/

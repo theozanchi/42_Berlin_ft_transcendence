@@ -1,14 +1,14 @@
 # Certificates
-DIR				=	/tmp/certs/live/localhost
-DAYS			=	365
-KEY_NAME		=	privkey.pem
-CERT_NAME		=	fullchain.pem
-SUBJ			=	/C=DE/ST=Berlin/L=Berlin/O=42_Berlin/OU=Student/CN=$(USER)/emailAddress=$(MAIL)
+DIR				:=	/tmp/certs/live/localhost
+DAYS			:=	365
+KEY_NAME		:=	privkey.pem
+CERT_NAME		:=	fullchain.pem
+SUBJ			:=	/C=DE/ST=Berlin/L=Berlin/O=42_Berlin/OU=Student/CN=$(USER)/emailAddress=$(MAIL)
 
 # Colours
-BLUE_UNDERLINE	=	\033[4;34m
-RESET			=	\033[0m
-PONG			=	🏓
+BLUE_UNDERLINE	:=	\033[4;34m
+RESET			:=	\033[0m
+PONG			:=	🏓
 
 # Targets
 
@@ -29,7 +29,7 @@ dir:
 				@mkdir -p $(DIR)
 
 del_certs:
-				@rm $(DIR) -r
+				@rm $(DIR) -r -f
 
 env:
 				@chmod +x ./scripts/env.sh
@@ -50,4 +50,10 @@ prune:
 auth:
 				@docker-compose up --build -d nginx authentication
 
-.PHONY:			certs dir del_certs env up down restart prune auth
+rebuild:
+				docker compose down
+				docker compose build --no-cache
+				docker compose up -d
+
+
+.PHONY:			all certs dir del_certs env up down restart prune auth rebuild

@@ -25,4 +25,5 @@ urlpatterns = [
     path('update-round-status/', views.update_round_status),
     path('round/', views.round),
     path('game-status/', views.get_game),
+    path('player-left/', views.update_players),
 ]
