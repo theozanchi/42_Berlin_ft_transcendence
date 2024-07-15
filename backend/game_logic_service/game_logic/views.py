@@ -100,11 +100,12 @@ def create_new_game_state(game_id, round_number):
         'aimingSpeed': 0.05,  # Example speed value, adjust as needed
         'maxaiming_angle': 1.57,  # Example max angle value (90 degrees in radians)
         'minaiming_angle': -1.57, 
-        'cube_size': 2,
+        'cube_size': 1.8,
         'ball_radius': 0.05,
         'resetting_ball': False,
         'last_update_time': time.time(),
         'update_interval': 1 / 60,
+        'direction': {'x': 0, 'y': 0, 'z': 0},
 
         'player1': {'x': 0, 'y': 0, 'z': 1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
         'player2': {'x': 0, 'y': 0, 'z': -1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
@@ -139,8 +140,7 @@ def reset_ball(game_state):
     game_state['reset_ball'] = False
     game_state['ballIsHeld'] = False
     # Calcular la dirección en base a la cara actual y el ángulo de puntería
-    direction = calculate_direction(game_state['playerTurn'], game_state['current_face'], game_state['current_face2'], game_state['aiming_angle'])
-
+    direction = game_state['direction']
     # Normalizar la dirección para asegurarse de que sea un vector unitario
     direction_length = vector_length(direction)
     if direction_length > 0:
