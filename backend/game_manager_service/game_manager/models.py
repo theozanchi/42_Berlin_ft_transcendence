@@ -82,7 +82,7 @@ class Player(models.Model):
     ###### ISSUE:truncate name for player in case it's too long AND unique alias
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
-    alias = models.CharField(max_length=25, null=True, blank=True)#, unique=True)
+    alias = models.CharField(max_length=25, null=True, blank=True)
     channel_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
@@ -112,5 +112,5 @@ class Round(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Round {self.round_number} - {self.player1} vs {self.player2} - winner: {self.winner}"
+        return f"Round {self.round_number} - status: {self.status} - {self.player1} vs {self.player2} - winner: {self.winner}"
 

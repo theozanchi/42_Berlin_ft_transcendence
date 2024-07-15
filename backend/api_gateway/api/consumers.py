@@ -147,11 +147,17 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             response = requests.post(GAME_MANAGER_REST_URL + '/round/', json=content, headers=self.get_headers())
             response.raise_for_status()
 
+            round_info = None
+            for round_data in response.json():
+                if round_data.get('status') == 'pending':
+                    round_info = round_data
+                    break
+        
             # Send round info to all players
             await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
-            if response.json().get('message') != 'tournament-over':
+            if round_info is not None:
                 # Send player id to pther players
-                await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': response.json()})
+                await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': round_info})
 
         except requests.RequestException as e:
             await self.send_json({'error': str(e)})
