@@ -8,6 +8,14 @@ import string
 import random
 from .exceptions import InsufficientPlayersError
 import logging
+from django.contrib.auth.models import User, AbstractBaseUser
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Sum, Window, F
+from django.db.models.functions import DenseRank, Coalesce, Concat
+import pprint
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.http import JsonResponse
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -18,12 +26,61 @@ def generate_game_id():
         if not Game.objects.filter(game_id=game_id).exists():
             return game_id
 
+class UserManager(models.Manager):
+
+    def get_user_rankings(self):
+        return (
+            self.annotate(
+                total_score=Coalesce(Sum("participation__score"), 0),
+                rank=Window(expression=DenseRank(), order_by=F("total_score").desc()),
+                avatar=F("player__avatar")
+            )
+            .order_by("-total_score")
+            .values_list("id", "username", "total_score", "rank", "avatar")
+        )
+
+    def get_user_ranking(self, user_id):
+        rankings = list(self.get_user_rankings())
+        for user in rankings:
+            if user[0] == user_id:
+                return {
+                    "user_id": user[0],
+                    "username": user[1],
+                    "total_score": user[2],
+                    "rank": user[3],
+                    "avatar": user[4],
+                }
+        return {"error": "User not found"}
+
+    def get_by_natural_key(self, username):
+        return self.get(username=username)
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Player.objects.get_or_create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, "player"):
+        instance.userprofile.save()
+
 # Create your models here.
 class Game(models.Model):
-    game_id = models.CharField(primary_key=True, default=generate_game_id, editable=False, unique=True, max_length=8)   
+    game_id = models.CharField(primary_key=True, default=generate_game_id, editable=False, unique=True, max_length=8)
     mode = models.CharField(max_length=6, choices=[('local', 'local'), ('remote', 'Remote')], blank=False, null=False)
     winner = models.ForeignKey('Player', related_name='won_games', null=True, on_delete=models.SET_NULL)
     host = models.CharField(max_length=255, null=True, blank=True)
+
+    ### added from tournament
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField()
+    participants = models.ManyToManyField(
+        User, through="Participation", related_name="game_part"
+    )
+    ### end ####
 
     def clean(self):
         if not self.mode:
@@ -51,7 +108,7 @@ class Game(models.Model):
 
         if self.players.count() < 2:
             raise InsufficientPlayersError()
-        
+
         round_number = 1
         players_list = list(self.players.all())
 
@@ -61,17 +118,17 @@ class Game(models.Model):
             logging.debug('round created: %s', round)
             round.save()
             round_number += 1
-        
+
 
     def determine_winner(self):
         most_wins_player = None
         max_wins = 0
-        
+
         for player in self.players.all():
             if player.won_rounds.count() > max_wins:
                 max_wins = player.won_rounds.count()
                 most_wins_player = player
-        
+
         self.winner = most_wins_player
         self.save()
 
@@ -92,10 +149,22 @@ class Game(models.Model):
                 round.player2_score = 0
                 round.winner = round.player1
             round.save()
-    
+
 
 class Player(models.Model):
     ###### ISSUE:truncate name for player in case it's too long AND unique alias
+
+    ### added from UserProfile ###
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    id42 = models.IntegerField(null=True)
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
+    oauth_id = models.CharField(max_length=200, null=True, blank=True)
+    picture_url = models.URLField(max_length=200, null=True, blank=True)
+    last_login = models.DateTimeField(auto_now=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    access_token = models.CharField(max_length=200, null=True, blank=True)
+    friends = models.ManyToManyField(User, related_name="userprofiles")
+    ### end add ###
 
     game = models.ForeignKey(Game, related_name='players', on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, null=True, blank=True)
@@ -108,7 +177,41 @@ class Player(models.Model):
         if not self.alias:
             raise ValueError("Player must have an alias.")
         super().save(*args, **kwargs)
-    
+
+    ### added from UserProfile ###
+    def delete(self, *args, **kwargs):
+        self.avatar.delete(save=False)
+        super(Player, self).delete(*args, **kwargs)
+
+
+User.add_to_class("rankings", UserManager())
+
+class Tournament(models.Model):
+
+    # This could be the ID for the tournament provided
+#    game_id = models.AutoField(primary_key=True)
+    # If this is created at the beginning, the start_date is now
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField()
+    # local = true, remote = false
+#    mode = models.BooleanField()
+    # All the participants in the tournament
+    participants = models.ManyToManyField(
+        User, through="Participation", related_name="tournament_part"
+    )
+    # Only one winner
+    winner = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="won_games"
+    )
+
+class Participation(models.Model):  # Binds User and Tournament classes
+
+    user = models.ForeignKey(User, related_name="part_user", on_delete=models.CASCADE)
+    tournament = models.ForeignKey(Tournament, related_name="part_game", on_delete=models.CASCADE)
+    score = models.IntegerField()
+    rank = models.IntegerField()
+###
+
 class Round(models.Model):
     game = models.ForeignKey(Game, related_name='rounds', on_delete=models.CASCADE)
     round_number = models.PositiveIntegerField(null=True)
@@ -129,4 +232,3 @@ class Round(models.Model):
 
     def __str__(self):
         return f"Round {self.round_number} - status: {self.status} - {self.player1} vs {self.player2} - winner: {self.winner}"
-

@@ -74,19 +74,19 @@ User.add_to_class("rankings", UserManager())
 class Tournament(models.Model):
 
     # This could be the ID for the tournament provided
-    game_id = models.AutoField(primary_key=True)
+#    game_id = models.AutoField(primary_key=True)
     # If this is created at the beginning, the start_date is now
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField()
     # local = true, remote = false
-    mode_is_local = models.BooleanField()
+#    mode = models.BooleanField()
     # All the participants in the tournament
     participants = models.ManyToManyField(
         User, through="Participation", related_name="tournaments"
     )
     # Only one winner
     winner = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="winner"
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="won_games"
     )
 
 
