@@ -16,7 +16,7 @@ class UserManager(models.Manager):
             self.annotate(
                 total_score=Coalesce(Sum("participation__score"), 0),
                 rank=Window(expression=DenseRank(), order_by=F("total_score").desc()),
-                avatar=F("userprofile__avatar")
+                avatar=F("userprofile__avatar"),
             )
             .order_by("-total_score")
             .values_list("id", "username", "total_score", "rank", "avatar")
