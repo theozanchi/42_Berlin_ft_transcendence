@@ -8,6 +8,8 @@ import string
 import random
 from .exceptions import InsufficientPlayersError
 import logging
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -38,9 +40,9 @@ class Game(models.Model):
         null=False,
     )
     start_date = models.DateTimeField(auto_now_add=True)
-    end_date = models.DateTimeField()
-    mode_is_local = models.BooleanField()
-    
+    end_date = models.DateTimeField(null=True, blank=True)
+    mode_is_local = models.BooleanField(null=True, blank=True)
+
     winner = models.ForeignKey(
         "Player", related_name="won_games", null=True, on_delete=models.SET_NULL
     )
@@ -60,6 +62,7 @@ class Game(models.Model):
 
         for player in players:
             alias = player.get("alias")
+
             # make unqiue alias for player if the alias already exists in this game
             # if Player.objects.get(alias=alias, game=self):
             #    alias = player.get('alias') + ''.join(random.choices(string.digits, k=3))
@@ -148,11 +151,27 @@ class Player(models.Model):
     def save(self, *args, **kwargs):
         if not self.alias:
             raise ValueError("Player must have an alias.")
+        if not hasattr(self, 'user') or self.user is None:
+            # Check if a User with the desired username already exists
+            username = self.alias
+            unique_username_found = False
+            counter = 1
+            while not unique_username_found:
+                if not User.objects.filter(username=username).exists():
+                    unique_username_found = True
+                else:
+                    # If the username exists, append a number to make it unique
+                    username = f"{self.alias}{counter}"
+                    counter += 1
+            # Create the User with the unique username
+            user, created = User.objects.get_or_create(username=username)
+            self.user = user
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         self.avatar.delete(save=False)
         super(Player, self).delete(*args, **kwargs)
+
 
 
 class Round(models.Model):
