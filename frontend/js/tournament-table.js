@@ -183,10 +183,10 @@ function setGameData(data) {
 		for(let mutation of mutationsList) {
 			// If the addedNodes property has one or more nodes
 			if(mutation.addedNodes.length) {
-				const gameTable = document.querySelector('game-table-component');
+				const gameTable = document.querySelector('tournament-table-component');
 				if (gameTable) {
 					gameTable.setAttribute('data', data);
-					// Once we have found the game-table-component and set its data attribute,
+					// Once we have found the tournament-table-component and set its data attribute,
 					// we don't need to observe the DOM anymore
 					observer.disconnect();
 				}
@@ -260,4 +260,4 @@ class GameTable extends HTMLElement {
 	}
 }
 
-customElements.define('game-table-component', GameTable);
+customElements.define('tournament-table-component', GameTable);

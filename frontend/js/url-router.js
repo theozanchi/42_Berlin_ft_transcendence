@@ -93,20 +93,40 @@ const urlRoute = (eventOrUrl) => {
 }
 
 const urlLocationHandler = async () => {
-	let location = window.location.pathname;
-	if (location.length == 0) {
-		location = "/"
-	}
-	// console.log(`MY LOCATION: ${location}`);
+    let location = window.location.pathname;
+    if (location.length == 0) {
+        location = "/"
+    }
+	let urlQuery = '';
 
-	// console.log(`MY LOCATION`);
+    // Fetch user status
+	const userStatus = await fetch('/api/user_mgt/me')
+		.then(response => response.json())
+		.catch(() => ({ status: "error" }));
 
-	const route = urlRoutes[location] || urlRoutes[404]
+    if (userStatus.status === "success") {
+        // User is logged in
+        if (location === "/login" || location === "/signup") {
+            location = "/";
+        } else if (location === "/profile") {
+            // location = `/profile?user=${userStatus.user_id}`;
+            location = `/profile`;
+			userId = `?user=${userStatus.user_id}`;
+        }
+    } else {
+        // User is not logged in
+        if (location === "/profile") {
+            location = "/";
+        } else if (location === "/setup-remote") {
+            location = "/login";
+        } else if (location === "/join-remote") {
+            location = "/setup-remote";
+        }
+    }
 
-	// console.log(`MY ROUTE: ${route.template}`);
-
-	let imageUrl = new URL(route, baseUrl);
-	// console.log(imageUrl);
+	let route = urlRoutes[location] || urlRoutes[404]
+	// route += urlQuery;
+	// console.log(route);
 
 	const html = await fetch(route.template).then((response) => 
 		response.text());
@@ -116,36 +136,26 @@ const urlLocationHandler = async () => {
 	let doc = parser.parseFromString(html, "text/html");
 	let title = doc.querySelector('title').innerText;
 
-	// let fetchedSettingsColumnContent 
-	
-	// if (location === '/game') {
-		// console.log("TRYING TO LAUNCH A GAME");
-		let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
-		//OVERWRITE COLUMN
-		if (fetchedGameColumnContent)
-			document.getElementById("game-column").innerHTML = fetchedGameColumnContent;	
-	// }
-	// else {
-		let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
-		//OVERWRITE COLUMN
-		if (fetchedSettingsColumnContent)
-			document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;	
-
-	if (location === "/join-remote" || location === "host-remote")
-		console.log("FUCK");
-		// setGameID();
-	// }
-
-	
 	//WRITE NEW TITLE TO BROWSER TAB
-	document.title = title;
+	document.title = title;	
 
+	let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+	if (fetchedGameColumnContent)
+		document.getElementById("game-column").innerHTML = fetchedGameColumnContent;	
 
+	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+	if (fetchedSettingsColumnContent)
+		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;	
 
-	//OVERWRITE CONTENT
-	// document.getElementById("content").innerHTML = html;
-
-	
+	// if (location === "/join-remote" || location === "host-remote")
+	// 	console.log("FUCK");
+		// setGameID();	
+	// For profile pages and logged in user, load the corresponding profile page
+	if (location === "/profile" && userStatus.user_id) {
+		const url = new URL(window.location.href);
+		url.searchParams.set('user', userStatus.user_id);
+		window.history.pushState({}, "", url.toString());
+	}
 };
 
 window.onpopstate = urlLocationHandler;

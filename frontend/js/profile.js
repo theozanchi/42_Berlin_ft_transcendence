@@ -18,18 +18,17 @@ const ProfileObserver = new MutationObserver(() => {
 	const userFriendsList = document.getElementById('UserFriendsList');
 
 
-	fetch('/api/user_mgt/profile/2/')
+	// fetch('/api/user_mgt/profile/2/')
 
 // PREPARED FOR USER_MGMT
-	// fetch('/api/user_mgt/user_mgt/me')
-	// .then(response => {
-	// 	// Check if the response is ok and content type is JSON
-	// 	if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-	// 	return response.json();
-	// 	}
-	// 	throw new Error('Non-JSON response received');
-	// })
-
+	fetch('/api/user_mgt/user_mgt/me')
+	.then(response => {
+		// Check if the response is ok and content type is JSON
+		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+		return response.json();
+		}
+		throw new Error('Non-JSON response received');
+	})
 	.then(response => {
 		// Check if the response is ok and content type is JSON
 		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
@@ -37,7 +36,7 @@ const ProfileObserver = new MutationObserver(() => {
 		}
 		throw new Error('Non-JSON response received');
 // PREPARED FOR USER_MGMT
-		// fetch(`/api/user_mgt/profile/${response.user_id}`);
+		fetch(`/api/user_mgt/profile/${response.user_id}`);
 	})
 	.then(data => {
 		ProfileObserver.disconnect();

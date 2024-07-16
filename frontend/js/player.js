@@ -8,7 +8,7 @@ class MyPlayer extends HTMLElement {
 		this.render();
 		if (this.hasAttribute('remove-button'))
 			this.shadow.getElementById('removeButton').addEventListener('click', () => {
-				console.log("REMOVE CLICKED");
+				// console.log("REMOVE CLICKED");
 				this.dispatchEvent(new CustomEvent('removePlayer'));
 			});
 	}
