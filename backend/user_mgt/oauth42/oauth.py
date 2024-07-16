@@ -25,7 +25,7 @@ def oauth_login(request):
 def oauth_callback(request):
     state = validate_state(request)
     if not state:
-        return error_response("State mismatch. Possible CSRF attack detected.", 400)
+        return error_response("State mismatch. Possible CSRF attack detected.")
 
     code = request.GET.get("code")
     access_token = exchange_code_for_token(code)
@@ -97,7 +97,6 @@ def update_or_create_user(user_info, access_token):
 
     if not all([username, picture_url, id42, access_token]):
         return None
-    pprint.pprint(user_info)
     try:
         user_profile = UserProfile.objects.get(id42=id42)
         user = user_profile.user
@@ -127,14 +126,14 @@ def login_user(request, user):
     login(request, user)
 
 
-def error_response(message, status=400):
-    data = {"success": False, "error": {"message": message}}
-    return JsonResponse(data, status=status)
+def error_response(message):
+    data = {"status": "error", "message": message}
+    return JsonResponse(data, 200)
 
 
 def success_response(user_id):
     return JsonResponse(
-        {"success": "Login with 42 oauth Login was successful", "user_id": user_id}, status=200
+        {"status": "success", "message": "Login with 42 oauth Login was successful", "user_id": user_id}, status=200
     )
 
 
