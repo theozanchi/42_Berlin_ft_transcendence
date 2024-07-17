@@ -108,7 +108,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             """             players_in_game = Player.object.filter(game__id=self.game_id).select_related('user')
             players_info = [{"username": player.user.username, "user.id": player.user.id} for player in players_in_game]
             data['test'] = players_info """
-            data['test'] = 'test'
+
+            data['test'] = "pprint.pprint(players_list)"
             await self.send_json(data)
 
         except requests.RequestException as e:

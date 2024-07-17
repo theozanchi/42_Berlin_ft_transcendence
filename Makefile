@@ -55,5 +55,7 @@ rebuild:
 				docker compose build --no-cache
 				docker compose up -d
 
+postgres:
+				docker exec -it game_manager pgcli -h db -p 5432 -U postgres -d postgres
 
-.PHONY:			all certs dir del_certs env up down restart prune auth rebuild
+.PHONY:			all certs dir del_certs env up down restart prune auth rebuild postgres
