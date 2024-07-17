@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+// import { init, updateGameState } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -13,11 +13,9 @@ let messagePromise;
 let game_id;
 
 // For game area
-export var gameStarted = false;
-export var gameOver = false;
-export var remote = false;
-export var round_number;
-export let currentPlayer;
+var gameStarted = false;
+// export var remote = false;
+// export var playerId;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -128,7 +126,7 @@ function openSocket() {
 	return (openPromise);
 }
 
-export async function sendJson(json) {
+async function sendJson(json) {
 	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         await newsocket.send(json);
@@ -233,6 +231,7 @@ async function hostRemoteGame() {
 		console.log('Sending JSON:', data);
         sendJson(json);
 
+		
 		createStartButton();
     })
     .catch(error => {
@@ -273,7 +272,7 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
-
+				console.log('hosting remote');
 				hostRemoteGame();
 
 			});
@@ -299,7 +298,6 @@ async function hostRemoteGame() {
 
 				// Copy the input field's value to the clipboard
 				navigator.clipboard.writeText(input.value).then(function() {
-					console.log('Copying to clipboard was successful!');
 										
 					// Change the icon to bi-clipboard-check
 					iconSpan.className = 'bi bi-clipboard-check';

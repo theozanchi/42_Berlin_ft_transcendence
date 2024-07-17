@@ -13,13 +13,15 @@
 	<body>
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col col-lg-3 ppg-blue-light">
-					<div class="spacer-48"></div>
-					<div class="d-flex row align-self-start">
-						<stepper-component></stepper-component>
-						<div id="00-login" class="step" >		
-							<!-- <div style="display: flex; align-items: center;"> -->
-							<stepper-titlebar title="Sign in"></stepper-titlebar>
+				<div class="col col-lg-3 ppg-blue-light" id="settings-column">			
+					<div class="d-flex flex-column h-100">
+						<div>
+							<div class="spacer-48"></div>
+							<stepper-component></stepper-component>
+							<stepper-titlebar title="Log in"></stepper-titlebar>
+						</div>		
+
+						<div class="d-flex flex-column ppg-green h-100 overflow-auto">
 							<div class="d-flex justify-content-between align-baseline">
 								<h1>Sign in</h1>
 								<nav>
@@ -27,37 +29,40 @@
 								</nav>
 							</div>
 
-							<div class="d-grid gap-2">
-								<div class="form-floating">
-										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
-										<label for="loginEmail">Email</label>
+							<form id="loginForm">
+								<div class="d-grid gap-2">
+									<div class="form-floating">
+										<input type="text" class="form-control col" id="loginUser" placeholder="pongerpuff" required>
+										<label for="loginUser">Username</label>
+									</div>
+									<div class="form-floating">
+										<input type="password" class="form-control col" id="loginPassword" placeholder="" required>
+										<label for="loginPassword">Password</label>
+									</div>
+									<div class="spacer-12"></div>
+									<button id="loginUserButton" type="submit" class="btn btn-lg btn-primary" disabled>Sign in</button>
 								</div>
-								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
-									<label for="loginPassword">Password</label>
-								</div>
-								<div style="display: flex; justify-content: right;">
-									<a href="#" class="btn btn-link text-decoration-none">Forgot password?</a>
-									<div class="spacer-48"></div>
-								</div>
-								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign in</button>
-							</div>
+							</form>
+
 							<div class="spacer-48"></div>
-							<div class="d-flex align-items-center justify-content-center">
-								<hr class="flex-grow-1"/>	
-								<span class="text-center mx-2">Or sign in with:</span>
-								<hr class="flex-grow-1"/>	
+									<div class="d-flex align-items-center justify-content-center">
+										<hr class="flex-grow-1"/>	
+										<span class="text-center mx-2">Or sign in with:</span>
+										<hr class="flex-grow-1"/>	
+									</div>
+									<div class="spacer-12"></div>
+									<!-- <p>OR</p> -->
+									<div class="d-grid gap-2">
+										<a href="https://localhost:8443/api/user_mgt/oauth/login/" id="login42SSOButton" class="btn btn-lg btn-dark">
+											<img src="./assets/42_Logo.svg" alt="Icon Description" width="26" height="26" fill="currentColor">
+											Intra Login
+										</a>
+									</div>	
+
 							</div>
-							<div class="spacer-12"></div>
-							<!-- <p>OR</p> -->
-							<div class="d-grid gap-2">
-								<button id="login42SSOButton" class="btn btn-lg btn-outline-dark">
-									<!-- <img src="/assets/42_logo.svg" alt="Logo"></img> LOGO TBD --> 
-									<span>42 Account</span></button>
-							</div>							
+
+							<div class="spacer-48"></div>
 						</div>
-						
-						
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
@@ -74,22 +79,6 @@
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
 					<div class="spacer-48"></div>
 					<h2>WebSocket Client</h2>
-					<!-- <div id="ws-local" class="step">
-						<stepper-titlebar title="Local Game"></stepper-titlebar>
-						<player-list mode ="local"></player-list>
-						<button id="generateLocalGameButtonWS" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-					</div>
-					<div>
-						<button onclick="connectWebSocket()">Connect</button>
-						<button onclick="disconnectWebSocket()">Disconnect</button>
-					</div>
-					<div>
-						<textarea id="messages" rows="10" cols="30" readonly></textarea>
-					</div>
-					<div>
-						<input type="text" id="messageInput" placeholder="Enter message"/>
-						<button onclick="sendMessage()">Send</button>
-					</div> -->
 				</div>
 			</div>
 		</div>

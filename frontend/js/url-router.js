@@ -1,4 +1,5 @@
 const	baseUrl = document.location.href;
+import {getLoggedInState} from './login_signup.js';
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -28,17 +29,17 @@ const urlRoutes = {
 		description: "",
 	},
 	"/setup-remote": {
-		template: "/remote.html",
+		template: "/setup-remote.html",
 		title: "Lobby",
 		description: "",
 	},
 	"/host-remote": {
-		template: "/lobby.html",
+		template: "/setup-lobby.html",
 		title: "Setup",
 		description: "",
 	},
 	"/join-remote": {
-		template: "/lobby.html",
+		template: "/setup-lobby.html",
 		title: "Setup",
 		description: "",
 	},
@@ -49,7 +50,7 @@ const urlRoutes = {
 		description: "",
 	},
 	"/game-table": {
-		template: "/game_table.html",
+		template: "/game-table.html",
 		title: "Game Table",
 		description: "",
 	},
@@ -69,49 +70,81 @@ const urlRoutes = {
 		title: "Profile",
 		description: "",
 	},
-
-	"/fill": {
-		template: "/fill.html",
-		title: "Layout Tes",
+	"/edit-profile": {
+		template: "/profile-edit.html",
+		title: "Profile",
 		description: "",
 	},
 }
 
-const urlRoute = (event) => {
-	event = window.event || event;
-	console.log("HELLO");
-	event.preventDefault();
-	window.history.pushState({}, "", event.target.href);
-	console.log(event.target.href);
+const urlRoute = (eventOrUrl) => {
+	let url;
+	// console.log(eventOrUrl);
+	// console.log(typeof eventOrUrl);
+	if (typeof eventOrUrl === 'string') {
+		url = eventOrUrl;
+	} else {
+		eventOrUrl = window.event || eventOrUrl;
+		eventOrUrl.preventDefault();
+		url = eventOrUrl.target.href;
+	}
+	// console.log(url);
+	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }
 
 const urlLocationHandler = async () => {
     let location = window.location.pathname;
-    if (location.length == 0) {
-        location = "/"
+    let urlQuery = new URLSearchParams(window.location.search);
+    let userId;
+
+    if (location.length === 0) {
+        location = "/";
     }
-    console.log(`MY LOCATION: ${location}`);
 
-    const route = urlRoutes[location] || urlRoutes[404]
+    // Route based on login state
+    const userStatus = await getLoggedInState();
+    if (userStatus.status === "success") {
+        // User is logged in
+        if (location === "/login" || location === "/signup") {
+            location = "/";
+        } else if (location === "/profile" && !urlQuery.has('user')) {
+            // Redirect logged-in user to their own profile
+            userId = userStatus.user_id;
+            const newUrl = `/profile?user=${userId}`;
+            window.history.pushState({}, "", newUrl);
+            location = newUrl; // Update location to reflect the new URL
+        }
+    } else {
+        // User is not logged in
+        if (location === "/profile" && !urlQuery.has('user')) {
+            // Redirect guest trying to access /profile to homepage
+            window.history.pushState({}, "", "/");
+            location = "/";
+        } else if (location === "/setup-remote" || location === "/join-remote") {
+            // Additional logic for other routes if needed
+            window.history.pushState({}, "", "/login");
+            location = "/login";
+        }
+    }
 
-    console.log(`MY ROUTE: ${route.template}`);
+    // Fetch and display the content based on the updated location
+    let route = urlRoutes[location] || urlRoutes[404];
+    const html = await fetch(route.template).then(response => response.text());
 
-    let imageUrl = new URL(route, baseUrl);
-    console.log(imageUrl);
-
-    const html = await fetch(route.template).then((response) => 
-		response.text());
-
-
-	//PARSE ACTUAL PATH AND 
+    // Parse and update the page content as before
     let parser = new DOMParser();
     let doc = parser.parseFromString(html, "text/html");
-    let title = doc.querySelector('title').innerText;
+    document.title = doc.querySelector('title').innerText; // Update title
 
-	//WRITE NEW TITLE TO BROWSER TAB
-    document.title = title;
-    document.getElementById("content").innerHTML = html;
+    // Update game and settings column content as before
+    let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+    if (fetchedGameColumnContent)
+        document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
+
+    let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+    if (fetchedSettingsColumnContent)
+        document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 };
 
 window.onpopstate = urlLocationHandler;
