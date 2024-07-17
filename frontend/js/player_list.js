@@ -9,8 +9,8 @@ class PlayerList extends HTMLElement {
 		this.shadow = this.attachShadow({mode: 'open'});
 		this.count = 1;
 		// this.gameMode = "local";
-		const gameModes = ["local", "host", "join"];
-		const 	PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
+		const gameModes = ["local", "host", "join", "friends", "online"];
+		this.PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
 	}
 
 	get count() {
@@ -50,8 +50,9 @@ class PlayerList extends HTMLElement {
 		let separator = document.createElement('hr');
 		separator.style.margin = '6px';
 
-		// newPlayer.setAttribute('name', `${this.PongerChars[this.count]}`);
-		newPlayer.setAttribute('name', 'ThisWillChange');
+		console.log(this.count);
+		newPlayer.setAttribute('name', this.PongerChars[this.count]);
+		// newPlayer.setAttribute('name', 'ThisWillChange');
 
 		if (this.gameMode === 'local')
 			newPlayer.setAttribute('input', '');
@@ -80,12 +81,17 @@ class PlayerList extends HTMLElement {
 	}
 
 	getPlayerNames() {
-		let players = this.shadow.querySelectorAll('player-component');
+		const players = this.shadow.querySelectorAll('player-component');
 
 		let playerNames = [];
 
 		players.forEach(player => {
-			let name = player.getAttribute('name');
+			console.log(player);
+			// let nameInput = player.shadowRoot.getElementById('playerNicknameInput');
+			// console.log(`has this input: ${nameInput}`);
+			// let name = nameInput.getAttribute('value');
+			let name = player.name;
+			console.log(`has this name: ${name}`);
 			playerNames.push(name);
 		});
 
@@ -93,10 +99,27 @@ class PlayerList extends HTMLElement {
 	}
 
 	render() {
+
+		//MODES: local, remote-host, remote-join, friends, online
 		this.gameMode = this.getAttribute('mode');
+		this.userID = this.getAttribute('userID');
 
 		// if (!gameModes.includes(gameMode))
 			// console.error(`invalid game mode: ${gameMode}`);
+
+		if (this.gameMode === 'friends' && this.userID) {
+			this.shadow.innerHTML = `
+				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
+				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+	
+				<div id="list-of-players">
+				`
+			
+			
+
+			this.shadow.innerHTML +='</div>';
+
+		}
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>

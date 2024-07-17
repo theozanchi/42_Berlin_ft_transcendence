@@ -1,38 +1,37 @@
 # oauth42/views.py
 
-from .models import UserProfile, Round, Tournament, Participation
-from django.shortcuts import render, redirect, get_object_or_404
+import json
+import os
+import pprint
+
+import requests
+from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import PasswordChangeForm
-from django.http import JsonResponse
-import requests
-from django.utils.crypto import get_random_string
-from .models import UserProfile, UserManager
-from django.http import HttpResponseForbidden
-from .forms import RegistrationForm, UserForm
-from django.core.files.base import ContentFile
-import pprint
-from django.db.models import Sum
-from django.views.generic.edit import CreateView
-from django import forms
+from django.contrib.auth import (authenticate, login, logout,
+                                 update_session_auth_hash)
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.core.files.storage import default_storage
-from django.utils import timezone
-from .middleware import is_user_online
-from django.core import serializers
-import json
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+from django.core import serializers
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import F, Sum
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.edit import CreateView
+from PIL import Image
 
-CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
-CLIENT_SECRET = (
-    "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"
-)
-REDIRECT_URI = "https://localhost:8443/api/user_mgt/oauth/callback/"
+from .forms import RegistrationForm, UserForm
+from .middleware import is_user_online
+from .models import Participation, Round, Tournament, UserManager, UserProfile
+
+# CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
+# CLIENT_SECRET = "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"\
+
 
 # return Response(response.json(), status=response.status_code)
 
@@ -57,87 +56,6 @@ def home(request):
     return render(request, "oauth42/home.html")
 
 
-def oauth_login(request):
-    state = get_random_string(32)
-    request.session["oauth_state"] = state
-    authorization_url = f"https://api.intra.42.fr/oauth/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&state={state}&prompt=login"
-    return redirect(authorization_url)
-
-
-def oauth_callback(request):
-    state = request.GET.get("state")
-    if state != request.session.pop("oauth_state", ""):
-        return redirect("/api/user_mgt")
-    code = request.GET.get("code")
-    token_url = "https://api.intra.42.fr/oauth/token"
-    token_data = {
-        "grant_type": "authorization_code",
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "code": code,
-        "redirect_uri": REDIRECT_URI,
-    }
-    token_response = requests.post(token_url, data=token_data)
-    token_json = token_response.json()
-    if token_response.status_code != 200:
-        return render(
-            request,
-            "error.html",
-            {
-                "error": "No access token in 42 server response. API credentials might be outdated"
-            },
-        )
-    access_token = token_json.get("access_token")
-    if not access_token:
-        return render(
-            request,
-            "error.html",
-            {"error": "Server response does not contain access_token"},
-        )
-
-    user_info_url = "https://api.intra.42.fr/v2/me"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    user_info_response = requests.get(user_info_url, headers=headers)
-    if user_info_response.status_code != 200:
-        return redirect("/")
-
-    user_info = user_info_response.json()
-    email = user_info.get("email")
-    username = user_info.get("login")
-    first_name = user_info.get("first_name")
-    last_name = user_info.get("last_name")
-    picture_url = user_info.get("image", {}).get("versions", {}).get("small")
-    id42 = user_info.get("campus_users", [{}])[0].get("user_id")
-
-    try:
-        user_profile = UserProfile.objects.get(id42=id42)
-        user = user_profile.user
-    except UserProfile.DoesNotExist:
-        user, created = User.objects.get_or_create(
-            username=username,
-            defaults={"email": email, "first_name": first_name, "last_name": last_name},
-        )
-
-        user_profile, created = UserProfile.objects.update_or_create(
-            user=user,
-            defaults={
-                "picture_url": picture_url,
-                "access_token": access_token,
-                "id42": id42,
-            },
-        )
-
-        if created:
-            user.set_unusable_password()
-            user.save()
-
-        save_avatar_from_url(user.userprofile, picture_url)
-
-    login(request, user)
-
-    return redirect(settings.LOGIN_REDIRECT_URL)
-
-
 def delete_cookie(request):
     if request.method == "POST":
         logout(request)
@@ -147,129 +65,229 @@ def delete_cookie(request):
         return response
 
 
-# email and password registration
-def register_view(request):
-    return render(request, "register.html")
+def is_valid_image(image):
+    try:
+        img = Image.open(image)
+        img.verify()
+        return True
+    except (IOError, SyntaxError):
+        return False
 
 
 def upload_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id);
-    user_profile, created = UserProfile.objects.get_or_create(user=user);
-    if request.method == 'POST':
-        avatar = request.FILES.get('image');
-        if avatar:
-            user_profile.avatar = avatar;
-            user_profile.save();
-            return ({'avatar_status': 'Avatar uploaded successfully'});
+    if request.method == "POST":
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "User not found"})
+        user_profile, created = UserProfile.objects.get_or_create(user=user)
+        avatar = request.FILES.get("image")
+        is_valid = is_valid_image(avatar)
+
+        if avatar and is_valid:
+            user_profile.avatar = avatar
+            user_profile.save()
+            return {
+                "status": "success",
+                "message": "Avatar uploaded successfully",
+                "avatar": user_profile.avatar,
+            }
         else:
-            return ({'avatar_status': 'No uploaded avatar found'});
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image found",
+            }
     else:
-        return ({'avatar_status':'Method not allowed'});
+        return {"status": "error", "message": "Method not allowed"}
 
 
 def delete_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    user_profile = get_object_or_404(UserProfile, user=user)
+    try:
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+    except UserProfile.DoesNotExist:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
     if user_profile.avatar:
         user_profile.avatar.delete()  # This deletes the file and clears the field
         user_profile.save()
-        return ({'avatar_status': 'Avatar deleted successfully.'});
+        return {"status": "info", "message": "Avatar deleted successfully."}
     else:
-        return ({'avatar_status': 'No avatar to delete.'});
+        return {"status": "info", "message": "No avatar to delete."}
 
 
 def update_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id);
-    user_profile = get_object_or_404(UserProfile, user=user);
+    try:
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+    except UserProfile.DoesNotExist:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
-    if request.method == 'POST':
-        new_avatar = request.FILES.get('image');
-        if new_avatar:
-            user_profile.avatar.delete(save=False);
-            user_profile.avatar = new_avatar;
-            user_profile.save();
-            response_message = f"Avatar successfully updated to {new_avatar}".strip();
-            return ({'avatar_status': response_message});
+    if request.method == "POST":
+        new_avatar = request.FILES.get("image")
+        is_valid = is_valid_image(new_avatar)
+
+        if new_avatar and is_valid:
+            user_profile.avatar.delete(save=False)
+            user_profile.avatar = new_avatar
+            user_profile.save()
+            response_message = f"Avatar successfully updated to {new_avatar}".strip()
+            return {"status": "success", "message": response_message}
         else:
-            return ({'avatar_status': 'No uploaded avatar for update found'});
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image for update found",
+            }
     else:
-        return ({'avatar_status':'Method not allowed'});
-
+        return {"status": "error", "message": "Method not allowed"}
 
 
 def register(request):
-    if request.method == 'POST':
-        username = request.POST.get('username');
-        password = request.POST.get('password');
-        image = request.FILES.get('image');
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        image = request.FILES.get("image")
 
         if User.objects.filter(username=username).exists():
-            return JsonResponse({'error':'Username already exists'}, status=400);
+            return JsonResponse(
+                {"status": "error", "message": "Username already exists"}, status=200
+            )
 
-        if not all([username, password]):
-            return JsonResponse({'error': 'Missing required fields'}, status=400)
+        if not all([username]):
+            return JsonResponse(
+                {"status": "error", "message": "Missing required fields"}, status=200
+            )
 
         user = User.objects.create(
             username=username,
             password=make_password(password),
         )
-        response_data = {'message': 'User created successfully.', 'user_id': user.id};
+        response_data = {
+            "status": "success",
+            "message": "User created successfully.",
+            "user_id": user.id,
+            "username": user.username,
+            "provided_password": bool(password),
+            "provided_avatar": bool(image),
+        }
 
         if image:
-            avatar_status = upload_avatar(request, user.id);
+            avatar_status = upload_avatar(request, user.id)
             response_data.update(avatar_status)
 
-        login(request, user);
+        login(request, user)
         return JsonResponse(response_data, status=201)
 
-    # return JsonResponse({'error': 'Method not allowed'}, status=405)
-    return render(request, "register.html")
+    # return render(request, "register.html")
+    return JsonResponse(
+        {"status": "error", "message": "Method not allowed"}, status=405
+    )
+
+
+# Only for user.id creation with username.
+def just_username_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        image = request.FILES.get("image")
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse(
+                {"status": "error", "message": "Username already exists"}, status=200
+            )
+
+        if not all([username]):
+            return JsonResponse(
+                {"status": "error", "message": "Missing required fields"}, status=200
+            )
+
+        user = User.objects.create(
+            username=username,
+        )
+        response_data = {
+            "status": "success",
+            "message": "User created successfully ONLY USERNAME.",
+            "user_id": user.id,
+        }
+
+        if image:
+            avatar_status = upload_avatar(request, user.id)
+            response_data.update(avatar_status)
+
+        login(request, user)
+        return JsonResponse(response_data, status=201)
+
+    return JsonResponse(
+        {"status": "error", "message": "Method not allowed"}, status=405
+    )
 
 
 def rankings(request):
     rankings_qs = User.rankings.get_user_rankings()
-    rankings = list(rankings_qs.values("id", "username", "total_score", "rank"))
-    return JsonResponse(rankings, safe=False)
+    rankings = list(
+        rankings_qs.values("id", "username", "total_score", "rank", "avatar")
+    )
+    if not rankings:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "No ranking. Possbility no users in database?",
+            }
+        )
+    return JsonResponse({"status": "info", "rankings": rankings})
 
-
-def password(request):
-    if not request.user.is_authenticated or request.user.userprofile.id42:
-        return HttpResponseForbidden
-    if request.method == "POST":
-        password_form = PasswordChangeForm(request.user, request.POST)
-        if password_form.is_valid():
-            user = password_form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, "Password changed")
-            return redirect("home")
-        else:
-            messages.error(request, "please correct the error")
-    else:
-        password_form = PasswordChangeForm(request.user)
-
-    return render(request, "password.html", {"password_form": password_form})
 
 @login_required
 def update(request):
-    user = request.user;
-    if request.method == 'POST':
-        username = request.POST.get('username');
-        password = request.POST.get('password');
-        image = request.FILES.get('image');
+    user = request.user
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        image = request.FILES.get("image")
 
-        if username and User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
-            return JsonResponse({'error':'Username already exists, please chose another one'}, status=400);
+        if (
+            username
+            and User.objects.exclude(pk=request.user.pk)
+            .filter(username=username)
+            .exists()
+        ):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Username already exists, please chose another one",
+                },
+            )
 
         if not any([username, password, image]):
-            return JsonResponse({'error': 'No field updated'}, status=400);
+            return JsonResponse(
+                {"status": "error", "message": "No field updated"}, status=400
+            )
 
-        fields_to_update = {};
+        fields_to_update = {}
 
         if username:
-            fields_to_update['username'] = username;
+            fields_to_update["username"] = username
         if password:
-            fields_to_update['password'] = make_password(password);
+            fields_to_update["password"] = make_password(password)
 
         if fields_to_update:
             for field, value in fields_to_update.items():
@@ -278,22 +296,54 @@ def update(request):
 
         avatar_status = update_avatar(request, user.id)
 
-        response_data = {'message': 'User updated successfully.', 'user_id': user.id};
-        response_data.update(avatar_status);
+        response_data = {
+            "status": "success",
+            "message": "User updated successfully.",
+            "user_id": user.id,
+        }
+        response_data.update(avatar_status)
 
-        return JsonResponse(response_data, status=201);
+        return JsonResponse(response_data, status=201)
     else:
-        return render(request, "update.html");
+        # return render(request, "update.html")
+        return JsonResponse({"status": "error", "message": "Method not allowed."})
+
+
+def get_total_score(user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+
+    total_score = Participation.objects.filter(user=user).aggregate(Sum("score"))[
+        "score__sum"
+    ]
+    return total_score or 0
 
 
 def profile(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user_profile = get_object_or_404(UserProfile, user=user)
+    try:
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+    except UserProfile.DoesNotExist:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
     participations = Participation.objects.filter(user=user)
 
     total_wins = Tournament.objects.filter(winner=user).count()
     total_lost = participations.count() - total_wins
-    total_score = participations.aggregate(Sum("score"))["score__sum"] or 0
+    total_score = get_total_score(user_id)
 
     games = []
     tournaments = 0
@@ -307,7 +357,14 @@ def profile(request, user_id):
             "own_score": participation.score,
             "winner": tournament.winner.username if tournament.winner else None,
             "participants": [
-                (p.user.username, p.user.id)
+                {
+                    "username": p.user.username,
+                    "user_id": p.user.id,
+                    "rank": p.rank,
+                    "score": p.score,
+                    "avatar": p.user.userprofile.avatar.name,
+                    "online": get_online_status(p.user.id),
+                }
                 for p in Participation.objects.filter(tournament=tournament)
             ],
         }
@@ -315,7 +372,16 @@ def profile(request, user_id):
         tournaments = tournaments + 1
 
     friends = [
-        (friend.username, friend.id) for friend in user.userprofile.friends.all()
+        (
+            {
+                "username": friend.username,
+                "user_id": friend.id,
+                "avatar": friend.userprofile.avatar.name,
+                "total_score": get_total_score(friend.id),
+                "online": get_online_status(friend.id),
+            }
+        )
+        for friend in user.userprofile.friends.all()
     ]
     if request.user.is_authenticated and hasattr(request.user, "userprofile"):
         requesting_user_friends_ids = [
@@ -327,13 +393,12 @@ def profile(request, user_id):
     player_data = {
         "user_id": user.id,
         "nickname": user.username,
-        "full_name": user.first_name,
         "joined": user.date_joined,
         "total_wins": total_wins,
         "total_lost": total_lost,
         "total_score": total_score,
         "tournaments": tournaments,
-        "requesting_user_friends_ids": requesting_user_friends_ids,
+        "avatar": user_profile.avatar.name,
     }
     if request.user.is_authenticated:
         player_data["games"] = games
@@ -343,27 +408,48 @@ def profile(request, user_id):
     if request.user.is_authenticated and request.user.id == user.id:
         player_data["friends"] = friends
 
-    return JsonResponse(player_data)
+    return JsonResponse({"status": "info", "player_data": player_data})
 
 
-from django.contrib.auth.views import LoginView
+def who_am_i(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "User is not logged in."})
+    if request.user.is_authenticated:
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": "User is logged in.",
+                "user_id": request.user.id,
+            }
+        )
+    return JsonResponse(
+        {
+            "status": "error",
+            "message": "View can't handle this. This error should not happen.",
+        }
+    )
 
 
-class CustomLoginView(LoginView):
-    def get_success_url(self):
-        return "/api/user_mgt"
+@csrf_exempt
+def regular_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse(
+                {"status": "success", "message": "Login successful", "user_id": user.id}
+            )
+        else:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid username or password."}
+            )
 
-class RegisterView(CreateView):
-    model = User
-    form_class = RegistrationForm
-    template_name = "register.html"
-    success_url = "/api/user_mgt"
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        login(self.request, self.object)
-        return response
+    else:
+        # return render(request, "login.html")
+        return JsonResponse({"status": "success", "message": "Wrong method"})
 
 
 @login_required
@@ -374,32 +460,125 @@ def delete_profile(request):
     return redirect("home")
 
 
+@csrf_exempt
 @login_required
-def add_friend(request, user_id):
-    friend = get_object_or_404(User, id=user_id)
-    user_profile = request.user.userprofile
-    if friend not in user_profile.friends.all():
-        user_profile.friends.add(friend)
-        user_profile.save()
+def add_friend(request):
+    if request.method == "POST":
+        user_id = request.headers.get("friend")
+        try:
+            user_id = int(user_id)
+            friend = User.objects.get(id=user_id)
+        except ValueError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid user ID."},
+                status=200,
+            )
+        except User.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "User not found."},
+                status=200,
+            )
+        except:
+            return JsonResponse(
+                {"status": "other error"},
+                status=200,
+            )
+        if friend.id == request.user.id:
+            return JsonResponse(
+                {"status": "info", "message": "You cannot add yourself."}
+            )
+        user_profile = request.user.userprofile
+        if friend not in user_profile.friends.all():
+            user_profile.friends.add(friend)
+            user_profile.save()
+            return JsonResponse(
+                {"status": "success", "message": "Friend added successfully."},
+                status=200,
+            )
+        return JsonResponse(
+            {"status": "info", "message": "This user is already your friend."},
+            status=200,
+        )
     else:
-        messages.info(request, "This user is already your friend.")
-    return redirect("profile", user_profile.user.id)
+        return JsonResponse({"status": "error", "message": "Method not valid"})
 
 
+@csrf_exempt
 @login_required
-def remove_friend(request, user_id):
-    friend = get_object_or_404(User, id=user_id)
-    user_profile = request.user.userprofile
-    user_profile.friends.remove(friend)
-    user_profile.save()
-    return redirect("profile", user_profile.user.id)
+def add_friend_view(request, user_id):
+    return render(request, "add-friend.html", {"user_id": user_id})
+
+
+@csrf_exempt
+@login_required
+def remove_friend(request):
+    if request.method == "POST":
+        user_id = request.headers.get("friend")
+        try:
+            user_id = int(user_id)
+            friend = User.objects.get(id=user_id)
+        except ValueError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid user ID."},
+                status=200,
+            )
+        except User.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "User not found."},
+                status=200,
+            )
+        except:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Database error. This should not happen.",
+                },
+                status=200,
+            )
+        user_profile = request.user.userprofile
+        if friend in user_profile.friends.all():
+            user_profile.friends.remove(friend)
+            user_profile.save()
+            return JsonResponse(
+                {"status": "success", "message": "Friend removed successfully."}
+            )
+        return JsonResponse(
+            {"status": "info", "message": "This user was not your friend."}
+        )
+    return JsonResponse({"status": "error", "message": "Method not valid"})
+
+
+@csrf_exempt
+@login_required
+def remove_friend_view(request, user_id):
+    return render(request, "remove-friend.html", {"user_id": user_id})
+
+
+def get_online_users():
+    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
+    online_user_profiles = (
+        UserProfile.objects.filter(last_activity__gte=five_minutes_ago)
+        .annotate(
+            username=F("user__username"),
+        )
+        .values("username", "user_id", "avatar", "last_login", "last_activity")
+    )
+    return online_user_profiles
+
 
 @login_required
 def online_users_view(request):
-    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
-    online_user_profiles = UserProfile.objects.filter(
-        last_activity__gte=five_minutes_ago
-    ).values("user__username", "user", "avatar", "last_login", "last_activity")
-    online_user_profiles_list = list(online_user_profiles)
-    pprint.pprint(online_user_profiles)
-    return JsonResponse({"online_user_profiles": online_user_profiles_list}, safe=False)
+
+    online_user_profiles_list = list(get_online_users())
+    return JsonResponse(
+        {"status": "info", "online_user_profiles": online_user_profiles_list},
+        safe=False,
+    )
+
+
+def get_online_status(user_id):
+    online_users = get_online_users()
+    for user in online_users:
+        if user["user_id"] == user_id:
+            return True
+    return False

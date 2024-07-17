@@ -1,11 +1,12 @@
-from django.db import models
-from django.contrib.auth.models import User, AbstractBaseUser
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import Sum, Window, F
-from django.db.models.functions import DenseRank, Coalesce
 import pprint
-from django.dispatch import receiver
+
+from django.contrib.auth.models import AbstractBaseUser, User
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models import F, Sum, Window
+from django.db.models.functions import Coalesce, Concat, DenseRank
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.http import JsonResponse
 
 
@@ -16,22 +17,22 @@ class UserManager(models.Manager):
             self.annotate(
                 total_score=Coalesce(Sum("participation__score"), 0),
                 rank=Window(expression=DenseRank(), order_by=F("total_score").desc()),
+                avatar=F("userprofile__avatar"),
             )
             .order_by("-total_score")
-            .values_list("id", "username", "total_score", "rank")
+            .values_list("id", "username", "total_score", "rank", "avatar")
         )
-
-
 
     def get_user_ranking(self, user_id):
         rankings = list(self.get_user_rankings())
         for user in rankings:
             if user[0] == user_id:
                 return {
-                    "rank": user[3],
                     "user_id": user[0],
                     "username": user[1],
-                    "total_score": user[2]
+                    "total_score": user[2],
+                    "rank": user[3],
+                    "avatar": user[4],
                 }
         return {"error": "User not found"}
 
