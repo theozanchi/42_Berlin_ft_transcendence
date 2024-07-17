@@ -1,12 +1,12 @@
-import json
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import asyncio
-import redis
+import json
+import threading
 import time
-
 # from rest.framework import request
 from threading import Thread
-import threading
+
+import redis
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 # Initialize Redis client
 redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)

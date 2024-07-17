@@ -1,23 +1,12 @@
 # oauth42/urls.py
 
 from django.urls import path
-from .views import (
-    home,
-    delete_cookie,
-    register,
-    profile,
-    rankings,
-    update,
-    delete_profile,
-    add_friend,
-    remove_friend,
-    online_users_view,
-    regular_login,
-    add_friend_view,
-    remove_friend_view,
-    who_am_i,
-)
+
 from .oauth import oauth_callback, oauth_login
+from .views import (add_friend, add_friend_view, delete_cookie, delete_profile,
+                    home, online_users_view, profile, rankings, register,
+                    regular_login, remove_friend, remove_friend_view, update,
+                    who_am_i)
 
 urlpatterns = [
     path("api/user_mgt", home, name="home"),

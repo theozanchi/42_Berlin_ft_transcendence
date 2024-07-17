@@ -1,13 +1,14 @@
-from django.http import JsonResponse
 import os
-import requests
-from django.core.files.base import ContentFile
-from django.contrib.auth import login
-from .models import UserProfile, User
-from django.utils.crypto import get_random_string
-from django.shortcuts import redirect
 import pprint
 
+import requests
+from django.contrib.auth import login
+from django.core.files.base import ContentFile
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.utils.crypto import get_random_string
+
+from .models import User, UserProfile
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")

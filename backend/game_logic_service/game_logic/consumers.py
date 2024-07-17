@@ -1,9 +1,10 @@
 import json
-from channels.generic.websocket import WebsocketConsumer
-from asgiref.sync import async_to_sync
 import logging
 import math
 import time
+
+from asgiref.sync import async_to_sync
+from channels.generic.websocket import WebsocketConsumer
 
 logging.basicConfig(level=logging.INFO)
 

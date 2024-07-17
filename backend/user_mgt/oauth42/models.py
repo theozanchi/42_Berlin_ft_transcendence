@@ -1,11 +1,12 @@
-from django.db import models
-from django.contrib.auth.models import User, AbstractBaseUser
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import Sum, Window, F
-from django.db.models.functions import DenseRank, Coalesce, Concat
 import pprint
-from django.dispatch import receiver
+
+from django.contrib.auth.models import AbstractBaseUser, User
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models import F, Sum, Window
+from django.db.models.functions import Coalesce, Concat, DenseRank
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.http import JsonResponse
 
 

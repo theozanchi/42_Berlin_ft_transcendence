@@ -1,23 +1,22 @@
 # views.py
 
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-from rest_framework.permissions import AllowAny, IsAuthenticated
-
-from channels.layers import get_channel_layer
-from django.core.cache import cache
-from asgiref.sync import async_to_sync
-from asgiref.sync import sync_to_async
-from django.views import View
+import json
+import logging
+import math
+import time
 from threading import Lock
 
 import requests
-import json
-import time
-import math
-import logging
+from asgiref.sync import async_to_sync, sync_to_async
+from channels.layers import get_channel_layer
+from django.core.cache import cache
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.views import View
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+
 from .serializers import GameStateSerializer
 
 logging.basicConfig(

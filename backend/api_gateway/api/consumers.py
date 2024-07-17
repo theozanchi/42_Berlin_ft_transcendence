@@ -1,8 +1,9 @@
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
-import requests
+import asyncio
 import json
 import logging
-import asyncio
+
+import requests
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 logging.basicConfig(
     level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

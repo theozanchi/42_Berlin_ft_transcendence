@@ -1,34 +1,33 @@
 # oauth42/views.py
 
-from .models import UserProfile, Round, Tournament, Participation
-from django.shortcuts import render, redirect, get_object_or_404
+import json
+import os
+import pprint
+
+import requests
+from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash, authenticate
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-import requests
-
-from .models import UserProfile, UserManager
-from django.http import HttpResponseForbidden
-from .forms import RegistrationForm, UserForm
-from django.core.files.base import ContentFile
-import pprint
-from django.db.models import Sum
-from django.views.generic.edit import CreateView
-from django import forms
+from django.contrib.auth import (authenticate, login, logout,
+                                 update_session_auth_hash)
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.core.files.storage import default_storage
-from django.utils import timezone
-from .middleware import is_user_online
-from django.core import serializers
-import json
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+from django.core import serializers
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import F, Sum
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-import os
-from django.db.models import F
+from django.views.generic.edit import CreateView
 from PIL import Image
+
+from .forms import RegistrationForm, UserForm
+from .middleware import is_user_online
+from .models import Participation, Round, Tournament, UserManager, UserProfile
 
 # CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
 # CLIENT_SECRET = "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"\

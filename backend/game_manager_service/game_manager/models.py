@@ -1,15 +1,17 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.contrib.auth.models import User
-from itertools import combinations
-import requests
-import string
-import random
-from .exceptions import InsufficientPlayersError
 import logging
-from django.dispatch import receiver
+import random
+import string
+from itertools import combinations
+
+import requests
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from .exceptions import InsufficientPlayersError
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

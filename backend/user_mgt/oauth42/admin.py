@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Tournament, Participation
 from django.utils.html import format_html
+
+from .models import Participation, Tournament, UserProfile
 
 
 class UserProfileInline(admin.TabularInline):

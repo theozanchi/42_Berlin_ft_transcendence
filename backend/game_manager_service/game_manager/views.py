@@ -1,18 +1,17 @@
 # views.py
-from django.http import HttpResponse, JsonResponse
-from rest_framework.response import Response
-from rest_framework.decorators import (
-    api_view,
-    authentication_classes,
-    permission_classes,
-)
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from game_manager.models import Game, Player, Round
-from .serialize import GameSerializer, RoundSerializer
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
 import logging
+
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.http import HttpResponse, JsonResponse
+from game_manager.models import Game, Player, Round
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import (api_view, authentication_classes,
+                                       permission_classes)
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+
 from .exceptions import InsufficientPlayersError
+from .serialize import GameSerializer, RoundSerializer
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
