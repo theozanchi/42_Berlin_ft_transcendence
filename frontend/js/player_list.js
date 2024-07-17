@@ -10,7 +10,7 @@ class PlayerList extends HTMLElement {
 		this.count = 1;
 		// this.gameMode = "local";
 		const gameModes = ["local", "host", "join", "friends", "online"];
-		const 	PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
+		this.PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
 	}
 
 	get count() {
@@ -50,8 +50,9 @@ class PlayerList extends HTMLElement {
 		let separator = document.createElement('hr');
 		separator.style.margin = '6px';
 
-		// newPlayer.setAttribute('name', `${this.PongerChars[this.count]}`);
-		newPlayer.setAttribute('name', 'ThisWillChange');
+		console.log(this.count);
+		newPlayer.setAttribute('name', this.PongerChars[this.count]);
+		// newPlayer.setAttribute('name', 'ThisWillChange');
 
 		if (this.gameMode === 'local')
 			newPlayer.setAttribute('input', '');
