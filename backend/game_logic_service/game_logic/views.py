@@ -42,8 +42,8 @@ def game_update(request):
  
         with game_update_lock:
             current_time = time.time()
-            if current_time - last_update_time < (1 / 60):
-                return JsonResponse({"error": "Too many requests"}, status=429)
+            #if current_time - last_update_time < (1 / 60):
+             #   return JsonResponse({"error": "Too many requests"}, status=429)
             
             cached_game_state = cache.get(game_id)
             # Check if cached game is the same round as the new game state
@@ -120,7 +120,8 @@ def create_new_game_state(game_id, round_number):
         'wall_hits' : 0,
         'aiming_angle' : 0,
         'reset_ball': False,
-        'is_processing': False
+        'is_processing': False,
+        'current_player': None,
     }
 
 def update_game_state(game_state):

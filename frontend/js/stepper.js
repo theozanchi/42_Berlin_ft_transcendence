@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, animate, updateGameState, displayScore, player, player2 } from './game.js';
+import { init, animate, updateGameState, displayScore } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -15,7 +15,7 @@ let game_id;
 // For game area
 export var gameStarted = false, gameOver = false, remote = false;
 export var round_number;
-export let currentPlayer;
+export var player_id;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -67,19 +67,14 @@ function openSocket() {
 					if (data.mode === 'remote') {
 						remote = true;
 
-						if (data.player_id === 'player1')
-							currentPlayer = player;
-						else if (data.player_id === 'player2')
-							currentPlayer = player2;
-						else
-							currentPlayer = 'spectator';
+						player_id = data.player_id;
 					}
 				
                     gameStarted = true;
 					round_number = data.round_number;
                     console.log('Game started! round number:', round_number);
 					init();
-					animate();
+					console.log('Game initialized!');
                 }
 				if (data.type === 'update') {
 					if (gameStarted === false)
