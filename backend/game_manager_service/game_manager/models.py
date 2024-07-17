@@ -59,16 +59,17 @@ class Game(models.Model):
     def create_players_for_game(self, data):
         players = data.get("players", [])
         for player in players:
-            player_to_add = Player.objects.create(
-                alias=player.get("alias"), channel_name=player.get("channel_name")
+            Player.objects.create(
+                game=self,
+                alias=player.get("alias"), 
+                channel_name=player.get("channel_name")
             )
-            self.players.add(player_to_add)  # Add a player to the game
     
     def add_existing_players_to_game(self, data):
         user_ids = data.get("user_ids", [])
         for user_id in user_ids:
             player_to_add = Player.objects.get(user=user_id)
-            self.players.add(player_to_add)  # Add a player to the game
+            player_to_add.game = self # Add a player to the game
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -140,7 +141,7 @@ class Player(models.Model):
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name="userprofiles")
 
-    game = models.ManyToManyField(Game, related_name="players")
+    game = models.ForeignKey(Game, related_name="players")
     alias = models.CharField(max_length=25, null=True, blank=True)
     channel_name = models.CharField(max_length=255, null=True, blank=True)
 
