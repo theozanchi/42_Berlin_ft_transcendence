@@ -133,7 +133,12 @@ def error_response(message):
 
 def success_response(user_id):
     return JsonResponse(
-        {"status": "success", "message": "Login with 42 oauth Login was successful", "user_id": user_id}, status=200
+        {
+            "status": "success",
+            "message": "Login with 42 oauth Login was successful",
+            "user_id": user_id,
+        },
+        status=200,
     )
 
 

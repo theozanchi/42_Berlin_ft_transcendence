@@ -65,18 +65,20 @@ def delete_cookie(request):
         response.delete_cookie(settings.SESSION_COOKIE_NAME)
         return response
 
+
 def is_valid_image(image):
     try:
-        img = Image.open(image);
+        img = Image.open(image)
         img.verify()
-        return True;
+        return True
     except (IOError, SyntaxError):
-        return False;
+        return False
+
 
 def upload_avatar(request, user_id):
     if request.method == "POST":
         try:
-            user = User.objects.get(pk=user_id);
+            user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return JsonResponse({"status": "error", "message": "User not found"})
         user_profile, created = UserProfile.objects.get_or_create(user=user)
@@ -92,19 +94,30 @@ def upload_avatar(request, user_id):
                 "avatar": user_profile.avatar,
             }
         else:
-            return {"status": "error", "message": "No valid uploaded avatar image found"}
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image found",
+            }
     else:
         return {"status": "error", "message": "Method not allowed"}
 
 
 def delete_avatar(request, user_id):
     try:
-        user = User.objects.get(pk=user_id);
-        user_profile = UserProfile.objects.get(user=user);
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
     except UserProfile.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_userprofile_id": user_id})
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
     if user_profile.avatar:
         user_profile.avatar.delete()  # This deletes the file and clears the field
@@ -116,12 +129,20 @@ def delete_avatar(request, user_id):
 
 def update_avatar(request, user_id):
     try:
-        user = User.objects.get(pk=user_id);
-        user_profile = UserProfile.objects.get(user=user);
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
     except UserProfile.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_userprofile_id": user_id})
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
     if request.method == "POST":
         new_avatar = request.FILES.get("image")
@@ -134,10 +155,12 @@ def update_avatar(request, user_id):
             response_message = f"Avatar successfully updated to {new_avatar}".strip()
             return {"status": "success", "message": response_message}
         else:
-            return {"status": "error", "message": "No valid uploaded avatar image for update found"}
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image for update found",
+            }
     else:
         return {"status": "error", "message": "Method not allowed"}
-
 
 
 def register(request):
@@ -166,7 +189,7 @@ def register(request):
             "user_id": user.id,
             "username": user.username,
             "provided_password": bool(password),
-            "provided_avatar": bool(image)
+            "provided_avatar": bool(image),
         }
 
         if image:
@@ -180,6 +203,7 @@ def register(request):
     return JsonResponse(
         {"status": "error", "message": "Method not allowed"}, status=405
     )
+
 
 # Only for user.id creation with username.
 def just_username_login(request):
@@ -213,10 +237,10 @@ def just_username_login(request):
         login(request, user)
         return JsonResponse(response_data, status=201)
 
-
     return JsonResponse(
         {"status": "error", "message": "Method not allowed"}, status=405
     )
+
 
 def rankings(request):
     rankings_qs = User.rankings.get_user_rankings()
@@ -288,9 +312,11 @@ def update(request):
 
 def get_total_score(user_id):
     try:
-        user = User.objects.get(pk=user_id);
+        user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
 
     total_score = Participation.objects.filter(user=user).aggregate(Sum("score"))[
         "score__sum"
@@ -300,12 +326,20 @@ def get_total_score(user_id):
 
 def profile(request, user_id):
     try:
-        user = User.objects.get(pk=user_id);
-        user_profile = UserProfile.objects.get(user=user);
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
     except UserProfile.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_userprofile_id": user_id})
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
     participations = Participation.objects.filter(user=user)
 
     total_wins = Tournament.objects.filter(winner=user).count()
@@ -496,7 +530,10 @@ def remove_friend(request):
             )
         except:
             return JsonResponse(
-                {"status": "error", "message": "Database error. This should not happen."},
+                {
+                    "status": "error",
+                    "message": "Database error. This should not happen.",
+                },
                 status=200,
             )
         user_profile = request.user.userprofile

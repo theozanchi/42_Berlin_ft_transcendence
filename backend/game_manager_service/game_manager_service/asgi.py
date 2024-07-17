@@ -12,11 +12,15 @@ import os
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'game_manager_service.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "game_manager_service.settings")
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket": URLRouter([
-    # you can define all your routers here
-        ])
-})
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": URLRouter(
+            [
+                # you can define all your routers here
+            ]
+        ),
+    }
+)

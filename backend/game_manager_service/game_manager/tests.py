@@ -1,6 +1,8 @@
 from django.test import TestCase, Client
 from django.urls import reverse
+
 # Create your tests here.
+
 
 class TestViews(TestCase):
 
@@ -10,6 +12,6 @@ class TestViews(TestCase):
 
     def test_create_game_POST(self):
 
-        response = self.client.get(reverse('game'))
+        response = self.client.get(reverse("game"))
 
         self.assertEquals(response.status_code, 200)

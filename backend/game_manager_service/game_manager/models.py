@@ -151,8 +151,7 @@ class Player(models.Model):
     def save(self, *args, **kwargs):
         if not self.alias:
             raise ValueError("Player must have an alias.")
-        if not hasattr(self, 'user') or self.user is None:
-            # Check if a User with the desired username already exists
+        if not hasattr(self, "user") or self.user is None:
             username = self.alias
             unique_username_found = False
             counter = 1
@@ -160,10 +159,8 @@ class Player(models.Model):
                 if not User.objects.filter(username=username).exists():
                     unique_username_found = True
                 else:
-                    # If the username exists, append a number to make it unique
                     username = f"{self.alias}{counter}"
                     counter += 1
-            # Create the User with the unique username
             user, created = User.objects.get_or_create(username=username)
             self.user = user
         super().save(*args, **kwargs)
@@ -171,7 +168,6 @@ class Player(models.Model):
     def delete(self, *args, **kwargs):
         self.avatar.delete(save=False)
         super(Player, self).delete(*args, **kwargs)
-
 
 
 class Round(models.Model):
