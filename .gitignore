@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+database/
 lib64/
 parts/
 sdist/
@@ -25,6 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+old_database/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -35,6 +37,10 @@ MANIFEST
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Postgres database - persitent on computer to test
+postgres_data
+media_data
 
 # Unit test / coverage reports
 htmlcov/
@@ -60,6 +66,8 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+static/
+
 
 # Flask stuff:
 instance/
@@ -90,6 +98,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Passwords
+secrets/
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
@@ -158,3 +169,6 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# Database
+data/

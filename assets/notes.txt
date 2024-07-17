@@ -1,0 +1,66 @@
+MICROSERVICE ARCHITECTURE
+
+    API Gateway Service:
+        Acts as the entry point for clients.
+        Handles authentication, routing, and load balancing.
+        Directs incoming requests to the appropriate services.        
+        Manages real-time communication between clients and the game server.
+  
+    Game Management Service:
+        Handles the creation of new games and generation of game IDs.
+        Communicates with other services to coordinate game setup and start.
+        Coordinates with other services to ensure all players are connected and ready.
+        Manages the game state and communicates updates to connected clients.
+
+    Game Logic Service:
+        Implements the game mechanics and logic.
+        Updates the game state based on player actions.
+        Broadcasts game events and updates to connected clients.
+        Determines game outcomes and scores.
+        
+    User Management Service:
+        Manages guest and user players.
+        Handles authentication and authorization.
+        Stores user data such as usernames, avatars...
+
+
+Here's how the flow might look for a remote game setup:
+
+    1. The client (host) interacts with the Gateway Service to create a new remote game.
+    
+    2. The Game Management Service generates a game ID and creates a new game lobby.
+    
+    3. Other players join the game lobby using the provided game ID.
+    
+	4. Via WebSocket connections, the clients are notified when a new player joins.
+    
+    5. Once all players are connected, the host initiates the game.
+    
+    6. The Game Manager Service signals the Game Logic Service to start the game.
+    
+    7. The Game Logic Service updates the game state and communicates with the API Service to send real-time updates to connected clients.
+    
+    8. Players interact with the game using their devices, and the Game Logic Service handles their inputs and updates the game accordingly.
+
+COMMUNICATION FLOW
+
+1. Nginx receives the request: 
+When a client sends an HTTP request, it first reaches the Nginx server.
+
+2. Nginx routes the request: 
+Nginx examines the URL path of the request and determines which backend service should handle it based on the configuration in its nginx.conf file. For example, if the request URL matches a location block configured to proxy_pass to the game_manager service, Nginx forwards the request to that service.
+
+3. Gunicorn/Daphne serves the Django application: 
+Once Nginx has determined the appropriate backend service, it forwards the request to that service. In our case, since we're using Django applications, Nginx forwards the request to Gunicorn, which is serving the Django application within the game_manager or game_logic container.
+
+4. Gunicorn forwards the request to Django: 
+Gunicorn receives the request from Nginx and passes it to the Django application running within the container. The Django application then processes the request, executes the corresponding view function, interacts with the database if needed, and generates an HTTP response.
+
+5. Django sends the response back to Gunicorn/Daphne: 
+Once the Django application has generated the response, it sends it back to Gunicorn.
+
+6. Gunicorn sends the response back to Nginx: 
+Gunicorn forwards the response back to Nginx.
+
+7. Nginx sends the response to the client: 
+Finally, Nginx forwards the response back to the client that originally made the request.

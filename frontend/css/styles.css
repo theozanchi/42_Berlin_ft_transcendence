@@ -1,0 +1,130 @@
+/* Custome styles for Pongerpuff Girl */
+
+/* Header styles */
+.header {
+    max-height: 48px;
+}
+
+.header-logo {
+	height: 72px;
+	margin: 6px;
+	/* max-height: 100%; */
+	object-fit: contain;
+}
+
+/* Set canvas dimensions */
+	#bg {
+		width: 100%;
+		/* height: calc(80% - 48px); Adjust for the space taken by other elements */
+		height: 80%;
+		position: relative;
+		/* top: 48px; Adjust to account for the height of other elements */
+		background-color: #4AB62C;
+		border: 1px solid red;
+	}
+	/* .col {
+		position: relative;
+	} */
+
+/* Custom colors for the theme */
+.ppg-blue {
+	background-color: #33ACE3;
+}
+
+.ppg-blue-light {
+	background-color: #98DAF1;
+}
+
+.ppg-pink {
+	background-color: #EA6964;
+}
+
+.ppg-pink-light {
+	background-color: #E78C89;
+}
+
+.ppg-green {
+	background-color: #4AB62C;
+}
+
+.ppg-green-light {
+	background-color: #81CB71;
+}
+
+/* Spacers */
+.spacer-12 {
+	height: 12px;
+}
+
+.spacer-24 {
+	height: 24px;
+}
+
+.spacer-48 {
+	height: 48px;
+}
+
+/* Hidden elements */
+.hidden {
+	display: none;
+}
+
+/* Player component styles */
+:root {
+	--player-img-height: 48px;
+	--player-component-margin: 6px;
+	--player-element-margin: 6px;
+}
+
+.player-component {
+    margin: var(--player-component-margin);
+}
+
+.player-component img {
+    height:	48px;
+	width:	48px;
+}
+
+.player-avatar {
+    height: 48px;
+}
+
+.player-input {
+    max-width: 100%;
+}
+
+.player-name {
+    margin: 0;
+}
+
+/* Game component styles */
+.game-canvas {
+	border: 1px solid black;
+    width: 100%;
+    height: 80%;
+}
+
+.stepper-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+}
+
+.btn-outline-secondary {
+    padding: 0;
+    width: 48px; /* Adjust button width as needed */
+}
+
+.align-baseline {
+	align-items: baseline;
+}
+
+.player-component {
+    height: var(--player-img-height);
+    margin-right: var(--player-element-margin);
+}
+
+.nav {
+	z-index: 1;
+}
