@@ -140,7 +140,7 @@ class Player(models.Model):
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name="userprofiles")
 
-    game = models.ManyToManyField(Game, related_name="players", on_delete=models.CASCADE)
+    game = models.ManyToManyField(Game, related_name="players")
     alias = models.CharField(max_length=25, null=True, blank=True)
     channel_name = models.CharField(max_length=255, null=True, blank=True)
 
