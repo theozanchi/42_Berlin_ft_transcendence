@@ -3,7 +3,7 @@ import logging
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse, JsonResponse
-from game_manager.models import Game, Player, Round
+from game_manager.models import Game, Player, Round, Participation
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import (api_view, authentication_classes,
                                        permission_classes)
@@ -110,11 +110,7 @@ def update_round_status(request):
         serializer = RoundSerializer(rounds, many=True)
 
         if round_played.round_number == game.rounds.count():
-            game.determine_winner()
-            for player in game.players.all():
-                player.create_participation()
-                player.game = None
-                player.save()
+            game.calculate_scores()
             game.save()
             logging.debug("game winner determined: %s", game.winner.alias)
 

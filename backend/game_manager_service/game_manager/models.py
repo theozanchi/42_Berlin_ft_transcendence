@@ -130,17 +130,27 @@ class Game(models.Model):
             round.save()
             round_number += 1
 
-    def determine_winner(self):
-        most_wins_player = None
-        max_wins = 0
+    def calculate_scores(self):
+        player_wins_scores = []
 
         for player in self.players.all():
-            if player.won_rounds.count() > max_wins:
-                max_wins = player.won_rounds.count()
-                most_wins_player = player
+            wins = player.won_rounds.count()
+            score = player.player1_rounds.player1_score + player.player2_rounds.player2_score
+            player_wins_scores.append((player, wins, score))
 
-        self.winner = most_wins_player
-        self.save()
+        # Sort players first by wins in descending order, then by score in descending order
+        player_wins_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
+
+        # Assign ranks and create Participation objects
+        for rank, (player, wins, score) in enumerate(player_wins_scores, start=1):
+            Participation.objects.create(tournament=self, user=player.user, score=score, rank=rank)
+            player.game = None
+            player.save()
+
+        # The winner is the player with the most wins
+        if player_wins_scores:
+            self.winner = player_wins_scores[0][0]  # First player in the sorted list
+            self.save()
 
     def __str__(self):
         return self.pk
