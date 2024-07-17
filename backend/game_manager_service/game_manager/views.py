@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def create_game(request):
     try:
         game = Game.objects.create(mode=request.data.get('game-mode'), host=request.data.get('channel_name'))
-        game.add_players_to_game(request.data)
+        game.create_players_for_game(request.data)
         game.save()
 
         logging.debug('creating new game: %s', game)
@@ -41,10 +41,10 @@ def join_game(request):
         if Player.objects.filter(game=game, user_id=user_id).exists():
             return Response({'error': 'Player already in game.'}, status=403)
         if not user_id:
-            # create new player
-            pass
-        
-        game.add_players_to_game(request.data)
+            game.create_players_for_game(request.data)
+        else:
+            game.add_existing_players_to_game(request.data)
+
         game.save()
 
         logging.debug('player joining game: %s', game)
