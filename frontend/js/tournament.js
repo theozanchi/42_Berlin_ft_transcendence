@@ -1,208 +1,22 @@
-///// START DUMMY CONTENT TO TEST UI /////
-const data = {
-	"type": "broadcast",
-	"content": {
-		"game_id": "gjd3KnR5",
-		"mode": "remote",
-		"winner": null,
-		"rounds": [
-			{
-				"round_number": 1,
-				"player1": "player1",
-				"player2": "player2",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 1,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 2,
-				"player1": "player1",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 3,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 1,
-				"player1": "player1",
-				"player2": "player2",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 1,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 2,
-				"player1": "player1",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 3,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 1,
-				"player1": "player1",
-				"player2": "player2",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 1,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 2,
-				"player1": "player1",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 3,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 1,
-				"player1": "player1",
-				"player2": "player2",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 1,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 2,
-				"player1": "player1",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 3,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-			{
-				"round_number": 3,
-				"player1": "player2",
-				"player2": "player3",
-				"winner": null,
-				"player1_score": 0,
-				"player2_score": 0,
-				"player1_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54",
-				"player2_channel_name": "specific.4465620cc3b24e4c93ffc8140ba86f30!459330cb3a334ab09ea7c97444b86a54"
-			},
-		],
-		"players": ["Player1", "Player1", "Player3"],
-		"host": "specific.5797d5f99c3b413482689681dc516691!0b8c81c8576e4329b1257001beb3460d"
-	}
-};
-		
-const gameDataStringified = JSON.stringify(data);
-///// END DUMMY CONTENT /////
+export function initTournament(data) {
+	// The expected data.content is an array of rounds
+	if (!data.content || !Array.isArray(data.content)) {
+        console.error('Invalid tournament update data format');
+        return;
+    }
 
-// Define the setGameData function
-function setGameData(data) {
-	// Create a new MutationObserver instance
-	const observer = new MutationObserver((mutationsList, observer) => {
-		// Look through all mutations that just occured
-		for(let mutation of mutationsList) {
-			// If the addedNodes property has one or more nodes
-			if(mutation.addedNodes.length) {
-				const gameTable = document.querySelector('game-table-component');
-				if (gameTable) {
-					gameTable.setAttribute('data', data);
-					// Once we have found the game-table-component and set its data attribute,
-					// we don't need to observe the DOM anymore
-					observer.disconnect();
-				}
-			}
-		}
-	});
-
-	// Start observing the document with the configured parameters
-	observer.observe(document.body, { childList: true, subtree: true });
+    // Update the tournament data
+    const gameTable = document.querySelector('game-table-component');
+    if (gameTable) {
+        gameTable.setAttribute('rounds', JSON.stringify(data));
+    } else {
+        console.error('game-table-component not found');
+    }
 }
 
-// Make the function globally accessible
-window.setGameData = setGameData;
+export function updateTournament(data) {
 
-// Call the function with the dummy data
-setGameData(gameDataStringified);
+}
 
 class GameTable extends HTMLElement {
 	constructor() {
@@ -211,11 +25,11 @@ class GameTable extends HTMLElement {
 	}
 
 	static get observedAttributes() {
-		return ['data'];
+		return ['rounds'];
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
-		if (name === 'data') {
+		if (name === 'rounds') {
 			this._data = JSON.parse(newValue);
 			this.render();
 		}
@@ -230,7 +44,7 @@ class GameTable extends HTMLElement {
 
 		let nextGames = '<div>';
 
-		this._data.content.rounds.forEach(round => {
+		this._data.content.forEach(round => {
 			if (!this._data.content.winner) {
 				nextGames += '<hr class="m-0">';
 				nextGames += `<match-component 

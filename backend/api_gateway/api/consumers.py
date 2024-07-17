@@ -50,7 +50,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 self.game_id,
                 {
                     'type': 'broadcast',
-                    'content': response.json()
+                    'content': 
+                    {
+                        'type': 'game',
+                        'content': response.json()
+                    }
                 }
             )
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
@@ -77,7 +81,8 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     def get_headers(self):
         return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
     
-    async def broadcast(self, content):
+    async def broadcast(self, event):
+        content = event.get('content')
         logging.debug('broadcasting: ' + str(content))
         await self.send_json(content)
     
@@ -132,7 +137,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 self.game_id,
                 {
                     'type': 'broadcast',
-                    'content': response.json()
+                    'content':
+                    {
+                        'type': 'game',
+                        'content': response.json()
+                    }
                 }
             )
         
@@ -158,7 +167,18 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     break
         
             # Send round info to all players
-            await self.channel_layer.group_send(self.game_id, {'type': 'broadcast', 'content': response.json()})
+            await self.channel_layer.group_send(
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content':
+                    {
+                        'type': 'round',
+                        'action': 'new',
+                        'content': response.json()
+                    }
+                }
+            )
             if round_info is not None:
                 # Send player id to pther players
                 await self.channel_layer.group_send(self.game_id, {'type': 'get_player_id', 'content': round_info})

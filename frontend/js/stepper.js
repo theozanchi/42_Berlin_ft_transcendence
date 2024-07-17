@@ -7,105 +7,47 @@
 // import { generateLocalGame } from './api_calls.js';
 // import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
 
+import { initTournament, updateTournament } from './tournament.js';
+
 var newsocket;
 let openPromise;
 let messagePromise;
 let game_id;
 
 // For game area
-// export var gameStarted = false;
-// export var gameOver = false;
-// export var remote = false;
-// export var round_number;
-// export let currentPlayer;
+export var gameStarted = false;
+export var gameOver = false;
+export var remote = false;
+export var round_number;
+export let currentPlayer;
 
-//Create the staert button
+//Create the start button
 let startGameButton = document.createElement('button');
 startGameButton.textContent = 'Start Game';
 
 // Add a margin to the top of the button
 startGameButton.style.marginTop = '100px';  // Adjust this value as needed
 
-function openSocket() {
+export function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
-		console.log('Opening new WebSocket');
 		const url = `wss://${window.location.host}/ws/`;
 		newsocket = new WebSocket(url);
 
 		openPromise = new Promise((resolve) => {
 			newsocket.onopen = function(event) {
-				console.log('Connected to WebSocket server.');
 				resolve();
 			};
 		});
 
         messagePromise = new Promise((resolve) => {
             newsocket.onmessage = function(event) {
-                console.log('Received: ' + event.data);
                 resolve(event.data);
             };
         });
 
 		newsocket.onmessage = function(event) {
-			console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
-				if (data.type === 'broadcast') {
-					console.log('Broadcast:', data);
-
-					if (data.content.message === 'tournament-over') {
-						console.log('Game Over. Winner is: ' + data.content.winner);
-						newsocket.close();
-						displayScore(data.content.winner);
-					}
-				}
-				if (data.type === 'create-game') {
-						game_id = data.game_id;
-						console.log('Game ID:', game_id);
-				}
-                if (data.type === 'start-game') {
-					if (startGameButton) {
-						startGameButton.remove();
-					}
-					if (data.mode === 'remote') {
-						remote = true;
-
-						if (data.player_id === 'player1')
-							currentPlayer = player;
-						else if (data.player_id === 'player2')
-							currentPlayer = player2;
-						else
-							currentPlayer = 'spectator';
-					}
-				
-                    gameStarted = true;
-					round_number = data.round_number;
-                    console.log('Game started! round number:', round_number);
-					init();
-					animate();
-                }
-				if (data.type === 'update') {
-					if (gameStarted === false)
-						return;
-					if (data.content.gameOver === true) {
-						console.log('Round Over. Winner is: ', data.content.winner);
-						currentPlayer = null;
-						//unloadLocalGame();
-						// Start next round
-						displayScore(data.content);
-
-						gameStarted = false;
-						//createStartButton();
-						if (gameStarted) {
-							console.log('Game already started!');
-							return;
-						}
-						console.log('SENDING Starting game...');
-						sendJson(JSON.stringify({ type: 'start-game' }));
-					}
-					else {
-						updateGameState(data);
-					}
-				}
+			handleMessage(data);
 		};
 
 		newsocket.onclose = function(event) {
@@ -115,21 +57,86 @@ function openSocket() {
 		newsocket.onerror = function(error) {
 			console.log('WebSocket error: ' + error.message);
 		};
-    }
-/* 		// Keep-Alive Mechanism
-		function sendKeepAlive() {
-			if (socket.readyState === WebSocket.OPEN) {
-				socket.send(JSON.stringify({ type: 'keep_alive' }));
-			}    
-		}    
-	
-		setInterval(sendKeepAlive, 30000); // Send a keep-alive message every 30 seconds
-	 */
-	return (openPromise);
+    
+		return (openPromise);
+	}
 }
 
-// export async function sendJson(json) {
-	async function sendJson(json) {
+function handleMessage(data) {
+	switch (data.type) {	
+		case 'broadcast':
+			console.log('Broadcast:', data);
+
+			if (data.content.message === 'tournament-over') {
+				console.log('Game Over. Winner is: ' + data.content.winner);
+				newsocket.close();
+				displayScore(data.content.winner);
+			}
+			break;
+		
+		case 'create-game':
+			game_id = data.game_id;
+			console.log('Game ID:', game_id);
+			break;
+		
+		case 'start-game':
+			if (startGameButton) {
+				startGameButton.remove();
+			}
+			if (data.mode === 'remote') {
+				remote = true;
+				if (data.player_id === 'player1')
+					currentPlayer = player;
+				else if (data.player_id === 'player2')
+					currentPlayer = player2;
+				else
+					currentPlayer = 'spectator';
+			}
+			gameStarted = true;
+			round_number = data.round_number;
+			console.log('Game started! round number:', round_number);
+			init();
+			animate();
+			break;
+		
+		case 'update':
+			if (gameStarted === false)
+				return;
+			if (data.content.gameOver === true) {
+				console.log('Round Over. Winner is: ', data.content.winner);
+				currentPlayer = null;
+				//unloadLocalGame();
+				// Start next round
+				displayScore(data.content);
+
+				gameStarted = false;
+				//createStartButton();
+				if (gameStarted) {
+					console.log('Game already started!');
+					return;
+				}
+				console.log('SENDING Starting game...');
+				sendJson(JSON.stringify({ type: 'start-game' }));
+			}
+			else {
+				updateGameState(data);
+			}
+			break;
+
+		case 'round':
+			switch (data.action) {
+				case 'new':
+					initTournament(data);
+					break;
+				case 'update':
+					updateTournament(data);
+					break;
+			}
+			break;
+	}
+}
+
+export async function sendJson(json) {
 	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         await newsocket.send(json);
@@ -153,6 +160,7 @@ function createStartButton() {
 			return;
 		}
 		console.log('SENDING Starting game...');
+		urlRoute('/game');
 		sendJson(JSON.stringify({ type: 'start-game' }));
 	});
 }
