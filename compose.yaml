@@ -6,6 +6,7 @@ services:
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
+      - ./static:/usr/share/nginx/html/static
       - ./media_data:/usr/share/nginx/html/media
     networks:
       - frontend

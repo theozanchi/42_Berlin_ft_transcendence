@@ -1,13 +1,14 @@
-from django.http import JsonResponse
 import os
-import requests
-from django.core.files.base import ContentFile
-from django.contrib.auth import login
-from .models import UserProfile, User
-from django.utils.crypto import get_random_string
-from django.shortcuts import redirect
 import pprint
 
+import requests
+from django.contrib.auth import login
+from django.core.files.base import ContentFile
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.utils.crypto import get_random_string
+
+from .models import User, UserProfile
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
@@ -118,7 +119,7 @@ def update_or_create_user(user_info, access_token):
             user.set_unusable_password()
             user.save()
 
-        save_avatar_from_url(user.userprofile, picture_url)
+        save_avatar_from_url(user.player, picture_url)
     return user
 
 
@@ -133,7 +134,12 @@ def error_response(message):
 
 def success_response(user_id):
     return JsonResponse(
-        {"status": "success", "message": "Login with 42 oauth Login was successful", "user_id": user_id}, status=200
+        {
+            "status": "success",
+            "message": "Login with 42 oauth Login was successful",
+            "user_id": user_id,
+        },
+        status=200,
     )
 
 

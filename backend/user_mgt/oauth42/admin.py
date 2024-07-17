@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Tournament, Participation
 from django.utils.html import format_html
+
+from .models import Participation, Tournament, UserProfile
 
 
 class UserProfileInline(admin.TabularInline):
@@ -66,19 +67,19 @@ class UserAdmin(BaseUserAdmin):
 
     def picture_url(self, obj):
         return format_html(
-            '<img src="{}" style="height: 100px" />', obj.userprofile.picture_url
+            '<img src="{}" style="height: 100px" />', obj.player.picture_url
         )
 
     picture_url.short_description = "Picture URL"
 
     def id42(self, obj):
-        return obj.userprofile.id42
+        return obj.player.id42
 
     id42.short_description = "42 ID"
 
     def list_of_friends(self, obj):
         return ", ".join(
-            [str(friend.username) for friend in obj.userprofile.friends.all()]
+            [str(friend.username) for friend in obj.player.friends.all()]
         )
 
     list_of_friends.short_description = "Friends list"

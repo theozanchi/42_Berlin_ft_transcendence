@@ -1,9 +1,13 @@
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
-import requests
+import asyncio
 import json
 import logging
-import asyncio
 
+import requests
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
+
+logging.basicConfig(
+    level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logging.basicConfig(
     level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
@@ -35,7 +39,12 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         for key, value in self.scope["headers"]:
             if key.decode("utf-8") == "cookie":
                 cookies = value.decode("utf-8").split("; ")
+        for key, value in self.scope["headers"]:
+            if key.decode("utf-8") == "cookie":
+                cookies = value.decode("utf-8").split("; ")
                 for cookie in cookies:
+                    if cookie.startswith("csrftoken="):
+                        token = cookie.split("=")[1]
                     if cookie.startswith("csrftoken="):
                         token = cookie.split("=")[1]
                         # ISSUE validate token with authentication server

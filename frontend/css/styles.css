@@ -72,43 +72,32 @@
 /* Player component styles */
 :root {
 	--player-img-height: 48px;
+	--player-img-width: 48px;
 	--player-component-margin: 6px;
 	--player-element-margin: 6px;
 }
 
 .player-component {
-    margin: var(--player-component-margin);
-}
-
-.player-component img {
-    height:	48px;
-	width:	48px;
-}
-
-.player-avatar {
     height: 48px;
+	gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 6px;
 }
 
-.player-input {
-    max-width: 100%;
+.square-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.player-name {
-    margin: 0;
-}
 
 /* Game component styles */
 .game-canvas {
 	border: 1px solid black;
     width: 100%;
     height: 80%;
-}
-
-.stepper-titlebar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
 }
 
 .btn-outline-secondary {
@@ -120,11 +109,16 @@
 	align-items: baseline;
 }
 
-.player-component {
-    height: var(--player-img-height);
-    margin-right: var(--player-element-margin);
+.game-ticker {
+	/* transform: scale(2); */
+	height: 96px;
 }
 
-.nav {
-	z-index: 1;
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }

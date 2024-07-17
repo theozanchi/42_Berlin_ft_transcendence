@@ -1,15 +1,18 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.contrib.auth.models import User
-from itertools import combinations
-import requests
-import string
-import random
-from .exceptions import InsufficientPlayersError
 import logging
-from django.dispatch import receiver
+import random
+import string
+from itertools import combinations
+
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models import F, Sum, Window
+from django.db.models.functions import Coalesce, DenseRank
 from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from .exceptions import InsufficientPlayersError
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -24,7 +27,36 @@ def generate_game_id():
             return game_id
 
 
-# Create your models here.
+class UserManager(models.Manager):
+
+    def get_user_rankings(self):
+        return (
+            self.annotate(
+                total_score=Coalesce(Sum("participation__score"), 0),
+                rank=Window(expression=DenseRank(), order_by=F("total_score").desc()),
+                avatar=F("player__avatar"),
+            )
+            .order_by("-total_score")
+            .values_list("id", "alias", "total_score", "rank", "avatar")
+        )
+
+    def get_user_ranking(self, user_id):
+        rankings = list(self.get_user_rankings())
+        for user in rankings:
+            if user[0] == user_id:
+                return {
+                    "user_id": user[0],
+                    "alias": user[1],
+                    "total_score": user[2],
+                    "rank": user[3],
+                    "avatar": user[4],
+                }
+        return {"error": "User not found"}
+
+    def get_by_natural_key(self, username):
+        return self.get(username=username)
+
+
 class Game(models.Model):
     game_id = models.CharField(
         primary_key=True,
@@ -47,6 +79,10 @@ class Game(models.Model):
         "Player", related_name="won_games", null=True, on_delete=models.SET_NULL
     )
     host = models.CharField(max_length=255, null=True, blank=True)
+
+    participants = models.ManyToManyField(
+        User, through="Participation", related_name="tournaments"
+    )
 
     def clean(self):
         if not self.mode:
@@ -128,6 +164,16 @@ class Game(models.Model):
                 round.winner = round.player1
             round.save()
 
+class Tournament(Game):
+    pass
+
+class Participation(models.Model):  # Binds User and Tournament classes
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tournament = models.ForeignKey(Game, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    rank = models.IntegerField()
+
 
 class Player(models.Model):
     ###### ISSUE:truncate name for player in case it's too long AND unique alias
@@ -139,7 +185,7 @@ class Player(models.Model):
     last_login = models.DateTimeField(auto_now=True)
     last_activity = models.DateTimeField(auto_now=True)
     access_token = models.CharField(max_length=200, null=True, blank=True)
-    friends = models.ManyToManyField(User, related_name="userprofiles")
+    friends = models.ManyToManyField(User, related_name="players")
 
     game = models.ForeignKey(Game, related_name="players")
     alias = models.CharField(max_length=25, null=True, blank=True)
@@ -151,8 +197,7 @@ class Player(models.Model):
     def save(self, *args, **kwargs):
         if not self.alias:
             raise ValueError("Player must have an alias.")
-        if not hasattr(self, 'user') or self.user is None:
-            # Check if a User with the desired username already exists
+        if not hasattr(self, "user") or self.user is None:
             username = self.alias
             unique_username_found = False
             counter = 1
@@ -160,10 +205,8 @@ class Player(models.Model):
                 if not User.objects.filter(username=username).exists():
                     unique_username_found = True
                 else:
-                    # If the username exists, append a number to make it unique
                     username = f"{self.alias}{counter}"
                     counter += 1
-            # Create the User with the unique username
             user, created = User.objects.get_or_create(username=username)
             self.user = user
         super().save(*args, **kwargs)
@@ -172,6 +215,12 @@ class Player(models.Model):
         self.avatar.delete(save=False)
         super(Player, self).delete(*args, **kwargs)
 
+
+class UserProfile(Player):
+    pass
+
+
+User.add_to_class("rankings", UserManager())
 
 
 class Round(models.Model):
@@ -216,3 +265,10 @@ class Round(models.Model):
 
     def __str__(self):
         return f"Round {self.round_number} - status: {self.status} - {self.player1} vs {self.player2} - winner: {self.winner}"
+
+
+@receiver(post_save, sender=UserProfile)
+@receiver(post_save, sender=Participation)
+@receiver(post_save, sender=Tournament)
+def update_rankings(sender, **kwargs):
+    User.rankings.get_user_rankings()

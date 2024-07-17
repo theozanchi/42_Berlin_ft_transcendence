@@ -12,42 +12,33 @@
   	</head>
 	<body>
 		<div class="container-fluid">
-			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col col-lg-3 ppg-blue-light d-flex flex-column justify-content-between vh-100">
+			<div class="max-vh-100 row row-cols-1 row-cols-lg-3">
+				<div class="col col-lg-3 ppg-blue-light d-flex flex-column justify-content-between vh-100" id="settings-column">
 					
-					
-					<div class="spacer-48"></div>
-					<stepper-component></stepper-component>
+					<div class="d-flex flex-column h-100">
+						<div>
+							<div class="spacer-48"></div>
+							<stepper-component></stepper-component>
+							<stepper-titlebar title="Local Game"></stepper-titlebar>
+						</div>
+						
+						
+						<div class="d-flex flex-column ppg-green h-100 overflow-auto">
+							<player-list mode="local"></player-list>
+						</div>
 
-					<div  class="step">
-						<stepper-titlebar title="Local Game"></stepper-titlebar>
-					</div>
-					
-					<div class="d-flex flex-column ppg-green h-100 overflow-auto">
-								<player-list mode="local"></player-list>
-					</div>
-
-
-					<div class="d-grid gap-2">
-						<hr>
-						<button id="generateLocalGameButton" class="btn btn-primary btn-lg generate-game-button">Generate Game</button>
-						<div class="spacer-48"></div>
+						<div class="d-grid gap-2">
+							<hr>
+							<button id="generateLocalGameButton" class="btn btn-primary btn-lg generate-game-button">Generate Game</button>
+							<div class="spacer-48"></div>
+						</div>
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
-					<!-- <div class="spacer-48"></div> -->
-					<!-- <h2>GAMING AREA</h2> -->
-					<!-- <pong-game></pong-game> -->
-
 					
-					<!-- <div>
-						<canvas id="bg"></canvas>
-						<script type="module" src="./js/pong/main.js"></script>
-					</div> -->
 				</div>
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
-					<div class="spacer-48"></div>
-					<h2>WebSocket Client</h2>
+					
 				</div>
 			</div>
 		</div>

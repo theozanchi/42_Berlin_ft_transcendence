@@ -7,6 +7,26 @@ on:
       - development
 
 jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Black
+        run: pip install black
+      - name: Check code formatting with Black
+        run: black .
+
+      - name: Install isort
+        run: pip install isort
+      - name: Apply isort to sort imports
+        run: isort .
+
   deploy:
     runs-on: ubuntu-latest
 

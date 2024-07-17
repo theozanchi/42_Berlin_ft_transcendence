@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Game Lobby | PongerPuff Girls</title>
+    	<meta charset="utf-8"/>
+    	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+		<link rel="stylesheet" href="css/styles.css"/>
+
+  	</head>
+	<body>
+		<div  class="container-fluid">
+			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
+				<div class="col col-lg-3 ppg-blue-light" id="settings-column">
+					<div class="d-flex flex-column h-100">
+						<div>
+							<div class="spacer-48"></div>
+							<stepper-component></stepper-component>
+							<stepper-titlebar title="Remote Game"></stepper-titlebar>
+						</div>
+						
+						<div class="d-flex flex-column h-100 overflow-auto">
+							<div class="spacer-48"></div>
+							<p>Fantastic!<br>Nothing better than playing with friends via the internet.</p>
+							<div class="spacer-48"></div>
+							<h2>Join Game</h2>
+							<p>Do you want to join an existing game via Game ID, than you can search for it:</p>
+
+							<form class="input-group mb-3 needs-validation">
+								<div class="form-floating d-grid">
+									<input type="input" class="form-control" id="searchGameID" placeholder="P0NG" required>
+									<label for="searchGameID">Game-ID</label>
+								</div>
+								<button class="btn btn-primary" type="submit" id="joinRemoteGameButton">Join</button>
+							</form>
+							<div class="spacer-48"></div>
+							<h2>Host Game</h2>
+							<p>Do your prefer to host your own game to share it with friends?</p>
+							<nav>
+								<button id="hostRemoteGameButton" class="btn btn-lg btn-primary d-grid generate-game-button">Host Remote Game</b>
+							</nav> 
+						</div>
+					</div>
+				</div>
+	
+				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
+					
+				</div>
+				<div class="col col-lg-3 ppg-green-light" id="meta-column">
+					
+				</div>
+			</div>
+		</div>
+	</body>
+    <!-- custom JS -->
+	<script src="js/websocket_connect.js"></script>
+	<script src="js/stepper.js"></script>
+	<script src="js/stepper_titlebar.js"></script>
+	<script src="js/player_list.js"></script>
+	<script src="js/player.js"></script>
+	<script src="js/static_game.js"></script>
+</html>

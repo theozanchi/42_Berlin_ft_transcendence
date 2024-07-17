@@ -2,10 +2,12 @@
 
 from rest_framework import serializers
 
+
 class RotationSerializer(serializers.Serializer):
     x = serializers.FloatField()
     y = serializers.FloatField()
     z = serializers.FloatField()
+
 
 class PlayerSerializer(serializers.Serializer):
     x = serializers.FloatField()
@@ -13,15 +15,18 @@ class PlayerSerializer(serializers.Serializer):
     z = serializers.FloatField()
     rotation = RotationSerializer()
 
+
 class BallSpeedSerializer(serializers.Serializer):
     x = serializers.FloatField()
     y = serializers.FloatField()
     z = serializers.FloatField()
 
+
 class BallSerializer(serializers.Serializer):
     x = serializers.FloatField()
     y = serializers.FloatField()
     z = serializers.FloatField()
+
 
 class GameStateSerializer(serializers.Serializer):
     game_id = serializers.CharField()

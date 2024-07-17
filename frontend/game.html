@@ -3,17 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com;">
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com;"> -->
     <title>3D Pong Game</title>
     <link rel="stylesheet" href="css/styles.css">
-   <!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
 </head>
 <body>
-	<canvas id="bg"></canvas>
-	<script src="assets/game.js" type="module"></script>
-    <div class="container">
-        <h1>3D Pong Game</h1>
-        <div id="game-container"></div>
-    </div>
+	<div id="settings-column">
+		<div class="d-flex flex-column h-100">
+			<div>
+				<div class="spacer-48"></div>
+				<stepper-component></stepper-component>
+				<stepper-titlebar title="Remote Game"></stepper-titlebar>
+			</div>
+			
+			<div class="container flex-grow-1 d-flex flex-column">
+				<div class="row flex-grow-1">
+					<div class="col d-flex flex-column justify-content-center align-items-center">
+						<img src="${imageUrl}" class="game-ticker">
+					</div>
+					<div class="col d-flex justify-content-center align-items-center">
+						<p class="fs-1 m-0 text-centered">0 : 1</p>
+					</div>
+					<div class="col d-flex flex-column justify-content-center align-items-center">
+						<img src="${imageUrl}" class="game-ticker">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col d-flex justify-content-center align-items-center">
+						<p class="fs-2  m-0 text-center">player1</p>
+					</div>
+					<div class="col"></div>
+					<div class="col d-flex justify-content-center align-items-center">
+						<p class="fs-2 m-0 text-centered">player2</p>
+					</div>
+				</div>
+			</div>
+
+			<hr>
+			<div class="spacer-24"></div>
+			<h3>Tournament Table</h3>
+			<div id="upcoming-games" class="d-flex flex-column ppg-green flex-grow-1 overflow-auto">
+				<tournament-table-component></tournament-table-component>
+			</div>
+
+			<div class="d-grid gap-2">
+				<div class="spacer-12"></div>
+				<hr>
+				<!-- <nav class="d-grid gap-2 d-md-block"> -->
+					<button id="backButton" class="btn y btn-lg btn-outline-danger">Leave Tournament</button>
+				<!-- </nav> -->
+				<div class="spacer-48"></div>
+			</div>
+		</div>
+
+
+	</div>
+	<div id="game-column">
+		<tournament-table-component></tournament-table-component>
+
+		<canvas id="bg"></canvas>
+		<div class="container">
+			<h1>3D Pong Game</h1>
+			<div id="game-container"></div>
+		</div>
+		<script type="module" src="js/game.js"></script>
+	</div>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </html>
