@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 game_update_lock = Lock()
 last_update_time = time.time()
-WINNER_SCORE = 1
+WINNER_SCORE = 7
 
 GAME_MANAGER_REST_URL = 'http://game_manager:8000'
 
