@@ -85,18 +85,18 @@ const LogInObserver = new MutationObserver(() => {
 		});
 	};
 
-	if (logoutUser) {
-		console.log('logging out');
-		fetch('/api/user_mgt/logout/', {
-			method: 'POST',
-			body: formData,
-		})
-		// fetch('/api/user_mgt/delete_cookie/', {
-		// 	method: 'POST',
-		// 	body: formData,
-		// })
+	// if (logoutUser) {
+	// 	console.log('logging out');
+	// 	fetch('/api/user_mgt/logout/', {
+	// 		method: 'POST',
+	// 		body: formData,
+	// 	})
+	// 	// fetch('/api/user_mgt/delete_cookie/', {
+	// 	// 	method: 'POST',
+	// 	// 	body: formData,
+	// 	// })
 		
-	}
+	// }
 });
 
 // Start observing the document with the configured parameters
