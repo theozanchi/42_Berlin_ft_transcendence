@@ -1,6 +1,3 @@
-let logged_in = false;
-let user_id = -1;
-
 // const LogIn42Observer = new MutationObserver(() => {
 // 	const login42OAuth = document.getElementById('login42SSOButton');
 
@@ -15,6 +12,14 @@ let user_id = -1;
 
 // Start observing the document with the configured parameters
 // LogIn42Observer.observe(document, { childList: true, subtree: true });
+
+//FUNCTION THAT RETURNS THE LOGGED IN STATE OF CLIENT
+export async function getLoggedInState() {
+	const loggedIn = await fetch('/api/user_mgt/me')
+		.then(response => response.json())
+		.catch(() => ({ status: "error" }));
+	return loggedIn;
+}
 
 const LogInObserver = new MutationObserver(() => {
 	const loginUser = document.getElementById('loginUser');

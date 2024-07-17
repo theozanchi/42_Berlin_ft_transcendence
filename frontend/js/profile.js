@@ -1,9 +1,23 @@
-function setProfileImage() {
+import {getLoggedInState} from './login_signup.js';
+
+
+export function setProfileImage(user_id) {
 	const baseUrl = document.location.href;
+
+	fetch(`/api/user_mgt/profile/${user_id}`)
+		.then(response => {
+			// Check if the response is ok and content type is JSON
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				return response.json();
+			}
+			throw new Error('Non-JSON response received');
+	})	
+	.then (response =>)
 	let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 
 	let image = document.getElementById('profileAvatar');
-	image.setAttribute('src', imageURL);
+	image.setAttribute('src', imageUrl);
+	return (imageUrl);
 }
 
 
@@ -21,28 +35,28 @@ const ProfileObserver = new MutationObserver(() => {
 	// fetch('/api/user_mgt/profile/2/')
 
 // PREPARED FOR USER_MGMT
-	fetch('/api/user_mgt/user_mgt/me')
-	.then(response => {
-		// Check if the response is ok and content type is JSON
-		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-		return response.json();
-		}
-		throw new Error('Non-JSON response received');
-	})
-	.then(response => {
-		// Check if the response is ok and content type is JSON
-		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-		return response.json();
-		}
-		throw new Error('Non-JSON response received');
-// PREPARED FOR USER_MGMT
-		fetch(`/api/user_mgt/profile/${response.user_id}`);
+	fetch('/api/user_mgt/me')
+		.then(response => {
+			// Check if the response is ok and content type is JSON
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				return response.json();
+			}
+			throw new Error('Non-JSON response received');
 	})
 	.then(data => {
+		console.log(`PROFILE IS FETCHING: ${data.user_id}`)
+		return fetch(`/api/user_mgt/profile/${data.user_id}`);
+	})
+	.then(response => response.json())
+	.then(data => {
+
+	
 		ProfileObserver.disconnect();
 
 		// userAvatar.src = data.avatar;
 		if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
+			console.log(data);
+			data = data.player_data;
 			userNickname.textContent = data.nickname;
 			userRank.textContent = data.rank.rank;
 			userScore.textContent = data.total_score;
@@ -77,45 +91,43 @@ const ProfileObserver = new MutationObserver(() => {
 ProfileObserver.observe(document, { childList: true, subtree: true });
 
 const ProfileEditObserver = new MutationObserver(() => {
-	const userEditAvatar = document.getElementById('profileEditAvatar');
-	let	 userEditNickname = document.getElementById('profileEditNickname');
-	const userPassword = document.getElementById('userEditPassword');
-	const userPasswordConfirm = document.getElementById('userEditPasswordConfirm');
-	const userAccountDelete = document.getElementById('userEditProfileButton');
+	const	userEditAvatar = document.getElementById('profileEditAvatar');
+	let	 	userEditNickname = document.getElementById('profileEditNickname');
+	const	userPassword = document.getElementById('userEditPassword');
+	const	userPasswordConfirm = document.getElementById('userEditPasswordConfirm');
+	const	userAccountDelete = document.getElementById('userEditProfileButton');
 
-	fetch('/api/user_mgt/profile/2/')
+	// fetch('/api/user_mgt/profile/2/')
 
 // PREPARED FOR USER_MGMT
-	// fetch('/api/user_mgt/user_mgt/me')
-	// .then(response => {
-	// 	// Check if the response is ok and content type is JSON
-	// 	if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-	// 	return response.json();
-	// 	}
-	// 	throw new Error('Non-JSON response received');
-	// })
-
-	.then(response => {
-		// Check if the response is ok and content type is JSON
-		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-		return response.json();
-		}
-		throw new Error('Non-JSON response received');
-// PREPARED FOR USER_MGMT
-		// fetch(`/api/user_mgt/profile/${response.user_id}`);
-	})
-	.then(data => {
-		ProfileEditObserver.disconnect();
-		console.log(data.nickname)
-		userEditNickname.value = data.nickname;
-		// Use the data here
-		// console.log("USER DATA");
-		// console.log(data);
-		// userAvatar.src = data.avatar;
-	})
-	.catch(error => {
-		console.error('Error:', error);
-	});
+	if (userEditAvatar && userEditNickname && userPassword && userPasswordConfirm && userAccountDelete) {
+		fetch('/api/user_mgt/me')
+		.then(response => {
+			// Check if the response is ok and content type is JSON
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				// 
+				return response.json();
+			}
+			throw new Error('Non-JSON response received');
+		})
+		.then(data => {
+			// Use the user_id from the first API call in the second API call
+			return fetch(`/api/user_mgt/profile/${data.user_id}`);
+		})
+		.then(response => response.json())
+		.then(data => {
+			// ProfileEditObserver.disconnect();
+			console.log(data.nickname)
+			userEditNickname.value = data.nickname;
+			// Use the data here
+			// console.log("USER DATA");
+			// console.log(data);
+			// userAvatar.src = data.avatar;
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
+	}
 });
 
 ProfileEditObserver.observe(document, { childList: true, subtree: true });

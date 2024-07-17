@@ -1,4 +1,5 @@
 const	baseUrl = document.location.href;
+import {getLoggedInState} from './login_signup.js';
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -93,17 +94,17 @@ const urlRoute = (eventOrUrl) => {
 }
 
 const urlLocationHandler = async () => {
+	
     let location = window.location.pathname;
+	let urlQuery = window.location.search;
+	let userId;
+	console.log(urlQuery);
     if (location.length == 0) {
         location = "/"
     }
-	let urlQuery = '';
 
-    // Fetch user status
-	const userStatus = await fetch('/api/user_mgt/me')
-		.then(response => response.json())
-		.catch(() => ({ status: "error" }));
-
+	// route based on login state
+	const userStatus = await getLoggedInState();
     if (userStatus.status === "success") {
         // User is logged in
         if (location === "/login" || location === "/signup") {
@@ -115,8 +116,8 @@ const urlLocationHandler = async () => {
         }
     } else {
         // User is not logged in
-        if (location === "/profile") {
-            location = "/";
+        if (location === "/profile" && !urlQuery) {
+            location = "/login";
         } else if (location === "/setup-remote") {
             location = "/login";
         } else if (location === "/join-remote") {
@@ -152,6 +153,7 @@ const urlLocationHandler = async () => {
 		// setGameID();	
 	// For profile pages and logged in user, load the corresponding profile page
 	if (location === "/profile" && userStatus.user_id) {
+		console.log(`ROUTING TO PROFILE: ${userId}`)
 		const url = new URL(window.location.href);
 		url.searchParams.set('user', userStatus.user_id);
 		window.history.pushState({}, "", url.toString());

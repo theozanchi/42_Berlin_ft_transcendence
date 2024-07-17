@@ -13,6 +13,26 @@ class MyPlayer extends HTMLElement {
 			});
 	}
 
+    get name() {
+        return this.getAttribute('name');
+    }
+
+    set name(newValue) {
+        this.setAttribute('name', newValue);
+        this.render();
+    }
+
+    static get observedAttributes() {
+        return ['name'];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'name' && oldValue !== newValue) {
+			console.log(`RERENDERING: ${name} ${oldValue}  ${newValue}`);
+            this.render();
+        }
+    }
+
 	render() {
 		const hasInput = this.hasAttribute('input');
 		const hasRemoveButton = this.hasAttribute('remove-button');
@@ -31,7 +51,7 @@ class MyPlayer extends HTMLElement {
 			: `<p class="col align-middle fs-5 m-0">${name}</p>`
 
 		const inputElement = hasInput 
-			? `<input type="text" class="form-control col" maxlength="30" value="${name}">` 
+			? `<input id="playerNicknameInput" type="text" class="form-control col" maxlength="30" value="${name}">` 
 			: `${nameAligned}`;
 	
 		const removeButtonElement = hasRemoveButton 
@@ -50,6 +70,12 @@ class MyPlayer extends HTMLElement {
 						: imgElement + inputElement + removeButtonElement}
 			</div>
 		`;
+
+		if (hasInput) {
+			this.shadow.getElementById('playerNicknameInput').addEventListener('change', (event) => {
+				this.name = event.target.value;
+			});
+		}
 	}
 }
 
