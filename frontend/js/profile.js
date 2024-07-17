@@ -3,6 +3,7 @@ import {getLoggedInState} from './login_signup.js';
 
 export function setProfileImage(user_id) {
 	const baseUrl = document.location.href;
+	let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 
 	fetch(`/api/user_mgt/profile/${user_id}`)
 		.then(response => {
@@ -12,11 +13,12 @@ export function setProfileImage(user_id) {
 			}
 			throw new Error('Non-JSON response received');
 	})	
-	.then (response =>)
-	let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
-
-	let image = document.getElementById('profileAvatar');
-	image.setAttribute('src', imageUrl);
+	.then(response => {
+	if (response.player_data.user_avatar)
+		imageUrl = response.player_data.user_avatar;
+		console.log(`imageURL: ${imageUrl}`)
+		return (imageUrl);
+	})
 	return (imageUrl);
 }
 
@@ -44,7 +46,7 @@ const ProfileObserver = new MutationObserver(() => {
 			throw new Error('Non-JSON response received');
 	})
 	.then(data => {
-		console.log(`PROFILE IS FETCHING: ${data.user_id}`)
+		console.log(`PROFILE IS FETCHING: ${data.user_id}`);
 		return fetch(`/api/user_mgt/profile/${data.user_id}`);
 	})
 	.then(response => response.json())
@@ -57,6 +59,8 @@ const ProfileObserver = new MutationObserver(() => {
 		if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
 			console.log(data);
 			data = data.player_data;
+			console.log(setProfileImage(data.user_id));
+			userAvatar.src = setProfileImage(data.user_id);
 			userNickname.textContent = data.nickname;
 			userRank.textContent = data.rank.rank;
 			userScore.textContent = data.total_score;

@@ -95,39 +95,39 @@ const urlRoute = (eventOrUrl) => {
 
 const urlLocationHandler = async () => {
 	
-    let location = window.location.pathname;
+	let location = window.location.pathname;
 	let urlQuery = window.location.search;
 	let userId;
 	console.log(urlQuery);
-    if (location.length == 0) {
-        location = "/"
-    }
+	if (location.length == 0) {
+		location = "/"
+	}
 
 	// route based on login state
 	const userStatus = await getLoggedInState();
-    if (userStatus.status === "success") {
-        // User is logged in
-        if (location === "/login" || location === "/signup") {
-            location = "/";
-        } else if (location === "/profile") {
-            // location = `/profile?user=${userStatus.user_id}`;
-            location = `/profile`;
+	if (userStatus.status === "success") {
+		// User is logged in
+		if (location === "/login" || location === "/signup") {
+			location = "/";
+		} else if (location === "/profile") {
+			// location = `/profile?user=${userStatus.user_id}`;
+			location = `/profile`;
 			userId = `?user=${userStatus.user_id}`;
-        }
-    } else {
-        // User is not logged in
-        if (location === "/profile" && !urlQuery) {
-            location = "/login";
-        } else if (location === "/setup-remote") {
-            location = "/login";
-        } else if (location === "/join-remote") {
-            location = "/setup-remote";
-        }
-    }
+		}
+	} else {
+		// User is not logged in
+		if (location === "/profile" && !urlQuery) {
+			location = "/login";
+		} else if (location === "/setup-remote") {
+			location = "/login";
+		} else if (location === "/join-remote") {
+			location = "/setup-remote";
+		}
+	}
 
 	let route = urlRoutes[location] || urlRoutes[404]
 	// route += urlQuery;
-	// console.log(route);
+	console.log(route);
 
 	const html = await fetch(route.template).then((response) => 
 		response.text());
@@ -155,7 +155,7 @@ const urlLocationHandler = async () => {
 	if (location === "/profile" && userStatus.user_id) {
 		console.log(`ROUTING TO PROFILE: ${userId}`)
 		const url = new URL(window.location.href);
-		url.searchParams.set('user', userStatus.user_id);
+		url.searchParams.set('user', userId);
 		window.history.pushState({}, "", url.toString());
 	}
 };

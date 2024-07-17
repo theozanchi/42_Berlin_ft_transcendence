@@ -1,4 +1,5 @@
 import {getLoggedInState} from './login_signup.js';
+import {setProfileImage} from './profile.js'
 
 class ProfileTeaser extends HTMLElement {
 	connectedCallback() {
@@ -7,7 +8,6 @@ class ProfileTeaser extends HTMLElement {
 
 	async render() {
 		const loggedIn = await getLoggedInState();
-
 
 		if (loggedIn.status === 'success') {
 			const userCredentials = await fetch(`/api/user_mgt/profile/${loggedIn.user_id}`)
@@ -21,14 +21,16 @@ class ProfileTeaser extends HTMLElement {
 					console.error('There was a problem with the fetch operation:', error);
 					return { status: "error" };
 				});
-			console.log(userCredentials);
+			// console.log(userCredentials);
+
+			const avatar = setProfileImage(loggedIn.user_id);
 			this.innerHTML = `
 			<div id="teaserAccout">
 				<hr>
 				<h2>Logged in as:</h2>
 				<div class="spacer-24"></div>
 				<nav class="d-grid gap-2 d-md-block">
-					<player-component name=${userCredentials.player_data.nickname} avatar=${userCredentials.player_data.avatar}></player-component>
+					<player-component name=${userCredentials.player_data.nickname} avatar=${avatar}></player-component>
 					<a href="/profile" id="showProfile" class="btn btn-lg btn-outline-primary">Show Account</a>
 				</nav>
 				<div class="spacer-48"></div>
