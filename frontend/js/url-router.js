@@ -94,70 +94,57 @@ const urlRoute = (eventOrUrl) => {
 }
 
 const urlLocationHandler = async () => {
-	
-	let location = window.location.pathname;
-	let urlQuery = window.location.search;
-	let userId;
-	console.log(urlQuery);
-	if (location.length == 0) {
-		location = "/"
-	}
+    let location = window.location.pathname;
+    let urlQuery = new URLSearchParams(window.location.search);
+    let userId;
 
-	// route based on login state
-	const userStatus = await getLoggedInState();
-	if (userStatus.status === "success") {
-		// User is logged in
-		if (location === "/login" || location === "/signup") {
-			location = "/";
-		} else if (location === "/profile") {
-			// location = `/profile?user=${userStatus.user_id}`;
-			location = `/profile`;
-			userId = `?user=${userStatus.user_id}`;
-		}
-	} else {
-		// User is not logged in
-		if (location === "/profile" && !urlQuery) {
-			location = "/login";
-		} else if (location === "/setup-remote") {
-			location = "/login";
-		} else if (location === "/join-remote") {
-			location = "/setup-remote";
-		}
-	}
+    if (location.length === 0) {
+        location = "/";
+    }
 
-	let route = urlRoutes[location] || urlRoutes[404]
-	// route += urlQuery;
-	console.log(route);
+    // Route based on login state
+    const userStatus = await getLoggedInState();
+    if (userStatus.status === "success") {
+        // User is logged in
+        if (location === "/login" || location === "/signup") {
+            location = "/";
+        } else if (location === "/profile" && !urlQuery.has('user')) {
+            // Redirect logged-in user to their own profile
+            userId = userStatus.user_id;
+            const newUrl = `/profile?user=${userId}`;
+            window.history.pushState({}, "", newUrl);
+            location = newUrl; // Update location to reflect the new URL
+        }
+    } else {
+        // User is not logged in
+        if (location === "/profile" && !urlQuery.has('user')) {
+            // Redirect guest trying to access /profile to homepage
+            window.history.pushState({}, "", "/");
+            location = "/";
+        } else if (location === "/setup-remote" || location === "/join-remote") {
+            // Additional logic for other routes if needed
+            window.history.pushState({}, "", "/login");
+            location = "/login";
+        }
+    }
 
-	const html = await fetch(route.template).then((response) => 
-		response.text());
+    // Fetch and display the content based on the updated location
+    let route = urlRoutes[location] || urlRoutes[404];
+    const html = await fetch(route.template).then(response => response.text());
 
-	//PARSE ACTUAL PATH AND 
-	let parser = new DOMParser();
-	let doc = parser.parseFromString(html, "text/html");
-	let title = doc.querySelector('title').innerText;
+    // Parse and update the page content as before
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(html, "text/html");
+    document.title = doc.querySelector('title').innerText; // Update title
 
-	//WRITE NEW TITLE TO BROWSER TAB
-	document.title = title;	
+    // Update game and settings column content as before
+    let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+    if (fetchedGameColumnContent)
+        document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
 
-	let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
-	if (fetchedGameColumnContent)
-		document.getElementById("game-column").innerHTML = fetchedGameColumnContent;	
-
-	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
-	if (fetchedSettingsColumnContent)
-		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;	
-
-	// if (location === "/join-remote" || location === "host-remote")
-	// 	console.log("FUCK");
-		// setGameID();	
-	// For profile pages and logged in user, load the corresponding profile page
-	if (location === "/profile" && userStatus.user_id) {
-		console.log(`ROUTING TO PROFILE: ${userId}`)
-		const url = new URL(window.location.href);
-		url.searchParams.set('user', userId);
-		window.history.pushState({}, "", url.toString());
-	}
+    let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+    if (fetchedSettingsColumnContent)
+        document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 };
 
 window.onpopstate = urlLocationHandler;
