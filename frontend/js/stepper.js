@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+import { init, animate, updateGameState, displayScore, player, player2 } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -13,9 +13,7 @@ let messagePromise;
 let game_id;
 
 // For game area
-export var gameStarted = false;
-export var gameOver = false;
-export var remote = false;
+export var gameStarted = false, gameOver = false, remote = false;
 export var round_number;
 export let currentPlayer;
 

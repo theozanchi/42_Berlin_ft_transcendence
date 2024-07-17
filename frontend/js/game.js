@@ -40,7 +40,8 @@ canvas.height = window.innerHeight;
 
 let direction;
 const faceMaterials = {};
-let scene, camera, camera2, renderer, cube, player, player2, ball, collisionMarker, aimingLine;
+let scene, camera, camera2, renderer, cube, ball, collisionMarker, aimingLine;
+export let player, player2;
 
 let ballUpdateEnabled = true;
 let ballSpeed = new THREE.Vector3();
