@@ -27,7 +27,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # 	echo \"from django.contrib.auth import get_user_model; User = get_user_model(); if not User.objects.filter(username='${USR_ADMIN}').exists(): User.objects.create_superuser('${USR_ADMIN}', '${USR_EMAIL}', '${USR_PASSWORD}')\" | python manage.py shell && \
 
 CMD ["sh", "-c", " \
-	python manage.py makemigrations oauth42 && \
-	python manage.py migrate oauth42 && \
 	python create_superuser.py && \
 	gunicorn --bind 0.0.0.0 user_mgt.wsgi:application"]
+
+	#	python manage.py migrate oauth42 && \
+#	python manage.py makemigrations oauth42 && \

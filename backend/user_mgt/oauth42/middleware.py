@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from .models import UserProfile
+from .models import Player
 
 
 class LastActivityMiddleware:
@@ -9,15 +9,15 @@ class LastActivityMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated:
-            UserProfile.objects.filter(user=request.user).update(
+            Player.objects.filter(user=request.user).update(
                 last_activity=timezone.now()
             )
         response = self.get_response(request)
         return response
 
 
-def is_user_online(userprofile):
-    if timezone.now() - userprofile.last_activity < timezone.timedelta(minutes=5):
+def is_user_online(Player):
+    if timezone.now() - Player.last_activity < timezone.timedelta(minutes=5):
         return True
     else:
         return False

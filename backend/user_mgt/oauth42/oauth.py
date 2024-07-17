@@ -119,7 +119,7 @@ def update_or_create_user(user_info, access_token):
             user.set_unusable_password()
             user.save()
 
-        save_avatar_from_url(user.userprofile, picture_url)
+        save_avatar_from_url(user.player, picture_url)
     return user
 
 

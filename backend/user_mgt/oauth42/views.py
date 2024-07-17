@@ -362,7 +362,7 @@ def profile(request, user_id):
                     "user_id": p.user.id,
                     "rank": p.rank,
                     "score": p.score,
-                    "avatar": p.user.userprofile.avatar.name,
+                    "avatar": p.user.player.avatar.name,
                     "online": get_online_status(p.user.id),
                 }
                 for p in Participation.objects.filter(tournament=tournament)
@@ -376,16 +376,16 @@ def profile(request, user_id):
             {
                 "username": friend.username,
                 "user_id": friend.id,
-                "avatar": friend.userprofile.avatar.name,
+                "avatar": friend.player.avatar.name,
                 "total_score": get_total_score(friend.id),
                 "online": get_online_status(friend.id),
             }
         )
-        for friend in user.userprofile.friends.all()
+        for friend in user.player.friends.all()
     ]
-    if request.user.is_authenticated and hasattr(request.user, "userprofile"):
+    if request.user.is_authenticated and hasattr(request.user, "player"):
         requesting_user_friends_ids = [
-            friend.id for friend in request.user.userprofile.friends.all()
+            friend.id for friend in request.user.player.friends.all()
         ]
     else:
         requesting_user_friends_ids = []
@@ -487,7 +487,7 @@ def add_friend(request):
             return JsonResponse(
                 {"status": "info", "message": "You cannot add yourself."}
             )
-        user_profile = request.user.userprofile
+        user_profile = request.user.player
         if friend not in user_profile.friends.all():
             user_profile.friends.add(friend)
             user_profile.save()
@@ -535,7 +535,7 @@ def remove_friend(request):
                 },
                 status=200,
             )
-        user_profile = request.user.userprofile
+        user_profile = request.user.player
         if friend in user_profile.friends.all():
             user_profile.friends.remove(friend)
             user_profile.save()
