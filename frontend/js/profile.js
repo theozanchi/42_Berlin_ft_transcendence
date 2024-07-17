@@ -59,7 +59,7 @@ const ProfileObserver = new MutationObserver(() => {
 	const userGamesLost = document.getElementById('userGamesLost');
 	const userFriendsList = document.getElementById('UserFriendsList');
 
-
+	ProfileObserver.disconnect();
 	fetch('/api/user_mgt/profile/2/')
 	.then(response => {
 		// Check if the response is ok and content type is JSON

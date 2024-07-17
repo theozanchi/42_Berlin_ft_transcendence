@@ -4,8 +4,7 @@
 	// VIEW TO EDIT SETTINGS
 	// PROCCEED/START BUTTON
 
-// import { generateLocalGame } from './api_calls.js';
-// import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
 
 import { initTournament, updateTournament } from './tournament.js';
 
