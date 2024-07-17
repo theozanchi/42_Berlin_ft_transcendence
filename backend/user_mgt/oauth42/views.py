@@ -1,32 +1,33 @@
 # oauth42/views.py
 
-from .models import UserProfile, Round, Tournament, Participation
-from django.shortcuts import render, redirect, get_object_or_404
+import json
+import os
+import pprint
+
+import requests
+from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash, authenticate
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-import requests
-
-from .models import UserProfile, UserManager
-from django.http import HttpResponseForbidden
-from .forms import RegistrationForm, UserForm
-from django.core.files.base import ContentFile
-import pprint
-from django.db.models import Sum
-from django.views.generic.edit import CreateView
-from django import forms
+from django.contrib.auth import (authenticate, login, logout,
+                                 update_session_auth_hash)
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.core.files.storage import default_storage
-from django.utils import timezone
-from .middleware import is_user_online
-from django.core import serializers
-import json
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+from django.core import serializers
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import F, Sum
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-import os
+from django.views.generic.edit import CreateView
+from PIL import Image
+
+from .forms import RegistrationForm, UserForm
+from .middleware import is_user_online
+from .models import Participation, Round, Tournament, UserManager, UserProfile
 
 # CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
 # CLIENT_SECRET = "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"\
@@ -64,54 +65,101 @@ def delete_cookie(request):
         return response
 
 
-# email and password registration
-def register_view(request):
-    return render(request, "register.html")
+def is_valid_image(image):
+    try:
+        img = Image.open(image)
+        img.verify()
+        return True
+    except (IOError, SyntaxError):
+        return False
 
 
 def upload_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    user_profile, created = UserProfile.objects.get_or_create(user=user)
     if request.method == "POST":
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "User not found"})
+        user_profile, created = UserProfile.objects.get_or_create(user=user)
         avatar = request.FILES.get("image")
-        if avatar:
+        is_valid = is_valid_image(avatar)
+
+        if avatar and is_valid:
             user_profile.avatar = avatar
             user_profile.save()
-            return {"avatar_status": "Avatar uploaded successfully"}
+            return {
+                "status": "success",
+                "message": "Avatar uploaded successfully",
+                "avatar": user_profile.avatar,
+            }
         else:
-            return {"avatar_status": "No uploaded avatar found"}
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image found",
+            }
     else:
-        return {"avatar_status": "Method not allowed"}
+        return {"status": "error", "message": "Method not allowed"}
 
 
 def delete_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    user_profile = get_object_or_404(UserProfile, user=user)
+    try:
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+    except UserProfile.DoesNotExist:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
     if user_profile.avatar:
         user_profile.avatar.delete()  # This deletes the file and clears the field
         user_profile.save()
-        return {"avatar_status": "Avatar deleted successfully."}
+        return {"status": "info", "message": "Avatar deleted successfully."}
     else:
-        return {"avatar_status": "No avatar to delete."}
+        return {"status": "info", "message": "No avatar to delete."}
 
 
 def update_avatar(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    user_profile = get_object_or_404(UserProfile, user=user)
+    try:
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+    except UserProfile.DoesNotExist:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
     if request.method == "POST":
         new_avatar = request.FILES.get("image")
-        if new_avatar:
+        is_valid = is_valid_image(new_avatar)
+
+        if new_avatar and is_valid:
             user_profile.avatar.delete(save=False)
             user_profile.avatar = new_avatar
             user_profile.save()
             response_message = f"Avatar successfully updated to {new_avatar}".strip()
-            return {"avatar_status": response_message}
+            return {"status": "success", "message": response_message}
         else:
-            return {"avatar_status": "No uploaded avatar for update found"}
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image for update found",
+            }
     else:
-        return {"avatar_status": "Method not allowed"}
+        return {"status": "error", "message": "Method not allowed"}
 
 
 def register(request):
@@ -121,16 +169,27 @@ def register(request):
         image = request.FILES.get("image")
 
         if User.objects.filter(username=username).exists():
-            return JsonResponse({"error": "Username already exists"}, status=400)
+            return JsonResponse(
+                {"status": "error", "message": "Username already exists"}, status=200
+            )
 
-        if not all([username, password]):
-            return JsonResponse({"error": "Missing required fields"}, status=400)
+        if not all([username]):
+            return JsonResponse(
+                {"status": "error", "message": "Missing required fields"}, status=200
+            )
 
         user = User.objects.create(
             username=username,
             password=make_password(password),
         )
-        response_data = {"message": "User created successfully.", "user_id": user.id}
+        response_data = {
+            "status": "success",
+            "message": "User created successfully.",
+            "user_id": user.id,
+            "username": user.username,
+            "provided_password": bool(password),
+            "provided_avatar": bool(image),
+        }
 
         if image:
             avatar_status = upload_avatar(request, user.id)
@@ -140,13 +199,61 @@ def register(request):
         return JsonResponse(response_data, status=201)
 
     # return render(request, "register.html")
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse(
+        {"status": "error", "message": "Method not allowed"}, status=405
+    )
+
+
+# Only for user.id creation with username.
+def just_username_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        image = request.FILES.get("image")
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse(
+                {"status": "error", "message": "Username already exists"}, status=200
+            )
+
+        if not all([username]):
+            return JsonResponse(
+                {"status": "error", "message": "Missing required fields"}, status=200
+            )
+
+        user = User.objects.create(
+            username=username,
+        )
+        response_data = {
+            "status": "success",
+            "message": "User created successfully ONLY USERNAME.",
+            "user_id": user.id,
+        }
+
+        if image:
+            avatar_status = upload_avatar(request, user.id)
+            response_data.update(avatar_status)
+
+        login(request, user)
+        return JsonResponse(response_data, status=201)
+
+    return JsonResponse(
+        {"status": "error", "message": "Method not allowed"}, status=405
+    )
 
 
 def rankings(request):
     rankings_qs = User.rankings.get_user_rankings()
-    rankings = list(rankings_qs.values("id", "username", "total_score", "rank"))
-    return JsonResponse(rankings, safe=False)
+    rankings = list(
+        rankings_qs.values("id", "username", "total_score", "rank", "avatar")
+    )
+    if not rankings:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "No ranking. Possbility no users in database?",
+            }
+        )
+    return JsonResponse({"status": "info", "rankings": rankings})
 
 
 @login_required
@@ -164,12 +271,16 @@ def update(request):
             .exists()
         ):
             return JsonResponse(
-                {"error": "Username already exists, please chose another one"},
-                status=400,
+                {
+                    "status": "error",
+                    "message": "Username already exists, please chose another one",
+                },
             )
 
         if not any([username, password, image]):
-            return JsonResponse({"error": "No field updated"}, status=400)
+            return JsonResponse(
+                {"status": "error", "message": "No field updated"}, status=400
+            )
 
         fields_to_update = {}
 
@@ -185,23 +296,54 @@ def update(request):
 
         avatar_status = update_avatar(request, user.id)
 
-        response_data = {"message": "User updated successfully.", "user_id": user.id}
+        response_data = {
+            "status": "success",
+            "message": "User updated successfully.",
+            "user_id": user.id,
+        }
         response_data.update(avatar_status)
 
         return JsonResponse(response_data, status=201)
     else:
-        #return render(request, "update.html")
-        return JsonResponse({"status":"error", "message":"Method not allowed."})
+        # return render(request, "update.html")
+        return JsonResponse({"status": "error", "message": "Method not allowed."})
+
+
+def get_total_score(user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+
+    total_score = Participation.objects.filter(user=user).aggregate(Sum("score"))[
+        "score__sum"
+    ]
+    return total_score or 0
 
 
 def profile(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user_profile = get_object_or_404(UserProfile, user=user)
+    try:
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found", "404_user_id": user_id}
+        )
+    except UserProfile.DoesNotExist:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
     participations = Participation.objects.filter(user=user)
 
     total_wins = Tournament.objects.filter(winner=user).count()
     total_lost = participations.count() - total_wins
-    total_score = participations.aggregate(Sum("score"))["score__sum"] or 0
+    total_score = get_total_score(user_id)
 
     games = []
     tournaments = 0
@@ -215,7 +357,14 @@ def profile(request, user_id):
             "own_score": participation.score,
             "winner": tournament.winner.username if tournament.winner else None,
             "participants": [
-                (p.user.username, p.user.id)
+                {
+                    "username": p.user.username,
+                    "user_id": p.user.id,
+                    "rank": p.rank,
+                    "score": p.score,
+                    "avatar": p.user.userprofile.avatar.name,
+                    "online": get_online_status(p.user.id),
+                }
                 for p in Participation.objects.filter(tournament=tournament)
             ],
         }
@@ -223,7 +372,16 @@ def profile(request, user_id):
         tournaments = tournaments + 1
 
     friends = [
-        (friend.username, friend.id) for friend in user.userprofile.friends.all()
+        (
+            {
+                "username": friend.username,
+                "user_id": friend.id,
+                "avatar": friend.userprofile.avatar.name,
+                "total_score": get_total_score(friend.id),
+                "online": get_online_status(friend.id),
+            }
+        )
+        for friend in user.userprofile.friends.all()
     ]
     if request.user.is_authenticated and hasattr(request.user, "userprofile"):
         requesting_user_friends_ids = [
@@ -235,13 +393,12 @@ def profile(request, user_id):
     player_data = {
         "user_id": user.id,
         "nickname": user.username,
-        "full_name": user.first_name,
         "joined": user.date_joined,
         "total_wins": total_wins,
         "total_lost": total_lost,
         "total_score": total_score,
         "tournaments": tournaments,
-        "requesting_user_friends_ids": requesting_user_friends_ids,
+        "avatar": user_profile.avatar.name,
     }
     if request.user.is_authenticated:
         player_data["games"] = games
@@ -251,14 +408,27 @@ def profile(request, user_id):
     if request.user.is_authenticated and request.user.id == user.id:
         player_data["friends"] = friends
 
-    return JsonResponse(player_data)
+    return JsonResponse({"status": "info", "player_data": player_data})
+
 
 def who_am_i(request):
     if not request.user.is_authenticated:
-        return JsonResponse({"status": "error", "message": "User is not logged in."});
+        return JsonResponse({"status": "error", "message": "User is not logged in."})
     if request.user.is_authenticated:
-        return JsonResponse({"status": "success", "message":"User is logged in.", "user_id": request.user.id});
-    return JsonResponse({"status": "error", "message": "View can't handle this. This error should not happen."})
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": "User is logged in.",
+                "user_id": request.user.id,
+            }
+        )
+    return JsonResponse(
+        {
+            "status": "error",
+            "message": "View can't handle this. This error should not happen.",
+        }
+    )
+
 
 @csrf_exempt
 def regular_login(request):
@@ -269,13 +439,17 @@ def regular_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({"success": "Login successful", "user_id": user.id})
+            return JsonResponse(
+                {"status": "success", "message": "Login successful", "user_id": user.id}
+            )
         else:
-            return JsonResponse({"error": "Invalid username or password."})
+            return JsonResponse(
+                {"status": "error", "message": "Invalid username or password."}
+            )
 
     else:
-        #return render(request, "login.html")
-        return JsonResponse({'success': 'Wrong method'});
+        # return render(request, "login.html")
+        return JsonResponse({"status": "success", "message": "Wrong method"})
 
 
 @login_required
@@ -355,7 +529,10 @@ def remove_friend(request):
             )
         except:
             return JsonResponse(
-                {"status": "other error"},
+                {
+                    "status": "error",
+                    "message": "Database error. This should not happen.",
+                },
                 status=200,
             )
         user_profile = request.user.userprofile
@@ -377,12 +554,31 @@ def remove_friend_view(request, user_id):
     return render(request, "remove-friend.html", {"user_id": user_id})
 
 
+def get_online_users():
+    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
+    online_user_profiles = (
+        UserProfile.objects.filter(last_activity__gte=five_minutes_ago)
+        .annotate(
+            username=F("user__username"),
+        )
+        .values("username", "user_id", "avatar", "last_login", "last_activity")
+    )
+    return online_user_profiles
+
+
 @login_required
 def online_users_view(request):
-    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
-    online_user_profiles = UserProfile.objects.filter(
-        last_activity__gte=five_minutes_ago
-    ).values("user__username", "user", "avatar", "last_login", "last_activity")
-    online_user_profiles_list = list(online_user_profiles)
-    pprint.pprint(online_user_profiles)
-    return JsonResponse({"online_user_profiles": online_user_profiles_list}, safe=False)
+
+    online_user_profiles_list = list(get_online_users())
+    return JsonResponse(
+        {"status": "info", "online_user_profiles": online_user_profiles_list},
+        safe=False,
+    )
+
+
+def get_online_status(user_id):
+    online_users = get_online_users()
+    for user in online_users:
+        if user["user_id"] == user_id:
+            return True
+    return False

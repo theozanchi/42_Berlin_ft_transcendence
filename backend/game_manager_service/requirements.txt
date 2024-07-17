@@ -4,3 +4,5 @@ psycopg2-binary>=2.8
 channels>=3.0.0,<4.0.0
 djangorestframework>=3.0.0,<4.0.0
 requests>=2.31.0
+Pillow
+pgcli #-h <host> -p <port> -U <user> -d <database_name>
