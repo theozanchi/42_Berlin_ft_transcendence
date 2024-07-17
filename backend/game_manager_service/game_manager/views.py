@@ -36,6 +36,14 @@ def join_game(request):
         game = Game.objects.get(pk=request.data.get('game_id'))
         if game.mode != 'remote':
             return Response({'error': 'Game is not a remote game.'}, status=403)
+        
+        user_id = request.data.get('user_id')
+        if Player.objects.filter(game=game, user_id=user_id).exists():
+            return Response({'error': 'Player already in game.'}, status=403)
+        if not user_id:
+            # create new player
+            pass
+        
         game.add_players_to_game(request.data)
         game.save()
 
@@ -54,7 +62,6 @@ def join_game(request):
 @permission_classes([AllowAny])
 def get_game(request):
     try:
-        game = Game.objects.get(pk=request.data.get('game_id'))
         game = Game.objects.get(pk=request.data.get('game_id'))
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)

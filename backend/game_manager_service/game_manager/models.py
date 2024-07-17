@@ -56,20 +56,19 @@ class Game(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
-    def add_players_to_game(self, data):
-        # ISSUE make sure alias is unique and send back the unique alias to the client
+    def create_players_for_game(self, data):
         players = data.get("players", [])
-
         for player in players:
-            alias = player.get("alias")
-
-            # make unqiue alias for player if the alias already exists in this game
-            # if Player.objects.get(alias=alias, game=self):
-            #    alias = player.get('alias') + ''.join(random.choices(string.digits, k=3))
-            logging.debug("creating player: %s", alias)
-            Player.objects.create(
-                game=self, alias=alias, channel_name=player.get("channel_name")
+            player_to_add = Player.objects.create(
+                alias=player.get("alias"), channel_name=player.get("channel_name")
             )
+            self.players.add(player_to_add)  # Add a player to the game
+    
+    def add_existing_players_to_game(self, data):
+        user_ids = data.get("user_ids", [])
+        for user_id in user_ids:
+            player_to_add = Player.objects.get(user=user_id)
+            self.players.add(player_to_add)  # Add a player to the game
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -141,7 +140,7 @@ class Player(models.Model):
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name="userprofiles")
 
-    game = models.ForeignKey(Game, related_name="players", on_delete=models.CASCADE)
+    game = models.ManyToManyField(Game, related_name="players", on_delete=models.CASCADE)
     alias = models.CharField(max_length=25, null=True, blank=True)
     channel_name = models.CharField(max_length=255, null=True, blank=True)
 
