@@ -1,12 +1,12 @@
 # views.py
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from game_manager.models import Game, Player, Round
 from .serialize import GameSerializer, RoundSerializer
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 import logging
 from .exceptions import InsufficientPlayersError
 
@@ -94,6 +94,10 @@ def update_round_status(request):
 
         if round_played.round_number == game.rounds.count():
             game.determine_winner()
+            for player in game.players.all():
+                player.create_participation()
+                player.game = None
+                player.save()
             game.save()
             logging.debug('game winner determined: %s', game.winner.alias)
             
