@@ -95,6 +95,10 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             updated_players = [{'alias': player, 'channel_name': self.channel_name} for player in players]
             content['players'] = updated_players
 
+            player_ids = content.get('user_ids', [])
+            updated_ids = [{'alias': user.alias, 'user_id': user.user_id} for user in player_ids]
+            content['ids'] = updated_ids
+
             response = requests.post(GAME_MANAGER_REST_URL + '/create-game/', json=content, headers=self.get_headers())
             response.raise_for_status()
             self.game_id = response.json().get('game_id')
@@ -109,7 +113,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             players_info = [{"username": player.user.username, "user.id": player.user.id} for player in players_in_game]
             data['test'] = players_info """
 
-            data['test'] = "pprint.pprint(players_list)"
             await self.send_json(data)
 
         except requests.RequestException as e:
