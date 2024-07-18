@@ -280,8 +280,8 @@ class Round(models.Model):
         return f"Round {self.round_number} - status: {self.status} - {self.player1} vs {self.player2} - winner: {self.winner}"
 
 
-@receiver(post_save, sender=UserProfile)
+""" @receiver(post_save, sender=UserProfile)
 @receiver(post_save, sender=Participation)
 @receiver(post_save, sender=Tournament)
 def update_rankings(sender, **kwargs):
-    User.rankings.get_user_rankings()
+    User.rankings.get_user_rankings() """
