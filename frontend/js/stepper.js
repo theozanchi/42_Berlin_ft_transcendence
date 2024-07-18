@@ -23,6 +23,8 @@ export let currentPlayer;
 //Create the start button
 let startGameButton = document.createElement('button');
 startGameButton.textContent = 'Start Game';
+startGameButton.id = 'startGameButton';
+startGameButton.className = 'btn btn-primary';
 
 // Add a margin to the top of the button
 startGameButton.style.marginTop = '100px';  // Adjust this value as needed
@@ -145,9 +147,10 @@ export async function sendJson(json) {
 }
 
 function createStartButton() {
-	const gameArea = document.getElementById('game-column');
+	const gameArea = document.getElementById('meta-column');
 	if (gameArea) {
 		gameArea.appendChild(startGameButton);
+		console.log('Start game button created');
 	} else {
 		console.error('Element with id "game-column" not found');
 	}
@@ -240,7 +243,7 @@ async function hostRemoteGame() {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
-
+		urlRoute('/host-remote');
 		createStartButton();
     })
     .catch(error => {
