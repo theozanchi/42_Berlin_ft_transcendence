@@ -213,6 +213,7 @@ export function sendGameState() {
 index2;
 
 export async function init() {
+    console.log('Initializing game... ROUND NUMBER: ', round_number);
 
 
     // Create the scene
@@ -1334,7 +1335,6 @@ export function displayScore(content) {
 }
 
 function clearScene(object) {
-    console.log('CLEARING SCENE: ', object.name || 'NO NAME');
 
     while(object.children.length > 0){ 
         clearScene(object.children[0]);

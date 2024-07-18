@@ -51,12 +51,12 @@ def game_update(request):
             game_state = create_new_game_state(
                 game_id, new_game_state.get("round_number")
             )
+            cache.set(game_id, game_state, timeout=30)
             logging.info(
                 f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}\n'
             )
 
         if new_game_state:
-            logging.info(f"Updating game state for game {game_id}: {new_game_state}\n")
             game_state.update(new_game_state)
 
         # Perform game logic
