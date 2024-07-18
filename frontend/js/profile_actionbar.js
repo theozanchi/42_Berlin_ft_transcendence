@@ -23,46 +23,52 @@ async function usersAreFriends(userIdA, userIdB) {
 	}
 }
 
-function addFriend(user_id) {
-    fetch(`/api/user_mgt/add_friend/`, {
-        method: 'POST', headers: {
-            'friend': user_id,
-            'Content-Type': 'application/json'
-        },
-    })
-        .then(response => {
-            if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
-                return response.json();
-            }
-            throw new Error('Non-JSON response received');
-        })
-        .then(data => {
-            alert(data.message);
+async function addFriend(user_id) {
+    try {
+        const response = await fetch(`/api/user_mgt/add_friend/`, {
+            method: 'POST', 
+            headers: {
+                'friend': user_id,
+                'Content-Type': 'application/json'
+            },
+        });
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            const data = await response.json();
+            // alert(data.message);
             if (data.status === "success") {
+                return true;
             }
-        })
-        .catch(error => console.error('Error:', error));
+        } else {
+            throw new Error('Non-JSON response received');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    return false;
 }
 
-function removeFriend(user_id) {
-    fetch(`/api/user_mgt/remove_friend/`, {
-        method: 'POST', headers: {
-            'friend': user_id,
-            'Content-Type': 'application/json'
-        },
-    })
-        .then(response => {
-            if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
-                return response.json();
-            }
-            throw new Error('Non-JSON response received');
-        })
-        .then(data => {
-            alert(data.message);
+async function removeFriend(user_id) {
+    try {
+        const response = await fetch(`/api/user_mgt/remove_friend/`, {
+            method: 'POST', 
+            headers: {
+                'friend': user_id,
+                'Content-Type': 'application/json'
+            },
+        });
+        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+            const data = await response.json();
+            // alert(data.message);
             if (data.status === "success") {
+                return true;
             }
-        })
-        .catch(error => console.error('Error:', error));
+        } else {
+            throw new Error('Non-JSON response received');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    return false;
 }
 
 class ProfileAction extends HTMLElement {
@@ -70,6 +76,31 @@ class ProfileAction extends HTMLElement {
 		const urlQuery = new URLSearchParams(window.location.search);
 		this.RequestedUserId = +urlQuery.get('user');
 		this.render();
+	}
+
+	setupEventListeners() {
+		const befriendButton = document.getElementById('userBefriendButton');
+		const unfriendButton = document.getElementById('userUnfriendButton');
+		if (befriendButton) {
+			befriendButton.onclick = null;
+			befriendButton.addEventListener('click', async () => {
+				const success = await addFriend(this.RequestedUserId);
+				if (success) {
+					befriendButton.style.display = 'none'; // Hide befriend button
+					unfriendButton.style.display = 'block'; // Show unfriend button
+				}
+			});
+		}
+		if (unfriendButton) {
+			unfriendButton.onclick = null;
+			unfriendButton.addEventListener('click', async () => {
+				const success = await removeFriend(this.RequestedUserId);
+				if (success) {
+					befriendButton.style.display = 'block'; // Shoe befriend button
+					unfriendButton.style.display = 'none'; // Hide unfriend button
+				}
+			});
+		}
 	}
 
 	async render() {
@@ -103,8 +134,8 @@ class ProfileAction extends HTMLElement {
 				<div id="userEditFriend" class="d-grid gap-2">
 					<hr class="m-0">
 					<div class="spacer-12"></div>
-					<button id="userBefriendButton" class="btn btn-lg btn-success"><i class="bi bi-plus-lg me-2"></i>Befriend</button>
-					<button id="userUnfriendButton" class="btn btn-lg btn-danger" >Unfriend</button>
+					<button id="userBefriendButton" class="btn btn-lg btn-success"><i class="bi bi-person-add"></i> Befriend</button>
+					<button id="userUnfriendButton" class="btn btn-lg btn-danger"><i class="bi bi-person-dash"></i> Unfriend</button>
 					<div class="spacer-48"></div>
 				</div>
 			`
@@ -114,56 +145,13 @@ class ProfileAction extends HTMLElement {
 
 			const Friendship = await usersAreFriends(loggedIn.user_id, this.RequestedUserId);
 			console.log(`STATE OF FRIENDSHIP: ${Friendship}`);
-			if (Friendship){
-				console.log('YOU HAVE A FRIEND');
+			if (Friendship)
 				BefriendButton.style.display = 'none';
-				UnfriendButton.style.display = 'block';
-			}
-			else {
-				BefriendButton.style.display = 'block';
+			else
 				UnfriendButton.style.display = 'none';
-			}
-			
-			BefriendButton.addEventListener('click', async () => {
-				const success = await addFriend(this.RequestedUserId);
-				if (success) {
-					BefriendButton.style.display = 'none'; // Hide befriend button
-					UnfriendButton.style.display = 'block'; // Show unfriend button
-				}
-			})
-			
-			UnfriendButton.addEventListener('click', async () => {
-				const success = await removeFriend(this.RequestedUserId);
-				if (success) {
-					BefriendButton.style.display = 'block'; // Hide befriend button
-					UnfriendButton.style.display = 'none'; // Show unfriend button
-				}
-			});
+			this.setupEventListeners();
 		} else {
 			this.innerHTML = `<div class="spacer-48"></div>`;
-		}
-	}
-
-	setupEventListeners() {
-		const befriendButton = document.getElementById('userBefriendButton');
-		const unfriendButton = document.getElementById('userUnfriendButton');
-		if (befriendButton) {
-			befriendButton.addEventListener('click', async () => {
-				const success = await addFriend(this.RequestedUserId);
-				if (success) {
-					befriendButton.style.display = 'none'; // Hide befriend button
-					unfriendButton.style.display = 'block'; // Show unfriend button
-				}
-			});
-		}
-		if (unfriendButton) {
-			unfriendButton.addEventListener('click', async () => {
-				const success = await removeFriend(this.RequestedUserId);
-				if (success) {
-					befriendButton.style.display = 'block'; // Hide befriend button
-					unfriendButton.style.display = 'none'; // Show unfriend button
-				}
-			});
 		}
 	}
 }
