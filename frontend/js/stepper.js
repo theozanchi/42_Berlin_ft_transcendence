@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-// import { init, updateGameState } from './game.js';
+import { init, updateGameState, displayScore } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -13,9 +13,9 @@ let messagePromise;
 let game_id;
 
 // For game area
-var gameStarted = false;
-// export var remote = false;
-// export var playerId;
+export var gameStarted = false, gameOver = false, remote = false;
+export var round_number;
+export var player_id;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -67,38 +67,30 @@ function openSocket() {
 					if (data.mode === 'remote') {
 						remote = true;
 
-						if (data.player_id === 'player1')
-							currentPlayer = player;
-						else if (data.player_id === 'player2')
-							currentPlayer = player2;
-						else
-							currentPlayer = 'spectator';
+						player_id = data.player_id;
 					}
 				
                     gameStarted = true;
 					round_number = data.round_number;
                     console.log('Game started! round number:', round_number);
 					init();
-					animate();
+					console.log('Game initialized!');
                 }
 				if (data.type === 'update') {
 					if (gameStarted === false)
 						return;
 					if (data.content.gameOver === true) {
 						console.log('Round Over. Winner is: ', data.content.winner);
-						currentPlayer = null;
-						//unloadLocalGame();
-						// Start next round
-						displayScore(data.content);
-
 						gameStarted = false;
-						//createStartButton();
-						if (gameStarted) {
+						player_id = null;
+
+						createStartButton();
+						/* if (gameStarted) {
 							console.log('Game already started!');
 							return;
 						}
 						console.log('SENDING Starting game...');
-						sendJson(JSON.stringify({ type: 'start-game' }));
+						sendJson(JSON.stringify({ type: 'start-game' })); */
 					}
 					else {
 						updateGameState(data);
@@ -126,7 +118,7 @@ function openSocket() {
 	return (openPromise);
 }
 
-async function sendJson(json) {
+export async function sendJson(json) {
 	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         await newsocket.send(json);

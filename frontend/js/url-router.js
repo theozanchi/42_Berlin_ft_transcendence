@@ -144,17 +144,14 @@ const urlLocationHandler = async () => {
 
 	document.title = doc.querySelector('title').innerText; // Update title
 
-	// Update game and settings column content as before
-	let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
-	if (fetchedGameColumnContent)
-		document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
-
-	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
-	if (fetchedSettingsColumnContent)
-		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
-
-	if (location === '/profile')
-		updateProfile();
+    // Update game and settings column content as before
+/*     let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+    if (fetchedGameColumnContent)
+        document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
+ */
+    let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+    if (fetchedSettingsColumnContent)
+        document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 };
 
 window.onpopstate = urlLocationHandler;
