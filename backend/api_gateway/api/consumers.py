@@ -27,29 +27,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.player_id = None
         self.last_sent_state = None
         self.lock = asyncio.Lock()
-        self.csrftoken = self.extract_csrftoken()
-        if self.csrftoken is None:
-            return
         await self.accept()
-
-    def extract_csrftoken(self):
-        """
-        Extracts the csrftoken from the cookie header in the raw headers.
-        """
-        for key, value in self.scope["headers"]:
-            if key.decode("utf-8") == "cookie":
-                cookies = value.decode("utf-8").split("; ")
-        for key, value in self.scope["headers"]:
-            if key.decode("utf-8") == "cookie":
-                cookies = value.decode("utf-8").split("; ")
-                for cookie in cookies:
-                    if cookie.startswith("csrftoken="):
-                        token = cookie.split("=")[1]
-                    if cookie.startswith("csrftoken="):
-                        token = cookie.split("=")[1]
-                        # ISSUE validate token with authentication server
-                        return token
-        return None  # Return None if csrftoken is not found or not validated
 
     #  TO DO : the whole routine of somebody leaving should only occur if tournament is not over, if not we just let clients disconnect
     async def disconnect(self, close_code):
