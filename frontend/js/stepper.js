@@ -81,19 +81,16 @@ function openSocket() {
 						return;
 					if (data.content.gameOver === true) {
 						console.log('Round Over. Winner is: ', data.content.winner);
-						currentPlayer = null;
-						//unloadLocalGame();
-						// Start next round
-						displayScore(data.content);
-
 						gameStarted = false;
-						//createStartButton();
-						if (gameStarted) {
+						player_id = null;
+
+						createStartButton();
+						/* if (gameStarted) {
 							console.log('Game already started!');
 							return;
 						}
 						console.log('SENDING Starting game...');
-						sendJson(JSON.stringify({ type: 'start-game' }));
+						sendJson(JSON.stringify({ type: 'start-game' })); */
 					}
 					else {
 						updateGameState(data);

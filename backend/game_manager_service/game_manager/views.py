@@ -92,7 +92,6 @@ def update_round_status(request):
             game=request.data.get("game_id"),
             round_number=request.data.get("round_number"),
         )
-        logging.debug("found round: %s", round_played)
         if round_played.winner:
             return Response({"message": "Round already played."}, status=403)
 
@@ -105,14 +104,11 @@ def update_round_status(request):
         round_played.status = "completed"
         round_played.save()
 
-        logging.debug("round updated: %s", round_played)
-        rounds = Round.objects.filter(game=game)
-        serializer = RoundSerializer(rounds, many=True)
+        serializer = RoundSerializer(round_played)
 
         if round_played.round_number == game.rounds.count():
             game.calculate_scores()
             game.save()
-            logging.debug("game winner determined: %s", game.winner.alias)
 
         return Response(serializer.data, status=200)
 
@@ -129,7 +125,6 @@ def update_round_status(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def round(request):
-    # should return all roudns of game but update change the status of the next round to be played
     try:
         if request.data.get("game-id") is None:
             return JsonResponse({"error": "Missing game_id parameter"}, status=400)
@@ -149,7 +144,7 @@ def round(request):
             round_to_play.status = "started"
             rounds = Round.objects.filter(game=game)
             serializer = RoundSerializer(rounds, many=True)
-            logging.debug("rounds serializer: %s", serializer.data)
+            logging.debug("/round/: rounds serializer: %s", serializer.data)
             return JsonResponse(serializer.data, safe=False, status=200)
         else:
             if game.winner:

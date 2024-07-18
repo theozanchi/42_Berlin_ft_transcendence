@@ -24,7 +24,6 @@ logging.basicConfig(
 )
 
 game_update_lock = Lock()
-last_update_time = time.time()
 WINNER_SCORE = 5
 
 GAME_MANAGER_REST_URL = "http://game_manager:8000"
@@ -34,25 +33,17 @@ GAME_MANAGER_REST_URL = "http://game_manager:8000"
 @api_view(["POST"])
 def game_update(request):
     try:
-        global last_update_time
-
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get("game_id")
 
         if game_id is None:
             return JsonResponse({"error": "Missing game-ID"}, status=400)
-
-        #with game_update_lock:
-        current_time = time.time()
-        #if current_time - last_update_time < (1 / 60):
-            #   return JsonResponse({"error": "Too many requests"}, status=429)
         
         cached_game_state = cache.get(game_id)
         # Check if cached game is the same round as the new game state
         if cached_game_state is not None and new_game_state.get(
             "round_number"
         ) == cached_game_state.get("round_number"):
-            # logging.info(f'Using cached game state for game {game_id}, round number {new_game_state.get("round_number")}')
             if cached_game_state.get("gameOver") == True:
                 return JsonResponse({"error": "Game over"}, safe=False, status=200)
             game_state = cached_game_state
@@ -61,10 +52,11 @@ def game_update(request):
                 game_id, new_game_state.get("round_number")
             )
             logging.info(
-                f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}: {game_state}'
+                f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}\n'
             )
 
         if new_game_state:
+            logging.info(f"Updating game state for game {game_id}: {new_game_state}\n")
             game_state.update(new_game_state)
 
         # Perform game logic
@@ -84,7 +76,7 @@ def game_update(request):
 
     except Exception as e:
         logging.error(f"Error updating game state: {str(e)}")
-        return JsonResponse("Error updating game state", status=500, safe=False)
+        return JsonResponse("Error updating game state", status=503, safe=False)
 
 
 def handle_game_over(game_state, game_id, headers):
@@ -106,7 +98,7 @@ def handle_game_over(game_state, game_id, headers):
 
     game_state.update({"gameOver": True})
     game_state.update(response.json())
-    logging.info(f"Setting gamestate to game over: {game_state}")
+    logging.info(f"Setting gamestate to game over\n")
     cache.set(game_id, game_state, timeout=30)
     return game_state
 
@@ -189,7 +181,6 @@ def reset_ball(game_state):
             for k in direction
         }
 
-    # print(f"cube_size: {game_state['cube_size']}, ball_radius: {game_state['ball_radius']}")
     # Verificar que la posición inicial esté dentro de los límites permitidos del cubo
     half_cube_size = game_state["cube_size"] / 2 - game_state["ball_radius"]
     for axis in ["x", "y", "z"]:
@@ -236,7 +227,6 @@ def set_vector_length(vector, length):
 
 
 def update_ball(game_state):
-    # print(f"Updating ball. Ball is held: {game_state['ballIsHeld']}")
     if game_state["ballIsHeld"]:
         if game_state["playerTurn"]:
             game_state["ball"] = game_state["player1"].copy()
@@ -244,7 +234,6 @@ def update_ball(game_state):
             game_state["ball"] = game_state["player2"].copy()
         return
     # Calculate the next position of the ball
-    # print("Updating ball")
     next_position = {
         "x": game_state["ball"]["x"] + game_state["ballSpeed"]["x"],
         "y": game_state["ball"]["y"] + game_state["ballSpeed"]["y"],
@@ -314,7 +303,6 @@ def check_collision(game_state):
         "y": ball_position["y"] + game_state["ballSpeed"]["y"],
         "z": ball_position["z"] + game_state["ballSpeed"]["z"],
     }
-    # print(f"Checking collision. Next position: {next_position}")
 
     # Create a bounding box that encompasses the ball's start and end points
     ball_box = create_bounding_box(game_state, ball_position, next_position)

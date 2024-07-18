@@ -76,7 +76,7 @@ class Game(models.Model):
     mode_is_local = models.BooleanField(null=True, blank=True)
 
     winner = models.ForeignKey(
-        "Player", related_name="won_games", null=True, on_delete=models.SET_NULL
+        'Player', related_name="won_games", null=True, on_delete=models.SET_NULL
     )
     host = models.CharField(max_length=255, null=True, blank=True)
 
@@ -135,7 +135,9 @@ class Game(models.Model):
 
         for player in self.players.all():
             wins = player.won_rounds.count()
-            score = player.player1_rounds.player1_score + player.player2_rounds.player2_score
+            player1_score = player.player1_rounds.aggregate(total_score=Sum('player1_score'))['total_score'] or 0
+            player2_score = player.player2_rounds.aggregate(total_score=Sum('player2_score'))['total_score'] or 0
+            score = player1_score + player2_score
             player_wins_scores.append((player, wins, score))
 
         # Sort players first by wins in descending order, then by score in descending order
@@ -143,7 +145,9 @@ class Game(models.Model):
 
         # Assign ranks and create Participation objects
         for rank, (player, wins, score) in enumerate(player_wins_scores, start=1):
-            Participation.objects.create(tournament=self, user=player.user, score=score, rank=rank)
+            logging.debug("Player user: %s, wins: %s, score: %s, rank: %s, tournament: %s", player.user, wins, score, rank, self)
+            participation = Participation.objects.create(tournament=self, user=player.user, score=score, rank=rank)
+            logging.debug("Created participation: %s", participation)
             player.game = None
             player.save()
 
@@ -186,7 +190,6 @@ class Participation(models.Model):  # Binds User and Tournament classes
 
 
 class Player(models.Model):
-    ###### ISSUE:truncate name for player in case it's too long AND unique alias
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     id42 = models.IntegerField(null=True)
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
