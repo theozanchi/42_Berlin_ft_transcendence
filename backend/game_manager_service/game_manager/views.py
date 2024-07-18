@@ -142,7 +142,9 @@ def round(request):
 
         if round_to_play:
             round_to_play.status = "started"
+            round_to_play.save()
             rounds = Round.objects.filter(game=game)
+            logging.debug("game rounds: %s", rounds)
             serializer = RoundSerializer(rounds, many=True)
             logging.debug("/round/: rounds serializer: %s", serializer.data)
             return JsonResponse(serializer.data, safe=False, status=200)

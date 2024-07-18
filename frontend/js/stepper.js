@@ -45,7 +45,7 @@ function openSocket() {
         });
 
 		newsocket.onmessage = function(event) {
-			console.log('Received: ' + event.data);
+			//console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
 				if (data.type === 'broadcast') {
 					console.log('Broadcast:', data);
@@ -72,9 +72,7 @@ function openSocket() {
 				
                     gameStarted = true;
 					round_number = data.round_number;
-                    console.log('Game started! round number:', round_number);
 					init();
-					console.log('Game initialized!');
                 }
 				if (data.type === 'update') {
 					if (gameStarted === false)
@@ -84,13 +82,13 @@ function openSocket() {
 						gameStarted = false;
 						player_id = null;
 
-						createStartButton();
-						/* if (gameStarted) {
+						//createStartButton();
+						if (gameStarted) {
 							console.log('Game already started!');
 							return;
 						}
 						console.log('SENDING Starting game...');
-						sendJson(JSON.stringify({ type: 'start-game' })); */
+						sendJson(JSON.stringify({ type: 'start-game' }));
 					}
 					else {
 						updateGameState(data);

@@ -34,10 +34,10 @@ const ProfileObserver = new MutationObserver(() => {
     const userFriendsList = document.getElementById('userFriendsList');
     const urlQuery = new URLSearchParams(window.location.search);
     const userId = urlQuery.get('user');
-    console.log(`LOOK WHAT I FOUND: ${userId}`);
+   // console.log(`LOOK WHAT I FOUND: ${userId}`);
 
     if (!userId) {
-        console.error('No user ID found in URL query');
+        //console.error('No user ID found in URL query');
         return;
     }
 

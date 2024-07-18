@@ -75,8 +75,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         logging.debug("broadcasting: " + str(content))
         await self.send_json(content)
 
-    async def keep_alive(self, content):
-        await self.send_json({"type": "keep-alive"})
 
     # TO DO: if local game, start it immediately
     async def create_game(self, content):
@@ -172,7 +170,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
             round_info = None
             for round_data in response.json():
-                if round_data.get("status") == "pending":
+                if round_data["status"] == "started":
                     round_info = round_data
                     break
 
