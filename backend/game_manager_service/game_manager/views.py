@@ -169,23 +169,6 @@ def round(request):
         return JsonResponse({"error": str(e)}, status=400)
 
 
-""" @api_view(['GET'])
-@permission_classes([AllowAny])
-def finish_game(request):
-    try:
-        game = Game.objects.get(pk=request.data.get('game_id'))
-        game = Game.objects.get(pk=request.data.get('game_id'))
-        game.determine_winner()
-
-        game.save()
-
-        logging.debug('game finished: %s', game)
-        return Response({'message': 'Game finished.', 'winner': game.winner}, status=200)
-
-    except Game.DoesNotExist:
-        return Response({'error': 'Game not found.'}, status=404) """
-
-
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def update_players(request):

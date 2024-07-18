@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, animate, updateGameState, displayScore } from './game.js';
+import { init, updateGameState, displayScore } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -121,7 +121,7 @@ function openSocket() {
 	return (openPromise);
 }
 
-async function sendJson(json) {
+export async function sendJson(json) {
 	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         await newsocket.send(json);
