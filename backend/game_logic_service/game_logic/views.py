@@ -42,43 +42,43 @@ def game_update(request):
         if game_id is None:
             return JsonResponse({"error": "Missing game-ID"}, status=400)
 
-        with game_update_lock:
-            current_time = time.time()
-            #if current_time - last_update_time < (1 / 60):
-             #   return JsonResponse({"error": "Too many requests"}, status=429)
-            
-            cached_game_state = cache.get(game_id)
-            # Check if cached game is the same round as the new game state
-            if cached_game_state is not None and new_game_state.get(
-                "round_number"
-            ) == cached_game_state.get("round_number"):
-                # logging.info(f'Using cached game state for game {game_id}, round number {new_game_state.get("round_number")}')
-                if cached_game_state.get("gameOver") == True:
-                    return JsonResponse({"error": "Game over"}, safe=False, status=200)
-                game_state = cached_game_state
-            else:
-                game_state = create_new_game_state(
-                    game_id, new_game_state.get("round_number")
-                )
-                logging.info(
-                    f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}: {game_state}'
-                )
+        #with game_update_lock:
+        current_time = time.time()
+        #if current_time - last_update_time < (1 / 60):
+            #   return JsonResponse({"error": "Too many requests"}, status=429)
+        
+        cached_game_state = cache.get(game_id)
+        # Check if cached game is the same round as the new game state
+        if cached_game_state is not None and new_game_state.get(
+            "round_number"
+        ) == cached_game_state.get("round_number"):
+            # logging.info(f'Using cached game state for game {game_id}, round number {new_game_state.get("round_number")}')
+            if cached_game_state.get("gameOver") == True:
+                return JsonResponse({"error": "Game over"}, safe=False, status=200)
+            game_state = cached_game_state
+        else:
+            game_state = create_new_game_state(
+                game_id, new_game_state.get("round_number")
+            )
+            logging.info(
+                f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}: {game_state}'
+            )
 
-            if new_game_state:
-                game_state.update(new_game_state)
+        if new_game_state:
+            game_state.update(new_game_state)
 
-            # Perform game logic
-            update_game_state(game_state)
+        # Perform game logic
+        update_game_state(game_state)
 
-            cache.set(game_id, game_state, timeout=30)
+        cache.set(game_id, game_state, timeout=30)
 
-            game_state["type"] = "update"
+        game_state["type"] = "update"
 
-            if (
-                game_state["player1Score"] >= WINNER_SCORE
-                or game_state["player2Score"] >= WINNER_SCORE
-            ):
-                game_state = handle_game_over(game_state, game_id, request.headers)
+        if (
+            game_state["player1Score"] >= WINNER_SCORE
+            or game_state["player2Score"] >= WINNER_SCORE
+        ):
+            game_state = handle_game_over(game_state, game_id, request.headers)
 
         return JsonResponse(game_state, safe=False, status=200)
 

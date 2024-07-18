@@ -1,3 +1,5 @@
+include .env
+
 # Certificates
 DIR				:=	/tmp/certs/live/localhost
 DAYS			:=	365
@@ -9,6 +11,13 @@ SUBJ			:=	/C=DE/ST=Berlin/L=Berlin/O=42_Berlin/OU=Student/CN=$(USER)/emailAddres
 BLUE_UNDERLINE	:=	\033[4;34m
 RESET			:=	\033[0m
 PONG			:=	🏓
+
+# Environment Variables
+DB_CONTAINER=game_manager
+DB_HOST=$(POSTGRES_HOST)
+DB_PORT=$(POSTGRES_PORT)
+DB_USER=$(POSTGRES_USER)
+DB_NAME=$(POSTGRES_NAME)
 
 # Targets
 
@@ -51,11 +60,15 @@ auth:
 				@docker-compose up --build -d nginx authentication
 
 rebuild:
+				clean-db
 				docker compose down
 				docker compose build --no-cache
 				docker compose up -d
 
 postgres:
-				docker exec -it game_manager pgcli -h db -p 5432 -U postgres -d postgres
+				docker exec -it $(DB_CONTAINER) pgcli -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME)
+
+clean-db:
+				docker exec -it $(DB_CONTAINER) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
 
 .PHONY:			all certs dir del_certs env up down restart prune auth rebuild postgres
