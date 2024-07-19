@@ -36,7 +36,7 @@ class UserManager(models.Manager):
                 avatar=F("player__avatar"),
             )
             .order_by("-total_score")
-            .values_list("id", "alias", "total_score", "rank", "avatar")
+            .values_list("id", "username", "total_score", "rank", "avatar")
         )
 
     def get_user_ranking(self, user_id):
@@ -51,7 +51,6 @@ class UserManager(models.Manager):
                     "avatar": user[4],
                 }
         return {"error": "User not found"}
-
 
     def get_by_natural_key(self, username):
         return self.get(username=username)
@@ -88,7 +87,7 @@ class Game(models.Model):
     )
 
     def __str__(self):
-        formatted_date = self.start_date.strftime('%y%m%d_%H_%M_%S')
+        formatted_date = self.start_date.strftime("%y%m%d_%H_%M_%S")
         return f"{formatted_date}__Game_{self.game_id}"
 
     def clean(self):
@@ -170,15 +169,17 @@ class Game(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'game_manager_game'
-
+        db_table = "game_manager_game"
 
 
 class Tournament(Game):
     class Meta:
         managed = False
-        db_table = 'game_manager_tournament'
+        db_table = "game_manager_tournament"
+        proxy = True
+
     pass
+
 
 class Participation(models.Model):  # Binds User and Tournament classes
 
@@ -189,9 +190,12 @@ class Participation(models.Model):  # Binds User and Tournament classes
 
     class Meta:
         managed = False
-        db_table = 'game_manager_participation'  # Explicitly set the table name
+        db_table = "game_manager_participation"  # Explicitly set the table name
+
     def __str__(self):
-        return f"{self.tournament}__User_{self.user}__Rank_{self.rank}__Score_{self.score}"
+        return (
+            f"{self.tournament}__User_{self.user}__Rank_{self.rank}__Score_{self.score}"
+        )
 
 
 class Player(models.Model):
@@ -215,7 +219,8 @@ class Player(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.alias:
-            raise ValueError("Player must have an alias.")
+            self.alias = self.user.username
+            # raise ValueError("Player must have an alias.")
         if not hasattr(self, "user") or self.user is None:
             username = self.alias
             unique_username_found = False
@@ -236,11 +241,13 @@ class Player(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'game_manager_player'  # Explicitly set the table name
-
+        db_table = "game_manager_player"  # Explicitly set the table name
 
 
 class UserProfile(Player):
+    class Meta:
+        proxy = True
+
     pass
 
 
@@ -292,7 +299,7 @@ class Round(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'game_manager_round'  # Explicitly set the table name
+        db_table = "game_manager_round"  # Explicitly set the table name
 
 
 @receiver(post_save, sender=UserProfile)

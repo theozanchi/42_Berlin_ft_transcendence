@@ -8,8 +8,7 @@ import requests
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (authenticate, login, logout,
-                                 update_session_auth_hash)
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
@@ -335,13 +334,13 @@ def profile(request, user_id):
         return JsonResponse(
             {
                 "status": "error",
-                "message": "User not found",
+                "message": "Userprofile not found",
                 "404_userprofile_id": user_id,
             }
         )
     participations = Participation.objects.filter(user=user)
 
-    total_wins = Tournament.objects.filter(winner=user).count()
+    total_wins = Tournament.objects.filter(winner=user.id).count()
     total_lost = participations.count() - total_wins
     total_score = get_total_score(user_id)
 
@@ -355,7 +354,7 @@ def profile(request, user_id):
             "end_date": tournament.end_date,
             "own_rank": participation.rank,
             "own_score": participation.score,
-            "winner": tournament.winner.username if tournament.winner else None,
+            "winner": tournament.winner.user.username if tournament.winner else None,
             "participants": [
                 {
                     "username": p.user.username,
