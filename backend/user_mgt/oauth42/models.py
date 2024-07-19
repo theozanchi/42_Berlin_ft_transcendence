@@ -175,6 +175,7 @@ class Game(models.Model):
 class Tournament(Game):
     class Meta:
         managed = False
+        db_table = 'game_manager_tournament'
     pass
 
 class Participation(models.Model):  # Binds User and Tournament classes
