@@ -1,6 +1,7 @@
 const	baseUrl = document.location.href;
 import {getLoggedInState} from './login_signup.js';
-import {updateProfile} from './profile.js'
+import {loadProfileData} from './profile.js'
+import {updateProfileData} from './profile.js'
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -154,7 +155,9 @@ const urlLocationHandler = async () => {
 		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 
 	if (location === '/profile')
-		updateProfile();
+		loadProfileData();
+	if (location === '/edit-profile')
+		updateProfileData();
 };
 
 window.onpopstate = urlLocationHandler;

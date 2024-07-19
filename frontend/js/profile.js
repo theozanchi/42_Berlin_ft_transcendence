@@ -23,8 +23,75 @@ export function setProfileImage(user_id) {
 	return (imageUrl);
 }
 
+export function updateProfileData() {
+    const updateProfileAvatar = document.getElementById('updateProfileAvatar');
+    const updateProfileNickname = document.getElementById('updateProfileNickname');
+    const updateProfilePassword = document.getElementById('updateProfilePassword');
+    const updateProfilePasswordConfirm = document.getElementById('updateProfilePasswordConfirm');
+	const deleteButton = document.getElementById('deleteProfileButton');
+	const updateButton = document.getElementById('updateProfileButton');
+
+	function validateForm() {
+		if (updateProfilePassword.value || updateProfilePasswordConfirm.value || updateProfileNickname.value || (updateProfileAvatar && updateProfileAvatar.files.length > 0)) {
+			updateButton.disabled = false;
+		} else {
+			updateButton.disabled = true;
+		}
+	}
+
+	[updateProfilePassword, updateProfilePasswordConfirm, updateProfileNickname, updateProfileAvatar].forEach(input => {
+        if (input) { // Check if the input exists
+            input.addEventListener('input', validateForm);
+        }
+    });
+
+	document.getElementById('updateProfileButton').addEventListener('click', function(e) {
+		document.getElementById('updateProfileForm').submit();
+		e.preventDefault();
+		const password1 = updateProfilePassword.value;
+		const password2 = updateProfilePasswordConfirm.value;
+		const nickname = updateProfileNickname.value;
+	
+		if (password1 != password2) {
+			alert('Passwords do not match.');
+			return;
+		}
+	
+		const formData = new FormData();
+		if (nickname)
+			formData.append('username', document.getElementById('updateProfileNickname').value);
+		if (password1)
+			formData.append('password', document.getElementById('updateProfilePassword').value);
+	
+		if (updateProfileAvatar.files.length > 0) {
+			const imageFile = updateProfileAvatar.files[0];
+			formData.append('image', imageFile);
+		}
+	
+		fetch('/api/user_mgt/update/', {
+			method: 'POST',
+			body: formData,
+		})
+		.then(response => {
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				return response.json();
+			}
+			throw new Error('Non-JSON response received');
+		})
+		.then(data => {
+			console.log('Success:', data);
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+	
+		});
+	});
+
+	validateForm();
+}
+
 // const ProfileObserver = new MutationObserver((mutations) => {
-export function updateProfile() {
+export function loadProfileData() {
 
 	// console.log(mutations);
 
