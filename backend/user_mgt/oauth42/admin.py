@@ -3,13 +3,13 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
 
-from .models import Participation, Tournament, UserProfile
+from .models import Participation, Game, Player
 
 
 class UserProfileInline(admin.TabularInline):
-    model = UserProfile
+    model = Player
     can_delete = False
-    verbose_name_plural = "UserProfiles"
+    verbose_name_plural = "Players"
     fields = ("picture_url", "access_token", "id42")
     readonly_fields = ("access_token", "id42")
 
@@ -93,10 +93,19 @@ class TournamentAdmin(admin.ModelAdmin):
     ordering = ("start_date",)
 
 
+class ParticipationAdmin(admin.ModelAdmin):
+    # Your admin configuration here
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Custom queryset adjustments here, if needed
+        return qs
+
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
-admin.site.register(Tournament, TournamentAdmin)
-admin.site.register(Participation)
+admin.site.register(Game, TournamentAdmin)
+admin.site.register(Participation, ParticipationAdmin)
 
 
 admin.site.site_header = "Transcendence User Management"

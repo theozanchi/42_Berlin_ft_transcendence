@@ -52,6 +52,7 @@ class UserManager(models.Manager):
                 }
         return {"error": "User not found"}
 
+
     def get_by_natural_key(self, username):
         return self.get(username=username)
 
@@ -183,8 +184,12 @@ class Participation(models.Model):  # Binds User and Tournament classes
     score = models.IntegerField()
     rank = models.IntegerField()
 
+    def __str__(self) -> str:
+        return f"{self.tournament}"
+
     class Meta:
         managed = False
+        db_table = 'game_manager_participation'  # Explicitly set the table name
 
 
 class Player(models.Model):
