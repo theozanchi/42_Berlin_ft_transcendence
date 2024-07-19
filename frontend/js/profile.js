@@ -3,10 +3,11 @@ import {getLoggedInState} from './login_signup.js';
 
 
 export function setProfileImage(user_id) {
-	const baseUrl = document.location.href;
+	const url = new URL(document.location.href);
+	const baseUrl = new URL(document.location).origin;
 	let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 
-	fetch(`/api/user_mgt/profile/${user_id}`)
+	await fetch(`/api/user_mgt/profile/${user_id}`)
 		.then(response => {
 			// Check if the response is ok and content type is JSON
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
@@ -16,18 +17,19 @@ export function setProfileImage(user_id) {
 	})	
 	.then(response => {
 	if (response.player_data.user_avatar)
-		imageUrl = response.player_data.user_avatar;
-		console.log(`imageURL: ${imageUrl}`)
+		imageUrl = baseUrl + '/media/' + response.player_data.avatar;
+		console.log(baseUrl + '/media/' + response.player_data.avatar)
+		console.log(`reutrning: ${imageUrl}`)
 		return (imageUrl);
 	})
 	return (imageUrl);
 }
 
 export function updateProfileData() {
-    const updateProfileAvatar = document.getElementById('updateProfileAvatar');
-    const updateProfileNickname = document.getElementById('updateProfileNickname');
-    const updateProfilePassword = document.getElementById('updateProfilePassword');
-    const updateProfilePasswordConfirm = document.getElementById('updateProfilePasswordConfirm');
+	const updateProfileAvatar = document.getElementById('updateProfileAvatar');
+	const updateProfileNickname = document.getElementById('updateProfileNickname');
+	const updateProfilePassword = document.getElementById('updateProfilePassword');
+	const updateProfilePasswordConfirm = document.getElementById('updateProfilePasswordConfirm');
 	const deleteButton = document.getElementById('deleteProfileButton');
 	const updateButton = document.getElementById('updateProfileButton');
 
@@ -40,13 +42,12 @@ export function updateProfileData() {
 	}
 
 	[updateProfilePassword, updateProfilePasswordConfirm, updateProfileNickname, updateProfileAvatar].forEach(input => {
-        if (input) { // Check if the input exists
-            input.addEventListener('input', validateForm);
-        }
-    });
+		if (input) { // Check if the input exists
+			input.addEventListener('input', validateForm);
+		}
+	});
 
 	document.getElementById('updateProfileButton').addEventListener('click', function(e) {
-		document.getElementById('updateProfileForm').submit();
 		e.preventDefault();
 		const password1 = updateProfilePassword.value;
 		const password2 = updateProfilePasswordConfirm.value;
@@ -67,7 +68,7 @@ export function updateProfileData() {
 			const imageFile = updateProfileAvatar.files[0];
 			formData.append('image', imageFile);
 		}
-	
+
 		fetch('/api/user_mgt/update/', {
 			method: 'POST',
 			body: formData,
@@ -83,7 +84,7 @@ export function updateProfileData() {
 		})
 		.catch((error) => {
 			console.error('Error:', error);
-	
+
 		});
 	});
 
