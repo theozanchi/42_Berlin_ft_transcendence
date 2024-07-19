@@ -1109,7 +1109,6 @@ function stopBlinking() {
 
 
 function checkPlayerPosition() {
-    console.log("current face:", currentFace, "current face 2:", currentFace2, "current blinking face:", currentBlinkingFace, "ball is held:", ballIsHeld)
     if (currentFace == currentBlinkingFace || currentFace2 == currentBlinkingFace || ballIsHeld) {
         stopBlinking();
         currentBlinkingFace = null;
