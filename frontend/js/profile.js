@@ -1,4 +1,5 @@
 import {getLoggedInState} from './login_signup.js';
+import { urlRoute } from './url-router.js';
 // import {urlRoute} from './url-router.js';
 
 
@@ -101,14 +102,13 @@ export function updateProfileData() {
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
 				return response.json();
 			}
-			throw new Error('Non-JSON response received');
+			throw new Error('Non-JSON response recieved');
 		})
 		.then(data => {
 			console.log('Success:', data);
 		})
 		.catch((error) => {
 			console.error('Error:', error);
-
 		});
 	});
 
@@ -215,9 +215,9 @@ export async function loadProfileData() {
                 userNickname.textContent = data.nickname;
                 userRank.textContent = data.rank.rank;
                 userScore.textContent = data.total_score;
-                userGamesPlayed.textContent = data.games.length;
-                userGamesWon.textContent = data.total_wins;
-                userGamesLost.textContent = data.total_lost;
+                userGamesPlayed.value = +data.games.length;
+                userGamesWon.value = +data.total_wins;
+                userGamesLost.value = +data.total_lost;
 
                 if (data.friends) {
                     userFriendsList.removeAttribute('hidden');
@@ -285,6 +285,8 @@ const ProfileEditObserver = new MutationObserver(() => {
 		.catch(error => {
 			console.error('Error:', error);
 		});
+
+	urlRoute('/profile');
 	}
 });
 
