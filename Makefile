@@ -18,6 +18,7 @@ DB_HOST=$(POSTGRES_HOST)
 DB_PORT=$(POSTGRES_PORT)
 DB_USER=$(POSTGRES_USER)
 DB_NAME=$(POSTGRES_NAME)
+URL := https://localhost:8443
 
 # Targets
 
@@ -60,15 +61,21 @@ auth:
 				@docker-compose up --build -d nginx authentication
 
 rebuild:
-				clean-db
 				docker compose down
 				docker compose build --no-cache
 				docker compose up -d
+				google-chrome $(URL) &
+
+crebuild:		clean-db rebuild
 
 postgres:
 				docker exec -it $(DB_CONTAINER) pgcli -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME)
 
+prune:
+				docker compose down
+				docker container prune -f
+
 clean-db:
 				docker exec -it $(DB_CONTAINER) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
 
-.PHONY:			all certs dir del_certs env up down restart prune auth rebuild postgres
+.PHONY:			all certs dir del_certs env up down restart prune auth rebuild postgres prune crebuild
