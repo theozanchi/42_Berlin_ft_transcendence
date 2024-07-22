@@ -34,13 +34,14 @@ from .models import Participation, Round, Tournament, UserManager, UserProfile
 
 # return Response(response.json(), status=response.status_code)
 
-
+@csrf_exempt
 def save_avatar_from_url(user_profile, url):
     response = requests.get(url)
 
     if response.status_code == 200 and "image" in response.headers["Content-Type"]:
         image_content = ContentFile(response.content)
         filename = url.split("/")[-1]
+        print(f"save_avatar_from_url({user_profile}, {url})")
 
         if user_profile.avatar and filename in user_profile.avatar.name:
             pass
@@ -72,7 +73,7 @@ def is_valid_image(image):
     except (IOError, SyntaxError):
         return False
 
-
+@csrf_exempt
 def upload_avatar(request, user_id):
     if request.method == "POST":
         try:
@@ -124,7 +125,7 @@ def delete_avatar(request, user_id):
     else:
         return {"status": "info", "message": "No avatar to delete."}
 
-
+@csrf_exempt
 def update_avatar(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
@@ -160,7 +161,7 @@ def update_avatar(request, user_id):
     else:
         return {"status": "error", "message": "Method not allowed"}
 
-
+@csrf_exempt
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -254,7 +255,7 @@ def rankings(request):
         )
     return JsonResponse({"status": "info", "rankings": rankings})
 
-
+@csrf_exempt
 @login_required
 def update(request):
     user = request.user
