@@ -45,7 +45,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             )
             response.raise_for_status()
             await self.channel_layer.group_send(
-                self.game_id, {"type": "broadcast", "content": response.json()}
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content': 
+                    {
+                        'type': 'game',
+                        'content': response.json()
+                    }
+                }
             )
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
@@ -69,10 +77,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({"error": 'Invalid "type" or missing "type" in json'})
 
     def get_headers(self):
-        return {k.decode("utf-8"): v.decode("utf-8") for k, v in self.scope["headers"]}
-
-    async def broadcast(self, content):
-        logging.debug("broadcasting: " + str(content))
+        return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
+    
+    async def broadcast(self, event):
+        content = event.get('content')
+        logging.debug('broadcasting: ' + str(content))
         await self.send_json(content)
 
 
@@ -146,7 +155,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
             await self.channel_layer.group_add(self.game_id, self.channel_name)
             await self.channel_layer.group_send(
-                self.game_id, {"type": "broadcast", "content": response.json()}
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content':
+                    {
+                        'type': 'game',
+                        'content': response.json()
+                    }
+                }
             )
 
         except requests.RequestException as e:
@@ -176,7 +193,16 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
             # Send round info to all players
             await self.channel_layer.group_send(
-                self.game_id, {"type": "broadcast", "content": response.json()}
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content':
+                    {
+                        'type': 'round',
+                        'action': 'new',
+                        'content': response.json()
+                    }
+                }
             )
             if round_info is not None:
                 # Send player id to pther players
