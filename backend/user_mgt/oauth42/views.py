@@ -8,8 +8,7 @@ import requests
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (authenticate, login, logout,
-                                 update_session_auth_hash)
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
@@ -35,13 +34,14 @@ from .models import Participation, Round, Tournament, UserManager, UserProfile
 
 # return Response(response.json(), status=response.status_code)
 
-
+@csrf_exempt
 def save_avatar_from_url(user_profile, url):
     response = requests.get(url)
 
     if response.status_code == 200 and "image" in response.headers["Content-Type"]:
         image_content = ContentFile(response.content)
         filename = url.split("/")[-1]
+        print(f"save_avatar_from_url({user_profile}, {url})")
 
         if user_profile.avatar and filename in user_profile.avatar.name:
             pass
@@ -73,7 +73,7 @@ def is_valid_image(image):
     except (IOError, SyntaxError):
         return False
 
-
+@csrf_exempt
 def upload_avatar(request, user_id):
     if request.method == "POST":
         try:
@@ -125,7 +125,7 @@ def delete_avatar(request, user_id):
     else:
         return {"status": "info", "message": "No avatar to delete."}
 
-
+@csrf_exempt
 def update_avatar(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
@@ -161,7 +161,7 @@ def update_avatar(request, user_id):
     else:
         return {"status": "error", "message": "Method not allowed"}
 
-
+@csrf_exempt
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -255,7 +255,7 @@ def rankings(request):
         )
     return JsonResponse({"status": "info", "rankings": rankings})
 
-
+@csrf_exempt
 @login_required
 def update(request):
     user = request.user
@@ -335,13 +335,13 @@ def profile(request, user_id):
         return JsonResponse(
             {
                 "status": "error",
-                "message": "User not found",
+                "message": "Userprofile not found",
                 "404_userprofile_id": user_id,
             }
         )
     participations = Participation.objects.filter(user=user)
 
-    total_wins = Tournament.objects.filter(winner=user).count()
+    total_wins = Tournament.objects.filter(winner=user.id).count()
     total_lost = participations.count() - total_wins
     total_score = get_total_score(user_id)
 
@@ -355,14 +355,14 @@ def profile(request, user_id):
             "end_date": tournament.end_date,
             "own_rank": participation.rank,
             "own_score": participation.score,
-            "winner": tournament.winner.username if tournament.winner else None,
+            "winner": tournament.winner.user.username if tournament.winner else None,
             "participants": [
                 {
                     "username": p.user.username,
                     "user_id": p.user.id,
                     "rank": p.rank,
                     "score": p.score,
-                    "avatar": p.user.userprofile.avatar.name,
+                    "avatar": p.user.player.avatar.name,
                     "online": get_online_status(p.user.id),
                 }
                 for p in Participation.objects.filter(tournament=tournament)
@@ -376,16 +376,16 @@ def profile(request, user_id):
             {
                 "username": friend.username,
                 "user_id": friend.id,
-                "avatar": friend.userprofile.avatar.name,
+                "avatar": friend.player.avatar.name,
                 "total_score": get_total_score(friend.id),
                 "online": get_online_status(friend.id),
             }
         )
-        for friend in user.userprofile.friends.all()
+        for friend in user.player.friends.all()
     ]
-    if request.user.is_authenticated and hasattr(request.user, "userprofile"):
+    if request.user.is_authenticated and hasattr(request.user, "player"):
         requesting_user_friends_ids = [
-            friend.id for friend in request.user.userprofile.friends.all()
+            friend.id for friend in request.user.player.friends.all()
         ]
     else:
         requesting_user_friends_ids = []
@@ -487,7 +487,7 @@ def add_friend(request):
             return JsonResponse(
                 {"status": "info", "message": "You cannot add yourself."}
             )
-        user_profile = request.user.userprofile
+        user_profile = request.user.player
         if friend not in user_profile.friends.all():
             user_profile.friends.add(friend)
             user_profile.save()
@@ -535,7 +535,7 @@ def remove_friend(request):
                 },
                 status=200,
             )
-        user_profile = request.user.userprofile
+        user_profile = request.user.player
         if friend in user_profile.friends.all():
             user_profile.friends.remove(friend)
             user_profile.save()

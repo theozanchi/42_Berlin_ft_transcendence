@@ -8,6 +8,9 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 logging.basicConfig(
     level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+logging.basicConfig(
+    level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 GAME_MANAGER_REST_URL = "http://game_manager:8000"
@@ -24,24 +27,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.player_id = None
         self.last_sent_state = None
         self.lock = asyncio.Lock()
-        self.csrftoken = self.extract_csrftoken()
-        if self.csrftoken is None:
-            return
         await self.accept()
-
-    def extract_csrftoken(self):
-        """
-        Extracts the csrftoken from the cookie header in the raw headers.
-        """
-        for key, value in self.scope["headers"]:
-            if key.decode("utf-8") == "cookie":
-                cookies = value.decode("utf-8").split("; ")
-                for cookie in cookies:
-                    if cookie.startswith("csrftoken="):
-                        token = cookie.split("=")[1]
-                        # ISSUE validate token with authentication server
-                        return token
-        return None  # Return None if csrftoken is not found or not validated
 
     #  TO DO : the whole routine of somebody leaving should only occur if tournament is not over, if not we just let clients disconnect
     async def disconnect(self, close_code):
@@ -98,8 +84,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         logging.debug('broadcasting: ' + str(content))
         await self.send_json(content)
 
-    async def keep_alive(self, content):
-        await self.send_json({"type": "keep-alive"})
 
     # TO DO: if local game, start it immediately
     async def create_game(self, content):
@@ -203,7 +187,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
             round_info = None
             for round_data in response.json():
-                if round_data.get("status") == "pending":
+                if round_data["status"] == "started":
                     round_info = round_data
                     break
 

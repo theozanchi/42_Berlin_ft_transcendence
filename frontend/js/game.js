@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, currentPlayer, gameStarted, round_number } from './stepper.js';
+import { sendJson, remote, gameStarted, round_number, player_id } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -43,10 +43,12 @@ if (canvas) {
 
 let direction;
 const faceMaterials = {};
-let scene, camera, camera2, renderer, cube, player, player2, ball, collisionMarker, aimingLine;
+let scene, camera, camera2, camera3, renderer, cube, ball, collisionMarker, aimingLine;
+export let player, player2;
 
 let ballUpdateEnabled = true;
 let ballSpeed = new THREE.Vector3();
+let oldBlinkingFace = null;
 const ballRadius = 0.05; // Radius of the ball
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 const cubeSize = 1.8; // Size of the cube
@@ -54,6 +56,7 @@ let playerTurn = true; // Player starts
 let keyMoveSpeed = 0.05;
 let player1Score = 0;
 let player2Score = 0;
+let currentPlayer;
 
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
 let currentFace2 = 1;
@@ -80,12 +83,12 @@ export function updateGameState(data) {
     // Update player positions
     //console.log("ballpos", data.ball.x, data.ball.y, data.ball.z)
     //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
-    if (data.content.player1) {
+    if (currentPlayer === player2) {
         // Update player1 position
         player.position.set(data.content.player1.x, data.content.player1.y, data.content.player1.z);
         player.rotation.set(data.content.player1.rotation.x, data.content.player1.rotation.y, data.content.player1.rotation.z);
     }
-    if (data.content.player2) {
+    if (currentPlayer === player) {
         // Update player2 position
         player2.position.set(data.content.player2.x, data.content.player2.y, data.content.player2.z);
         player2.rotation.set(data.content.player2.rotation.x, data.content.player2.rotation.y, data.content.player2.rotation.z);
@@ -101,7 +104,7 @@ export function updateGameState(data) {
     if (remote){
         if (currentPlayer === player) {
             currentFace2 = data.content.current_face2;
-        } else {
+        } else if (currentPlayer === player2) {
             currentFace = data.content.current_face;
         }
     }
@@ -126,7 +129,7 @@ export function sendGameState() {
         const newGameState = {
             type: 'game-state',
             round_number: round_number,
-
+            current_player: player_id,
             playerTurn: playerTurn,
             player1Score: player1Score,
             player2Score: player2Score,
@@ -150,7 +153,7 @@ export function sendGameState() {
             if (currentPlayer === player) {
                 newGameState.current_face = currentFace;
             }
-            else {
+            else if (currentPlayer === player2) {
                 newGameState.current_face2 = currentFace2;
             }
         }
@@ -166,7 +169,7 @@ export function sendGameState() {
                         z: player.rotation.z
                     }
                 };
-            } else {
+            } else if (currentPlayer === player2) {
                 newGameState.player2 = {
                     x: player2.position.x,
                     y: player2.position.y,
@@ -213,12 +216,16 @@ export function sendGameState() {
 index2;
 
 export async function init() {
+    console.log('Initializing game... ROUND NUMBER: ', round_number);
+
+
     // Create the scene
     scene = new THREE.Scene();
     
     // Set up the camera
     camera = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
     camera2 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
+    camera3 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
     
     // Set up the renderer
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
@@ -282,6 +289,9 @@ export async function init() {
     camera2.position.copy(camera.position.clone().multiplyScalar(-1));
     camera2.lookAt(0, 0, 0);
 
+    camera3.position.set(1, 2, cubeSize * 1.5);
+    camera3.lookAt(0, 0, 0);
+
     // Create player
     let playerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
     let playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -290,6 +300,7 @@ export async function init() {
     setPlayerTransparency(0.25);
     player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6); // Initial position on the front face
     player.rotation.set(0, 0, 0);
+    console.log ('player position:', player.position);
     scene.add(player); // Add player to the scene, not the cube
     
     // Create palyer2
@@ -330,6 +341,15 @@ export async function init() {
     scoreDisplay.style.fontSize = '20px';
     document.body.appendChild(scoreDisplay);
 
+
+    if (player_id === 'player1')
+        currentPlayer = player;
+    else if (player_id === 'player2')
+        currentPlayer = player2;
+    else
+        currentPlayer = 'spectator';
+
+    console.log('Current player:', currentPlayer);
             //--------EVENT_LISTENERS---------//
 
 
@@ -354,7 +374,7 @@ export async function init() {
     
     
     updateScore();
-    //animate();
+    animate();
 }
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
@@ -495,7 +515,7 @@ function onMouseMove(event) {
         if (currentPlayer == player){
             movePlayer(player, deltaX, deltaY);
         }
-        else {
+        else if (currentPlayer == player2){
             movePlayer2(player2, deltaX, deltaY);
         }
         //sendGameState();
@@ -518,7 +538,7 @@ function onKeyDownPlayer1() {
             if (keysPressed['d']) {
                 switchFace('right');
             }
-            if (keysPressed[' ']) { // Space key
+            if (keysPressed[' '] && playerTurn) { // Space key
                 if (ballIsHeld && !resetBall_) {
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
@@ -541,7 +561,7 @@ function onKeyDownPlayer1() {
         if (keysPressed['d']) {
             switchFace('right');
         }
-        if (keysPressed[' ']) { // Space key
+        if (keysPressed[' '] && playerTurn) { // Space key
             if (ballIsHeld && !resetBall_) {
                 ballIsHeld = false; // Release the ball
                 resetBall_ = true; // Reset the ball to a random position
@@ -554,7 +574,7 @@ function onKeyDownPlayer1() {
 
 function onKeyDownPlayer2() {
     if (remote) {
-        if (currentPlayer !== player) {
+        if (currentPlayer === player2) {
             if (keysPressed['s']) {
                 switchFace2('up');
             }
@@ -567,7 +587,7 @@ function onKeyDownPlayer2() {
             if (keysPressed['d']) {
                 switchFace2('right');
             }
-            if (keysPressed[' ']) { // Space key
+            if (keysPressed[' '] && !playerTurn) { // Space key
                 if (ballIsHeld && !resetBall_) {
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
@@ -589,7 +609,7 @@ function onKeyDownPlayer2() {
         if (keysPressed['ArrowRight']) {
             switchFace2('right');
         }
-        if (keysPressed[' ']) { // Space key
+        if (keysPressed[' '] && !playerTurn) { // Space key
             if (ballIsHeld && !resetBall_) {
                 ballIsHeld = false; // Release the ball
                 resetBall_ = true; // Reset the ball to a random position
@@ -921,6 +941,7 @@ function updatePlayerPositionForFace2(face) {
 index6;
 
 function updateCollisionMarker() {
+    oldBlinkingFace = currentBlinkingFace;
     const halfCubeSize = cubeSize / 2;
     const ballPosition = ball.position.clone();
     const ballVelocity = ballSpeed.clone();
@@ -1054,6 +1075,8 @@ function getFaceName(name) {
 }
 
 function startBlinking(faceNumber) {
+    if (currentBlinkingFace !== oldBlinkingFace)
+        stopBlinking();
     if (currentBlinkingFace)
     {
         let faceName = getFaceName(faceNumber);
@@ -1081,7 +1104,7 @@ function stopBlinking() {
             face.material.needsUpdate = true;
         }
     }
-    currentBlinkingFace = null;
+    //currentBlinkingFace = null;
 }
 
 
@@ -1089,9 +1112,9 @@ function stopBlinking() {
 
 
 function checkPlayerPosition() {
-    console.log("current face:", currentFace, "current face 2:", currentFace2, "current blinking face:", currentBlinkingFace, "ball is held:", ballIsHeld)
     if (currentFace == currentBlinkingFace || currentFace2 == currentBlinkingFace || ballIsHeld) {
         stopBlinking();
+        currentBlinkingFace = null;
     }
 }
 
@@ -1247,8 +1270,11 @@ export function animate() {
         renderer.setScissorTest(false);
         if (currentPlayer === player) {
             renderer.render(scene, camera);
-        } else {
+        } else if (currentPlayer === player2) {
             renderer.render(scene, camera2);
+        }
+        else {
+            renderer.render(scene, camera3);
         }
     } else {
         // Render the scene from the first camera
@@ -1311,7 +1337,6 @@ export function displayScore(content) {
 }
 
 function clearScene(object) {
-    console.log('CLEARING SCENE: ', object.name || 'NO NAME');
 
     while(object.children.length > 0){ 
         clearScene(object.children[0]);
@@ -1352,6 +1377,7 @@ export function resetGame() {
     scene = null;
     camera = null;
     camera2 = null;
+    camera3 = null;
     renderer = null;
     cube = null;
     pivot = null;

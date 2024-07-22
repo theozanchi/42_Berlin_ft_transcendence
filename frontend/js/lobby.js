@@ -6,11 +6,10 @@ window.onload = function() {
 	// let input = document.getElementById("lobbyGameID");
 	// if (input)
 	// 	input.value = gameID;
-	setTimeout(setGameID, 3000);
+	// setTimeout(setGameID(), 3000);
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
-	console.log("DOM fully loaded and parsed");
 	setGameID('test');
 });
 

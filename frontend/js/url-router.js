@@ -1,4 +1,7 @@
 const	baseUrl = document.location.href;
+import {getLoggedInState} from './login_signup.js';
+import {loadProfileData} from './profile.js'
+import {updateProfileData} from './profile.js'
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -76,7 +79,7 @@ const urlRoutes = {
 	},
 }
 
-const urlRoute = (eventOrUrl) => {
+export const urlRoute = (eventOrUrl) => {
 	let url;
 	// console.log(eventOrUrl);
 	// console.log(typeof eventOrUrl);
@@ -92,60 +95,70 @@ const urlRoute = (eventOrUrl) => {
 	urlLocationHandler();
 }
 
+async function redirectOnLogin(locationOld){
+	let location = locationOld;
+	let urlQuery = new URLSearchParams(window.location.search);
+
+// Route based on login state
+	const userStatus = await getLoggedInState();
+	const userId = userStatus.user_id;
+
+	if (userStatus.status === "success"
+		&& (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user')))) {
+			// Redirect logged-in user to their own profile if profile not specified in url
+			const newUrl = `/profile?user=${userId}`;
+			window.history.replaceState({}, "", newUrl);
+			location = '/profile'; // Update location to reflect the new URL
+	}
+	else if (userStatus.status !== "success") {
+		// User is not logged in
+		if (location === "/profile" && !urlQuery.has('user')) {
+			// Redirect guest trying to access /profile to homepage
+			// window.history.pushState({}, "", "/");
+			location = "/";
+		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile") {
+			// Additional logic for other routes if needed
+			// window.history.pushState({}, "", "/login");
+			location = "/login";
+		}
+	window.history.pushState({}, "", location);
+	}
+
+	return (location);
+}
+
 const urlLocationHandler = async () => {
 	let location = window.location.pathname;
-	if (location.length == 0) {
-		location = "/"
-	}
-	// console.log(`MY LOCATION: ${location}`);
 
-	// console.log(`MY LOCATION`);
+	if (location.length === 0) 
+		location = "/";
+	else
+		location = await redirectOnLogin(location);
 
-	const route = urlRoutes[location] || urlRoutes[404]
+	// Fetch and display the content based on the updated location
+	let route = urlRoutes[location] || urlRoutes[404];
+	const html = await fetch(route.template).then(response => response.text());
 
-	// console.log(`MY ROUTE: ${route.template}`);
-
-	let imageUrl = new URL(route, baseUrl);
-	// console.log(imageUrl);
-
-	const html = await fetch(route.template).then((response) => 
-		response.text());
-
-	//PARSE ACTUAL PATH AND 
+	// Parse and update the page content as before
 	let parser = new DOMParser();
 	let doc = parser.parseFromString(html, "text/html");
-	let title = doc.querySelector('title').innerText;
 
-	// let fetchedSettingsColumnContent 
-	
-	// if (location === '/game') {
-		// console.log("TRYING TO LAUNCH A GAME");
-		let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
-		//OVERWRITE COLUMN
-		if (fetchedGameColumnContent)
-			document.getElementById("game-column").innerHTML = fetchedGameColumnContent;	
-	// }
-	// else {
-		let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
-		//OVERWRITE COLUMN
-		if (fetchedSettingsColumnContent)
-			document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;	
+	// window.history.pushState({}, "", location);
+	document.title = doc.querySelector('title').innerText; // Update title
 
-	if (location === "/join-remote" || location === "host-remote")
-		console.log("FUCK");
-		// setGameID();
-	// }
+	// Update game and settings column content as before
+	let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+	if (fetchedGameColumnContent)
+		document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
 
-	
-	//WRITE NEW TITLE TO BROWSER TAB
-	document.title = title;
+	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+	if (fetchedSettingsColumnContent)
+		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 
-
-
-	//OVERWRITE CONTENT
-	// document.getElementById("content").innerHTML = html;
-
-	
+	if (location === '/profile')
+		loadProfileData();
+	if (location === '/edit-profile')
+		updateProfileData();
 };
 
 window.onpopstate = urlLocationHandler;
