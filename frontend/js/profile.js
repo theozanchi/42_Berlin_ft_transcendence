@@ -3,7 +3,8 @@ import {getLoggedInState} from './login_signup.js';
 
 
 export function setProfileImage(user_id) {
-	const baseUrl = document.location.href;
+	const url = new URL(document.location.href);
+	const baseUrl = new URL(document.location).origin;
 	let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 
 	fetch(`/api/user_mgt/profile/${user_id}`)
@@ -13,18 +14,85 @@ export function setProfileImage(user_id) {
 				return response.json();
 			}
 			throw new Error('Non-JSON response received');
-	})	
+	})
 	.then(response => {
 	if (response.player_data.user_avatar)
-		imageUrl = response.player_data.user_avatar;
-		console.log(`imageURL: ${imageUrl}`)
+		imageUrl = baseUrl + '/media/' + response.player_data.avatar;
+		console.log(baseUrl + '/media/' + response.player_data.avatar)
+		console.log(`reutrning: ${imageUrl}`)
 		return (imageUrl);
 	})
 	return (imageUrl);
 }
 
+export function updateProfileData() {
+	const updateProfileAvatar = document.getElementById('updateProfileAvatar');
+	const updateProfileNickname = document.getElementById('updateProfileNickname');
+	const updateProfilePassword = document.getElementById('updateProfilePassword');
+	const updateProfilePasswordConfirm = document.getElementById('updateProfilePasswordConfirm');
+	const deleteButton = document.getElementById('deleteProfileButton');
+	const updateButton = document.getElementById('updateProfileButton');
+
+	function validateForm() {
+		if (updateProfilePassword.value || updateProfilePasswordConfirm.value || updateProfileNickname.value || (updateProfileAvatar && updateProfileAvatar.files.length > 0)) {
+			updateButton.disabled = false;
+		} else {
+			updateButton.disabled = true;
+		}
+	}
+
+	[updateProfilePassword, updateProfilePasswordConfirm, updateProfileNickname, updateProfileAvatar].forEach(input => {
+		if (input) { // Check if the input exists
+			input.addEventListener('input', validateForm);
+		}
+	});
+
+	document.getElementById('updateProfileButton').addEventListener('click', function(e) {
+		e.preventDefault();
+		const password1 = updateProfilePassword.value;
+		const password2 = updateProfilePasswordConfirm.value;
+		const nickname = updateProfileNickname.value;
+
+		if (password1 != password2) {
+			alert('Passwords do not match.');
+			return;
+		}
+
+		const formData = new FormData();
+		if (nickname)
+			formData.append('username', document.getElementById('updateProfileNickname').value);
+		if (password1)
+			formData.append('password', document.getElementById('updateProfilePassword').value);
+
+		if (updateProfileAvatar.files.length > 0) {
+			const imageFile = updateProfileAvatar.files[0];
+			formData.append('image', imageFile);
+		}
+
+		fetch('/api/user_mgt/update/', {
+			method: 'POST',
+			body: formData,
+		})
+		.then(response => {
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				return response.json();
+			}
+			throw new Error('Non-JSON response received');
+		})
+		.then(data => {
+			console.log('Success:', data);
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+
+		});
+	});
+
+	validateForm();
+}
+
 // const ProfileObserver = new MutationObserver((mutations) => {
-export function updateProfile() {
+export function loadProfileData() {
 
 	// console.log(mutations);
 
@@ -61,7 +129,7 @@ export function updateProfile() {
 				data = data.player_data;
 				console.log(`HERE IS SOME DATA: ${data}`);
 				// ProfileObserver.disconnect();
-				
+
 				//WRITE USER DATA TO TEMPLATE
 				userAvatar.src = setProfileImage(data.user_id);
 				userNickname.textContent = data.nickname;
@@ -71,7 +139,7 @@ export function updateProfile() {
 				userGamesWon.textContent = data.total_wins;
 				userGamesLost.textContent = data.total_lost;
 				if (data.friends) {
-					// userFriendsList.style.display = 'block'; 
+					// userFriendsList.style.display = 'block';
 					userFriendsList.removeAttribute('hidden');
 					let noFriendsState = document.getElementById('emptyState');
 					if (noFriendsState && data.friends.length)
@@ -83,8 +151,8 @@ export function updateProfile() {
 						separator.setAttribute('class', 'm-0');
 						// newPlayer.setAttribute('remove-button', '');
 						newPlayer.setAttribute('name', element.username);
-						newPlayer.setAttribute('user_id', element.user_id); 
-						newPlayer.setAttribute('avatar', setProfileImage(element.user_id)); // FIX THIS IN PLAYER COMPONENT 
+						newPlayer.setAttribute('user_id', element.user_id);
+						newPlayer.setAttribute('avatar', setProfileImage(element.user_id)); // FIX THIS IN PLAYER COMPONENT
 						userFriendsList.appendChild(newPlayer);
 						userFriendsList.appendChild(separator);
 					});
@@ -113,7 +181,7 @@ const ProfileEditObserver = new MutationObserver(() => {
 		.then(response => {
 			// Check if the response is ok and content type is JSON
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-				// 
+				//
 				return response.json();
 			}
 			throw new Error('Non-JSON response received');

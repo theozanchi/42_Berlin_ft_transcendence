@@ -1,6 +1,7 @@
 const	baseUrl = document.location.href;
 import {getLoggedInState} from './login_signup.js';
-import {updateProfile} from './profile.js'
+import {loadProfileData} from './profile.js'
+import {updateProfileData} from './profile.js'
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -144,14 +145,19 @@ const urlLocationHandler = async () => {
 
 	document.title = doc.querySelector('title').innerText; // Update title
 
-    // Update game and settings column content as before
-/*     let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
-    if (fetchedGameColumnContent)
-        document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
- */
-    let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
-    if (fetchedSettingsColumnContent)
-        document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
+	// Update game and settings column content as before
+	let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+	if (fetchedGameColumnContent)
+		document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
+
+	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+	if (fetchedSettingsColumnContent)
+		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
+
+	if (location === '/profile')
+		loadProfileData();
+	if (location === '/edit-profile')
+		updateProfileData();
 };
 
 window.onpopstate = urlLocationHandler;
