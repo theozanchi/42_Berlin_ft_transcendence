@@ -24,36 +24,38 @@
 						
 						
 						<div class="d-flex flex-column h-100 overflow-auto">
-							<div>
-								<form class="d-grid gap-2">
-									<label for="fileUpload">Avatar</label>
-									<input class="form-control" type="file" id="fileUpload">
-									<div class="form-floating">
-										<input type="text" class="form-control col" id="profileEditNickname" value="userpuffgirl" required>
-										<label for="accountEmail">User Name</label>
-									</div>
-									<div class="spacer-24"></div>
-									<h2 class="fs-4">Change Password</h2>
-									<div class="form-floating">
-										<input type="password" class="form-control col" id="profileLoginPassword" placeholder="">
-										<label for="loginPassword">New Password</label>
-									</div>
-									<div class="form-floating">
-										<input type="password" class="form-control col" id="profileULoginPasswordConfirm" placeholder="">
-										<label for="loginPassword">Confirm Password</label>
-									</div>
-									<div class="spacer-48"></div>
-									<button id="userEditProfileButton" class="btn btn-lg btn-primary" disabled>Save Changes</button>
-								</form>
-							</div>
-							
-							<div class="d-grid gap-0">
-								<button id="deleteProfileButton" class="btn btn-lg  btn-outline-danger">Delete Account</button>
+							<form id="updateProfileForm" class="d-grid gap-2">
 								<div class="spacer-48"></div>
-							</div>
-							
+								<h2 class="fs-4">Update Avatar</h2>
+								<input class="form-control" type="file" id="updateProfileAvatar">
+
+								<div class="spacer-24"></div>
+								<h2 class="fs-4">Update Nickname</h2>
+								<div class="form-floating">
+									<input type="text" class="form-control col" id="updateProfileNickname" placeholder="">
+									<label for="accountEmail">New Nickname</label>
+								</div>
+								<div class="spacer-24"></div>
+								<h2 class="fs-4">Update Password</h2>
+								<div class="form-floating">
+									<input type="password" class="form-control col" id="updateProfilePassword" placeholder="">
+									<label for="loginPassword">New Password</label>
+								</div>
+								<div class="form-floating">
+									<input type="password" class="form-control col" id="updateProfilePasswordConfirm" placeholder="">
+									<label for="loginPassword">Confirm Password</label>
+								</div>
+								<div class="spacer-48"></div>
+							</form>							
 						</div>
-						<div class="spacer-48"></div>
+							
+						<div class="d-grid gap-2">
+							<hr class="m-0">
+							<div class="spacer-12"></div>
+							<button id="updateProfileButton" class="btn btn-lg btn-primary" disabled>Save Changes</button>
+							<button id="deleteProfileButton" class="btn btn-lg  btn-outline-danger">Delete Account</button>
+							<div class="spacer-48"></div>
+						</div>
 
 						<!-- <div class="d-grid gap-2">
 							<hr class="m-0">

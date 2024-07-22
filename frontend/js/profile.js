@@ -1,11 +1,13 @@
 import {getLoggedInState} from './login_signup.js';
+// import {urlRoute} from './url-router.js';
 
 
 export function setProfileImage(user_id) {
-	const baseUrl = document.location.href;
+	const url = new URL(document.location.href);
+	const baseUrl = new URL(document.location).origin;
 	let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 
-	fetch(`/api/user_mgt/profile/${user_id}`)
+	await fetch(`/api/user_mgt/profile/${user_id}`)
 		.then(response => {
 			// Check if the response is ok and content type is JSON
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
@@ -15,79 +17,154 @@ export function setProfileImage(user_id) {
 	})	
 	.then(response => {
 	if (response.player_data.user_avatar)
-		imageUrl = response.player_data.user_avatar;
-		console.log(`imageURL: ${imageUrl}`)
+		imageUrl = baseUrl + '/media/' + response.player_data.avatar;
+		console.log(baseUrl + '/media/' + response.player_data.avatar)
+		console.log(`reutrning: ${imageUrl}`)
 		return (imageUrl);
 	})
 	return (imageUrl);
 }
 
+export function updateProfileData() {
+	const updateProfileAvatar = document.getElementById('updateProfileAvatar');
+	const updateProfileNickname = document.getElementById('updateProfileNickname');
+	const updateProfilePassword = document.getElementById('updateProfilePassword');
+	const updateProfilePasswordConfirm = document.getElementById('updateProfilePasswordConfirm');
+	const deleteButton = document.getElementById('deleteProfileButton');
+	const updateButton = document.getElementById('updateProfileButton');
 
-const ProfileObserver = new MutationObserver(() => {
-    const userAvatar = document.getElementById('userAvatar');
-    const userNickname = document.getElementById('userNickname');
-    const userGamesPlayed = document.getElementById('userGamesPlayed');
-    const userRank = document.getElementById('userRank');
-    const userScore = document.getElementById('userScore');
-    const userGamesWon = document.getElementById('userGamesWon');
-    const userGamesLost = document.getElementById('userGamesLost');
-    const userFriendsList = document.getElementById('userFriendsList');
-    const urlQuery = new URLSearchParams(window.location.search);
-    const userId = urlQuery.get('user');
-   // console.log(`LOOK WHAT I FOUND: ${userId}`);
+	function validateForm() {
+		if (updateProfilePassword.value || updateProfilePasswordConfirm.value || updateProfileNickname.value || (updateProfileAvatar && updateProfileAvatar.files.length > 0)) {
+			updateButton.disabled = false;
+		} else {
+			updateButton.disabled = true;
+		}
+	}
 
-    if (!userId) {
-        //console.error('No user ID found in URL query');
-        return;
-    }
+	[updateProfilePassword, updateProfilePasswordConfirm, updateProfileNickname, updateProfileAvatar].forEach(input => {
+		if (input) { // Check if the input exists
+			input.addEventListener('input', validateForm);
+		}
+	});
 
-    fetch(`/api/user_mgt/profile/${userId}`)
-        .then(response => {
-            if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-                return response.json();
-            }
-            throw new Error('Non-JSON response received');
-        })
-        .then(data => {
-            if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
-                // console.log(`HERE IS SOME DATA: ${JSON.stringify(data)}`);
+	document.getElementById('updateProfileButton').addEventListener('click', function(e) {
+		e.preventDefault();
+		const password1 = updateProfilePassword.value;
+		const password2 = updateProfilePasswordConfirm.value;
+		const nickname = updateProfileNickname.value;
+	
+		if (password1 != password2) {
+			alert('Passwords do not match.');
+			return;
+		}
+	
+		const formData = new FormData();
+		if (nickname)
+			formData.append('username', document.getElementById('updateProfileNickname').value);
+		if (password1)
+			formData.append('password', document.getElementById('updateProfilePassword').value);
+	
+		if (updateProfileAvatar.files.length > 0) {
+			const imageFile = updateProfileAvatar.files[0];
+			formData.append('image', imageFile);
+		}
+
+		fetch('/api/user_mgt/update/', {
+			method: 'POST',
+			body: formData,
+		})
+		.then(response => {
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				return response.json();
+			}
+			throw new Error('Non-JSON response received');
+		})
+		.then(data => {
+			console.log('Success:', data);
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+
+		});
+	});
+
+	validateForm();
+}
+
+// const ProfileObserver = new MutationObserver((mutations) => {
+export function loadProfileData() {
+
+	// console.log(mutations);
+
+	const userAvatar = document.getElementById('userAvatar');
+	const userNickname = document.getElementById('userNickname');
+	const userGamesPlayed = document.getElementById('userGamesPlayed');
+	const userRank = document.getElementById('userRank');
+	const userScore = document.getElementById('userScore');
+	const userGamesWon = document.getElementById('userGamesWon');
+	const userGamesLost = document.getElementById('userGamesLost');
+	const userFriendsList = document.getElementById('userFriendsList');
+	const urlQuery = new URLSearchParams(window.location.search);
+	const userId = urlQuery.get('user');
+
+	console.log('SO MUCH THINGS TO DO')
+	console.log(userId);
+
+	if (!userId) {
+		console.error('No user ID found in URL query');
+		return;
+	}
+
+	fetch(`/api/user_mgt/profile/${userId}`)
+		.then(response => {
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				return response.json();
+			}
+			throw new Error('Non-JSON response received');
+		})
+		.then(data => {
+			console.log('Starting to work');
+			if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
+				console.log('Starting to work');
 				data = data.player_data;
-                console.log(`HERE IS SOME DATA: ${data}`);
-                // setProfileImage(data.user_id).then(imageUrl => {
-                    userAvatar.src = setProfileImage(data.user_id);
-                // });
-                userNickname.textContent = data.nickname;
-                userRank.textContent = data.rank.rank;
-                userScore.textContent = data.total_score;
-                userGamesPlayed.textContent = data.games.length;
-                userGamesWon.textContent = data.total_wins;
-                userGamesLost.textContent = data.total_lost;
-                if (data.friends) {
+				console.log(`HERE IS SOME DATA: ${data}`);
+				// ProfileObserver.disconnect();
+				
+				//WRITE USER DATA TO TEMPLATE
+				userAvatar.src = setProfileImage(data.user_id);
+				userNickname.textContent = data.nickname;
+				userRank.textContent = data.rank.rank;
+				userScore.textContent = data.total_score;
+				userGamesPlayed.textContent = data.games.length;
+				userGamesWon.textContent = data.total_wins;
+				userGamesLost.textContent = data.total_lost;
+				if (data.friends) {
+					// userFriendsList.style.display = 'block'; 
 					userFriendsList.removeAttribute('hidden');
-                    let noFriendsState = document.getElementById('emptyState');
-                    if (noFriendsState && data.friends.length) 
+					let noFriendsState = document.getElementById('emptyState');
+					if (noFriendsState && data.friends.length)
+        				// noFriendsState.style.display = 'none';
 						noFriendsState.setAttribute('hidden', '');
-                    // userFriendsList.innerHTML = ''; // Clear existing list
-                    data.friends.forEach(element => {
-                        let newPlayer = document.createElement('player-component');
-                        let separator = document.createElement('hr');
-                        separator.setAttribute('class', 'm-0');
-                        // newPlayer.setAttribute('remove-button', '');
-                        newPlayer.setAttribute('name', element.username); // Assuming element[0] is the friend's name
-                        userFriendsList.appendChild(newPlayer);
-                        userFriendsList.appendChild(separator);
-                    });
-                }
-            }
-        })
-        .catch(error => {
-            console.error(`Error fetching profile for user ID ${userId}:`, error);
-        });
+					data.friends.forEach(element => {
+						let newPlayer = document.createElement('player-component');
+						let separator = document.createElement('hr');
+						separator.setAttribute('class', 'm-0');
+						// newPlayer.setAttribute('remove-button', '');
+						newPlayer.setAttribute('name', element.username);
+						newPlayer.setAttribute('user_id', element.user_id); 
+						newPlayer.setAttribute('avatar', setProfileImage(element.user_id)); // FIX THIS IN PLAYER COMPONENT 
+						userFriendsList.appendChild(newPlayer);
+						userFriendsList.appendChild(separator);
+					});
+				}
+			}
+		})
+		.catch(error => {
+			console.error(`Error fetching profile for user ID ${userId}:`, error);
+		});
+};
 
-    ProfileObserver.disconnect();
-});
-
-ProfileObserver.observe(document, { childList: true, subtree: true });
+// ProfileObserver.observe(document, { childList: true, subtree: true });
 
 const ProfileEditObserver = new MutationObserver(() => {
 	const	userEditAvatar = document.getElementById('profileEditAvatar');

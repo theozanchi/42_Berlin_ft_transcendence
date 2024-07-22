@@ -26,12 +26,11 @@ class ProfileTeaser extends HTMLElement {
 			const avatar = setProfileImage(loggedIn.user_id);
 			this.innerHTML = `
 			<div id="teaserAccout">
-				<hr>
-				<h2>Logged in as:</h2>
-				<div class="spacer-24"></div>
-				<nav class="d-grid gap-2 d-md-block">
+				<hr class="m-0">
+				<div class="spacer-12"></div>
+				<nav class="d-flex gap-2 align-items-center justify-content-between">
 					<player-component name=${userCredentials.player_data.nickname} avatar=${avatar}></player-component>
-					<a href="/profile" id="showProfile" class="btn btn-lg btn-outline-primary">Show Account</a>
+					<a href="/profile?user=${loggedIn.user_id}" id="showProfile" class="btn btn-lg btn-outline-primary">Account<i class="bi bi-arrow-right-short"></i></a>
 				</nav>
 				<div class="spacer-48"></div>
 			</div>
@@ -39,11 +38,11 @@ class ProfileTeaser extends HTMLElement {
 		} else {
 			this.innerHTML = `
 			<div id="teaserLogIn">
-				<hr>
+				<hr class="m-0">
 				<h2>You have an Account?</h2>
-				<div class="spacer-24"></div>
+				<div class="spacer-12"></div>
 				<nav class="d-grid gap-2 d-md-block">
-					<a href="/login" id="login42Button" class="btn btn-lg btn-outline-primary">Login</a>
+					<a href="/login" id="goToLoginButton" class="btn btn-lg btn-outline-primary">Login</a>
 					<a href="/signup" class="btn btn-link text-decoration-none">Create account</a>
 				</nav>
 				<div class="spacer-48"></div>
