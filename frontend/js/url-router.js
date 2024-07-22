@@ -98,32 +98,32 @@ export const urlRoute = (eventOrUrl) => {
 async function redirectOnLogin(locationOld){
 	let location = locationOld;
 	let urlQuery = new URLSearchParams(window.location.search);
-	let userId;
+
 // Route based on login state
 	const userStatus = await getLoggedInState();
-	if (userStatus.status === "success") {
-		// User is logged in
-		if (location === "/login" || location === "/signup") {
-			location = "/";
-		} else if (location === "/profile" && !urlQuery.has('user')) {
-			// Redirect logged-in user to their own profile
-			userId = userStatus.user_id;
+	const userId = userStatus.user_id;
+
+	if (userStatus.status === "success"
+		&& (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user')))) {
+			// Redirect logged-in user to their own profile if profile not specified in url
 			const newUrl = `/profile?user=${userId}`;
 			window.history.replaceState({}, "", newUrl);
 			location = '/profile'; // Update location to reflect the new URL
-		}
-	} else {
+	}
+	else if (userStatus.status !== "success") {
 		// User is not logged in
 		if (location === "/profile" && !urlQuery.has('user')) {
 			// Redirect guest trying to access /profile to homepage
-			window.history.pushState({}, "", "/");
+			// window.history.pushState({}, "", "/");
 			location = "/";
 		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile") {
 			// Additional logic for other routes if needed
-			window.history.pushState({}, "", "/login");
+			// window.history.pushState({}, "", "/login");
 			location = "/login";
 		}
+	window.history.pushState({}, "", location);
 	}
+
 	return (location);
 }
 
@@ -143,6 +143,7 @@ const urlLocationHandler = async () => {
 	let parser = new DOMParser();
 	let doc = parser.parseFromString(html, "text/html");
 
+	// window.history.pushState({}, "", location);
 	document.title = doc.querySelector('title').innerText; // Update title
 
 	// Update game and settings column content as before

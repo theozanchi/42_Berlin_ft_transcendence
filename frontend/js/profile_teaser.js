@@ -23,7 +23,7 @@ class ProfileTeaser extends HTMLElement {
 				});
 			// console.log(userCredentials);
 
-			const avatar = setProfileImage(loggedIn.user_id);
+			const avatar = await setProfileImage(loggedIn.user_id);
 			this.innerHTML = `
 			<div id="teaserAccout">
 				<hr class="m-0">
