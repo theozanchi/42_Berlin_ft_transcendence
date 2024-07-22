@@ -184,7 +184,7 @@ const LogOutObserver = new MutationObserver(() => {
 	const logoutUser = document.getElementById('logoutUserButton');
 	const logoutData = new FormData();
 
-	if (logoutUser) {
+	if (logoutUser && !logoutUser.hasEventListener) {
 		logoutUser.addEventListener('click', function(e) {
 			// Use an IIFE to handle the async operation
 			(async () => {
@@ -202,6 +202,7 @@ const LogOutObserver = new MutationObserver(() => {
 				}
 			})();
 		});
+		logoutUser.hasEventListener = true;
 	}
 });
 

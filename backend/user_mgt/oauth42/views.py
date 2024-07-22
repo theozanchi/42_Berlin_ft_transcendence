@@ -12,6 +12,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from django.contrib.sessions.models import Session
 from django.core import serializers
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -124,7 +125,7 @@ def delete_avatar(request, user_id):
         user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found", "404_user_id": user_id}
+            {"status": "error", "message": "User not found (def delete avatar)", "404_user_id": user_id}
         )
     except UserProfile.DoesNotExist:
         return JsonResponse(
@@ -149,7 +150,7 @@ def update_avatar(request, user_id):
         user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found", "404_user_id": user_id}
+            {"status": "error", "message": "User not found (def update_avatar)", "404_user_id": user_id}
         )
     except UserProfile.DoesNotExist:
         return JsonResponse(
@@ -198,6 +199,10 @@ def register(request):
         user = User.objects.create(
             username=username,
             password=make_password(password),
+        )
+        user_profile = UserProfile.objects.create(
+            user = user,
+            alias = username,
         )
         response_data = {
             "status": "success",
@@ -331,7 +336,7 @@ def get_total_score(user_id):
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found", "404_user_id": user_id}
+            {"status": "error", "message": "User not found (def get_total_score)", "404_user_id": user_id}
         )
 
     total_score = Participation.objects.filter(user=user).aggregate(Sum("score"))[
@@ -346,13 +351,13 @@ def profile(request, user_id):
         user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found", "404_user_id": user_id}
+            {"status": "error", "message": "User not found. (def profile)", "404_user_id": user_id}
         )
     except UserProfile.DoesNotExist:
         return JsonResponse(
             {
                 "status": "error",
-                "message": "Userprofile not found",
+                "message": "Userprofile not found (def profile)",
                 "404_userprofile_id": user_id,
             }
         )
@@ -583,8 +588,19 @@ def get_online_users():
     return online_user_profiles
 
 
-@login_required
+def is_online(user_id):
+    now = timezone.now()
+    active_sessions = Session.objects.filter(expire_date__gte=now)
+    for session in active_sessions:
+        session_data = session.get_decoded()
+        if str(user_id) == session_data.get('_auth_user_id'):
+            return True
+    return False
+
+
 def online_users_view(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message":"Please login/register to see a list of online users."})
 
     online_user_profiles_list = list(get_online_users())
     return JsonResponse(
