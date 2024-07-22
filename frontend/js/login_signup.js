@@ -26,7 +26,7 @@ const LogInObserver = new MutationObserver(() => {
 	const loginPassword = document.getElementById('loginPassword');
 	const loginButton = document.getElementById('loginUserButton');
 	const loginForm = document.getElementById('loginForm');
-	const logoutUser = document.getElementById('logoutUserButton');
+	// const logoutUser = document.getElementById('logoutUserButton');
 	const login42OAuth = document.getElementById('');
 	const formData = new FormData();
 
@@ -173,6 +173,8 @@ const signupObserver = new MutationObserver(() => {
 			});
 		});
 	}
+
+
 });
 
 // Start observing the document with the configured parameters
@@ -180,14 +182,18 @@ signupObserver.observe(document, { childList: true, subtree: true });
 
 const LogOutObserver = new MutationObserver(() => {
 	const logoutUser = document.getElementById('logoutUserButton');
-	const formData = new FormData();
+	const logoutData = new FormData();
 	const userData = getLoggedInState();
 
 	if (logoutUser) {
-		console.log('logging out');
-		fetch('/api/user_mgt/logout/', {
-			method: 'POST',
-			body: formData,
+		addEventListener('click', function(e) {
+			logoutData.append('user_id', userData.user_data);
+			console.log(`logging out ${logoutData}`);
+
+			fetch('/api/user_mgt/logout/', {
+				method: 'POST',
+				body: logoutData,
+			})
 		})
 		// fetch('/api/user_mgt/delete_cookie/', {
 		// 	method: 'POST',
