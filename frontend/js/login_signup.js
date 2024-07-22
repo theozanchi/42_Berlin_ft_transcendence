@@ -26,7 +26,7 @@ const LogInObserver = new MutationObserver(() => {
 	const loginPassword = document.getElementById('loginPassword');
 	const loginButton = document.getElementById('loginUserButton');
 	const loginForm = document.getElementById('loginForm');
-	const logoutUser = document.getElementById('logoutUserButton');
+	// const logoutUser = document.getElementById('logoutUserButton');
 	const login42OAuth = document.getElementById('');
 	const formData = new FormData();
 
@@ -173,6 +173,8 @@ const signupObserver = new MutationObserver(() => {
 			});
 		});
 	}
+
+
 });
 
 // Start observing the document with the configured parameters
@@ -180,21 +182,27 @@ signupObserver.observe(document, { childList: true, subtree: true });
 
 const LogOutObserver = new MutationObserver(() => {
 	const logoutUser = document.getElementById('logoutUserButton');
-	const formData = new FormData();
-	const userData = getLoggedInState();
+	const logoutData = new FormData();
 
-/* 	if (logoutUser) {
-		console.log('logging out');
-		fetch('/api/user_mgt/logout/', {
-			method: 'POST',
-			body: formData,
-		})
-		// fetch('/api/user_mgt/delete_cookie/', {
-		// 	method: 'POST',
-		// 	body: formData,
-		// })
+	if (logoutUser) {
+		logoutUser.addEventListener('click', function(e) {
+			// Use an IIFE to handle the async operation
+			(async () => {
+				const userData = await getLoggedInState();
+				if (userData && userData.user_id) { // Ensure userData and user_id are valid
+					logoutData.append('user_id', userData.user_id);
+					console.log(`logging out user_id: ${userData.user_id}`);
 
-	} */
+					fetch('/api/user_mgt/logout/', {
+						method: 'POST',
+						body: logoutData,
+					});
+				} else {
+					console.error('Failed to get user data');
+				}
+			})();
+		});
+	}
 });
 
 // Start observing the document with the configured parameters

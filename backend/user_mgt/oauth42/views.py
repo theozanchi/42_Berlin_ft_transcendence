@@ -59,8 +59,9 @@ def home(request):
 def logout_user(request):
     if request.method == "POST":
         user_id = request.POST.get("user_id")
-        user_id = int(user_id) if user_id else 0
+        user_id = int(user_id) if user_id and user_id.isdigit() else 0
         user = request.user
+        print(f"--> user_id: '{user_id}")
 
         if user.is_authenticated and user.id == user_id:
             logout(request)
