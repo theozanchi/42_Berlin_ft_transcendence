@@ -36,8 +36,10 @@ let index9;
 
 
 const canvas = document.getElementById('bg');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+if (canvas) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
 
 let direction;
 const faceMaterials = {};
