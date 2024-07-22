@@ -86,8 +86,8 @@ class UserAdmin(BaseUserAdmin):
 
 class TournamentAdmin(admin.ModelAdmin):
     inlines = (ParticipationInline,)
-    list_display = ("game_id", "start_date", "end_date", "mode", "winner")
-    list_filter = ("start_date", "end_date", "mode")
+    list_display = ("game_id", "start_date", "end_date", "mode_is_local", "winner")
+    list_filter = ("start_date", "end_date", "mode_is_local")
     search_fields = ("game_id", "winner")
     ordering = ("start_date",)
 

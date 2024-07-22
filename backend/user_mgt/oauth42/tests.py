@@ -56,7 +56,7 @@ class RankingTest(TestCase):
     def setUp(self):
         # Create a tournament
         self.tournament = Tournament.objects.create(
-            end_date=timezone.now(), 
+            end_date=timezone.now(), mode_is_local=True
         )
 
         # Create 5 users with different scores
