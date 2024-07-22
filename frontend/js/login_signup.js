@@ -74,7 +74,7 @@ const LogInObserver = new MutationObserver(() => {
 			.then(data => {
 				console.log('Response:', data);
 				if (!data.error)
-					urlRoute('/');
+					urlRoute("/");
 				else
 					alert("Invalid username or password.")
 
