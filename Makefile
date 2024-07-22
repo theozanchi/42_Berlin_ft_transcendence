@@ -1,4 +1,3 @@
-include .env
 
 # Certificates
 DIR				:=	/tmp/certs/live/localhost
@@ -11,6 +10,8 @@ SUBJ			:=	/C=DE/ST=Berlin/L=Berlin/O=42_Berlin/OU=Student/CN=$(USER)/emailAddres
 BLUE_UNDERLINE	:=	\033[4;34m
 RESET			:=	\033[0m
 PONG			:=	🏓
+
+-include .env
 
 # Environment Variables
 DB_CONTAINER=game_manager
@@ -33,6 +34,7 @@ certs:			dir
 				else \
 					echo "Self-signed certificates are present."; \
 				fi
+
 
 dir:
 				@mkdir -p $(DIR)
