@@ -13,13 +13,6 @@ PONG			:=	🏓
 
 -include .env
 
-# Environment Variables
-DB_CONTAINER=game_manager
-DB_HOST=$(POSTGRES_HOST)
-DB_PORT=$(POSTGRES_PORT)
-DB_USER=$(POSTGRES_USER)
-DB_NAME=$(POSTGRES_NAME)
-
 # Targets
 
 all:			certs env up
@@ -68,9 +61,9 @@ rebuild:
 				docker compose up -d
 
 postgres:
-				docker exec -it $(DB_CONTAINER) pgcli -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME)
+				docker exec -it $(POSTGRES_CONTAINER) pgcli -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME)
 
 clean-db:
-				docker exec -it $(DB_CONTAINER) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
+				docker exec -it $(POSTGRES_CONTAINER) psql -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
 
 .PHONY:			all certs dir del_certs env up down restart prune auth rebuild postgres
