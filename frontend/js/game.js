@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, playerId } from './stepper.js';
+import { sendJson, remote, currentPlayer, gameStarted, round_number } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -38,21 +38,19 @@ const canvas = document.getElementById('bg');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+let direction;
 const faceMaterials = {};
-const cubeSize = 2; // Size of the cube
-let scene, camera, camera2, renderer, cube, player, player2, aiPlayer, ball, collisionMarker, aimingLine;
+let scene, camera, camera2, renderer, cube, player, player2, ball, collisionMarker, aimingLine;
 
 let ballUpdateEnabled = true;
 let ballSpeed = new THREE.Vector3();
 const ballRadius = 0.05; // Radius of the ball
-let resetBall_ = false;
-
-let playerTurn = true; // Player starts
-let currentPlayer;
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
+const cubeSize = 1.8; // Size of the cube
+let playerTurn = true; // Player starts
 let keyMoveSpeed = 0.05;
-let playerScore = 0;
-let aiScore = 0;
+let player1Score = 0;
+let player2Score = 0;
 
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
 let currentFace2 = 1;
@@ -63,17 +61,15 @@ let isTransitioning2 = false;
 let ballIsHeld = true;
 let wallHits = 0;
 let aimingAngle = 0;
-
-let lastSentTime = Date.now();
-let lastGameState = null;
-let timingStarted = false;
-let isGameStateUpdating = false; 
-const sendInterval = 1000 / 60;
-
 const initialReconnectInterval = 1000; // Initial reconnect interval in ms
 let reconnectInterval = initialReconnectInterval;
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 10;
+let resetBall_ = false;
+let lastGameState = null;
+let timingStarted = false;
+let isGameStateUpdating = false; 
+const sendInterval = 1000 / 60;
 
 
 export function updateGameState(data) {
@@ -92,22 +88,24 @@ export function updateGameState(data) {
         player2.rotation.set(data.content.player2.rotation.x, data.content.player2.rotation.y, data.content.player2.rotation.z);
     }
     // Update ball position and speed
-    if (data.content.ball) {
-        ball.position.set(data.content.ball.x, data.content.ball.y, data.content.ball.z);
-    }
-    if (data.content.ballSpeed) {
-        ballSpeed.set(data.content.ballSpeed.x, data.content.ballSpeed.y, data.content.ballSpeed.z);
-    }
+    ball.position.set(data.content.ball.x, data.content.ball.y, data.content.ball.z);
+    ballSpeed.set(data.content.ballSpeed.x, data.content.ballSpeed.y, data.content.ballSpeed.z);
     // Update game data.content variables
     playerTurn = data.content.playerTurn;
-    playerScore = data.content.playerScore;
-    aiScore = data.content.aiScore;
+    player1Score = data.content.player1Score;
+    player2Score = data.content.player2Score;
     ballIsHeld = data.content.ballIsHeld;
-    currentFace = data.content.current_face;
-    currentFace2 = data.content.current_face2;
+    if (remote){
+        if (currentPlayer === player) {
+            currentFace2 = data.content.current_face2;
+        } else {
+            currentFace = data.content.current_face;
+        }
+    }
     aimingAngle = data.content.aiming_angle;
     resetBall_ = data.content.reset_ball;
     wallHits = data.content.wall_hits;
+    direction = data.direction;
     //console.log("reset ball", resetBall_);
     //console.log("ballisheld", ballIsHeld);
 
@@ -124,9 +122,11 @@ export function sendGameState() {
 
         const newGameState = {
             type: 'game-state',
+            round_number: round_number,
+
             playerTurn: playerTurn,
-            playerScore: playerScore,
-            aiScore: aiScore,
+            player1Score: player1Score,
+            player2Score: player2Score,
             ball: {
                 x: ball.position.x,
                 y: ball.position.y,
@@ -138,12 +138,19 @@ export function sendGameState() {
                 z: ballSpeed.z
             },
             ballIsHeld: ballIsHeld,
-            current_face: currentFace,
-            current_face2: currentFace2,
             aiming_angle: aimingAngle,
             reset_ball: resetBall_,
-            wall_hits: wallHits
+            wall_hits: wallHits,
+            direction: direction,
         };
+        if (remote){
+            if (currentPlayer === player) {
+                newGameState.current_face = currentFace;
+            }
+            else {
+                newGameState.current_face2 = currentFace2;
+            }
+        }
         if (remote){
             if (currentPlayer === player) {
                 newGameState.player1 = {
@@ -194,7 +201,6 @@ export function sendGameState() {
 
         //if (!ballIsHeld) console.log("Sending new game state with ballIsHeld:", newGameState.ballIsHeld);
 
-        lastSentTime = now;
         sendJson(JSON.stringify(newGameState));
 }  
 
@@ -204,15 +210,6 @@ export function sendGameState() {
 index2;
 
 export async function init() {
-    if (remote == true) {
-        if (playerId === 'player1')
-            currentPlayer = player;
-        else if (playerId === 'player2')
-            currentPlayer = player2;
-        else
-            currentPlayer = 'spectator';
-    }
-
     // Create the scene
     scene = new THREE.Scene();
     
@@ -254,14 +251,13 @@ export async function init() {
     };
 
     const faceSize = 1.7;
-    const transparentMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
 
-    const frontFace = createFace(transparentMaterial, faceSize, colors.front, { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: 0 });
-    const backFace = createFace(transparentMaterial, faceSize, colors.back, { x: 0, y: 0, z: -1 }, { x: 0, y: Math.PI, z: 0 });
-    const leftFace = createFace(transparentMaterial, faceSize, colors.left, { x: -1, y: 0, z: 0 }, { x: 0, y: Math.PI / 2, z: 0 });
-    const rightFace = createFace(transparentMaterial, faceSize, colors.right, { x: 1, y: 0, z: 0 }, { x: 0, y: -Math.PI / 2, z: 0 });
-    const topFace = createFace(transparentMaterial, faceSize, colors.top, { x: 0, y: 1, z: 0 }, { x: -Math.PI / 2, y: 0, z: 0 });
-    const bottomFace = createFace(transparentMaterial, faceSize, colors.bottom, { x: 0, y: -1, z: 0 }, { x: Math.PI / 2, y: 0, z: 0 });
+    const frontFace = createFace(faceSize, colors.front, { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: 0 });
+    const backFace = createFace(faceSize, colors.back, { x: 0, y: 0, z: -1 }, { x: 0, y: Math.PI, z: 0 });
+    const leftFace = createFace(faceSize, colors.left, { x: -1, y: 0, z: 0 }, { x: 0, y: Math.PI / 2, z: 0 });
+    const rightFace = createFace(faceSize, colors.right, { x: 1, y: 0, z: 0 }, { x: 0, y: -Math.PI / 2, z: 0 });
+    const topFace = createFace(faceSize, colors.top, { x: 0, y: 1, z: 0 }, { x: -Math.PI / 2, y: 0, z: 0 });
+    const bottomFace = createFace(faceSize, colors.bottom, { x: 0, y: -1, z: 0 }, { x: Math.PI / 2, y: 0, z: 0 });
     
     faceMaterials.front = frontFace.face;
     faceMaterials.back = backFace.face;
@@ -355,12 +351,45 @@ export async function init() {
     
     
     updateScore();
-    
-    animate();
-    }
+    //animate();
+}
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
+function calculateDirection() {
+    let direction = { x: 0, y: 0, z: 0 };
+    let face = playerTurn ? currentFace : currentFace2;
 
+    switch (face) {
+        case 0:  // Front
+            direction.x = Math.sin(aimingAngle);
+            direction.z = -Math.cos(aimingAngle);
+            break;
+        case 1:  // Back
+            direction.x = Math.sin(aimingAngle);
+            direction.z = Math.cos(aimingAngle);
+            break;
+        case 2:  // Left
+            direction.x = Math.cos(aimingAngle);
+            direction.z = Math.sin(aimingAngle);
+            break;
+        case 3:  // Right
+            direction.x = -Math.cos(aimingAngle);
+            direction.z = Math.sin(aimingAngle);
+            break;
+        case 4:  // Top
+            direction.x = Math.sin(aimingAngle);
+            direction.y = -Math.cos(aimingAngle);
+            break;
+        case 5:  // Bottom
+            direction.x = Math.sin(aimingAngle);
+            direction.y = Math.cos(aimingAngle);
+            break;
+        default:
+            break;
+    }
+
+    return direction;
+}
 index3;
 
 function moveLoop() {
@@ -368,6 +397,7 @@ function moveLoop() {
     let deltaY = 0;
     if(remote){
         if(currentPlayer === player){
+            if (isTransitioning) return;
             if (keysPressed.ArrowUp) {
             deltaY += keyMoveSpeed;
             }
@@ -386,6 +416,7 @@ function moveLoop() {
             sendGameState();
         }
         else{
+            if (isTransitioning2) return;
             if (keysPressed.ArrowUp) {
             deltaY += keyMoveSpeed;
             }
@@ -404,39 +435,41 @@ function moveLoop() {
             sendGameState();
         }
     } else {
-        if (keysPressed.i) {
-        deltaY += keyMoveSpeed;
-        }
-        if (keysPressed.k) {
-        deltaY -= keyMoveSpeed;
-        }
-        if (keysPressed.j) {
-        deltaX -= keyMoveSpeed;
-        }
-        if (keysPressed.l) {
-        deltaX += keyMoveSpeed;
-        }
-    
+        if (!isTransitioning) 
+        {
+            if (keysPressed.i) {
+            deltaY += keyMoveSpeed;
+            }
+            if (keysPressed.k) {
+            deltaY -= keyMoveSpeed;
+            }
+            if (keysPressed.j) {
+            deltaX -= keyMoveSpeed;
+            }
+            if (keysPressed.l) {
+            deltaX += keyMoveSpeed;
+            }
         movePlayer(player, deltaX, deltaY);
+        }
 
         deltaX = 0;
         deltaY = 0;
-    
-        if (keysPressed['8']) {
-        deltaY += keyMoveSpeed;
+        if (!isTransitioning2){
+            if (keysPressed['8']) {
+            deltaY += keyMoveSpeed;
+            }
+            if (keysPressed['5']) {
+            deltaY -= keyMoveSpeed;
+            }
+            if (keysPressed['4']) {
+            deltaX -= keyMoveSpeed;
+            }
+            if (keysPressed['6']) {
+            deltaX += keyMoveSpeed;
+            }
+        
+            movePlayer2(player2, deltaX, deltaY);
         }
-        if (keysPressed['5']) {
-        deltaY -= keyMoveSpeed;
-        }
-        if (keysPressed['4']) {
-        deltaX -= keyMoveSpeed;
-        }
-        if (keysPressed['6']) {
-        deltaX += keyMoveSpeed;
-        }
-    
-        movePlayer2(player2, deltaX, deltaY);
-  
         sendGameState();
 
 }
@@ -486,6 +519,7 @@ function onKeyDownPlayer1() {
                 if (ballIsHeld && !resetBall_) {
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
+                    direction = calculateDirection();
                     sendGameState();
                     ballIsHeld = false;
                 }
@@ -633,6 +667,7 @@ function switchFace(direction) {
             ballUpdateEnabled = true; // Disable ball updates during the transition
         })
         .onComplete(() => {
+            updatePlayerPositionForFace(currentFace);
             isTransitioning = false;
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
@@ -717,7 +752,8 @@ function updatePlayerPositionForFace(face) {
 
 }
 
-function createFace(material, size, outlineColor, position, rotation) {
+function createFace(size, outlineColor, position, rotation) {
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
     const group = new THREE.Group();
     
     // Create the face
@@ -791,16 +827,15 @@ function switchFace2(direction) {
         .easing(TWEEN.Easing.Quadratic.Out)
         .onStart(() => {
             
-            updatePlayerPositionForFace2(currentFace2)
+            updatePlayerPositionForFace2(currentFace2);
             ballUpdateEnabled = true; // Disable ball updates during the transition
         })
         .onComplete(() => {
+            updatePlayerPositionForFace2(currentFace2);
             isTransitioning2 = false;
             ballUpdateEnabled = true; // Re-enable ball updates after the transition
         })
         .start();
-
-        sendGameState();
 
         sendGameState();
 }
@@ -910,17 +945,18 @@ function updateCollisionMarker() {
     };
 
     // Check all 6 faces
-    checkFace('x', halfCubeSize, 'right'); // Right face
-    checkFace('x', -halfCubeSize, 'left'); // Left face
-    checkFace('y', halfCubeSize, 'top'); // Top face
-    checkFace('y', -halfCubeSize, 'bottom'); // Bottom face
-    checkFace('z', halfCubeSize, 'front'); // Front face
-    checkFace('z', -halfCubeSize, 'back'); // Back face
+    checkFace('x', halfCubeSize, '3'); // Right face
+    checkFace('x', -halfCubeSize, '2'); // Left face
+    checkFace('y', halfCubeSize, '4'); // Top face
+    checkFace('y', -halfCubeSize, '5'); // Bottom face
+    checkFace('z', halfCubeSize, '0'); // Front face
+    checkFace('z', -halfCubeSize, '1'); // Back face
 
     if (intersectionPoint) {
         collisionMarker.position.copy(intersectionPoint);
         if (!ballIsHeld){
             currentBlinkingFace = collidedFace;
+            //console.log("collided face:", collidedFace);
             startBlinking(collidedFace);
         }
     }
@@ -971,7 +1007,8 @@ function updateAimingLine() {
 
         // Set the endpoint of the aiming line
         aimingLine.geometry.setFromPoints([ball.position, endPoint]);
-        //sendGameState();
+        direction = calculateDirection();
+        sendGameState();
     }
     else
         aimingLine.material.opacity = 0;
@@ -979,7 +1016,7 @@ function updateAimingLine() {
 
 function updateScore() {
     let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player: ${playerScore} | Player_2: ${aiScore}`;
+    scoreDisplay.innerHTML = `Player: ${player1Score} | Player_2: ${player2Score}`;
 }
 
     //////////////////////--------BLINKING-------//////////////////////
@@ -987,14 +1024,36 @@ function updateScore() {
 index7;
 
 let currentBlinkingFace = null;
-let isBlinking = false;
-let blinkInterval = 500; 
-let lastBlinkTime = 0;
 
+function getFaceName(name) {
+    let faceName = '';
+    switch (name) {
+        case '0':
+            faceName = 'front';
+            break;
+        case '1':
+            faceName = 'back';
+            break;
+        case '2':
+            faceName = 'left';
+            break;
+        case '3':
+            faceName = 'right';
+            break;
+        case '4':
+            faceName = 'top';
+            break;
+        case '5':
+            faceName = 'bottom';
+            break;
+    }
+    return faceName;
+}
 
-function startBlinking(faceName) {
+function startBlinking(faceNumber) {
     if (currentBlinkingFace)
     {
+        let faceName = getFaceName(faceNumber);
         const face = faceMaterials[faceName];
         //console.log(`Current material:`, face.material);
         //console.log("Blinking face:", faceName, face);
@@ -1003,21 +1062,22 @@ function startBlinking(faceName) {
             return;
         }
 
-        const currentTime = Date.now();
-
-            face.material.opacity = isBlinking ? 1.0 : 0.5;
-            //console.log("Blinking :", face.material.opacity);
-            face.material.needsUpdate = true;
-            isBlinking = !isBlinking;
-            lastBlinkTime = currentTime;
+        face.material.opacity = 1.0;
+        //console.log("Blinking :", face.material.opacity);
+        face.material.needsUpdate = true;
         
 
     }
 }
 
-function stopBlinking(faceName) {
-    const face = faceMaterials[faceName];
-    face.material.opacity = 0.5; // Reset to original opacity
+function stopBlinking() {
+    for (const faceName in faceMaterials) {
+        if (faceMaterials.hasOwnProperty(faceName)) {
+            const face = faceMaterials[faceName];
+            face.material.opacity = 0.5; // Reset to original opacity
+            face.material.needsUpdate = true;
+        }
+    }
     currentBlinkingFace = null;
 }
 
@@ -1026,27 +1086,9 @@ function stopBlinking(faceName) {
 
 
 function checkPlayerPosition() {
-    const playerPosition = playerTurn ? player.position : player2.position;
-    const halfCubeSize = cubeSize / 2;
-
-    let currentFace = null;
-
-    if (playerPosition.z >= halfCubeSize) {
-        currentFace = 'front';
-    } else if (playerPosition.z <= -halfCubeSize) {
-        currentFace = 'back';
-    } else if (playerPosition.x >= halfCubeSize) {
-        currentFace = 'right';
-    } else if (playerPosition.x <= -halfCubeSize) {
-        currentFace = 'left';
-    } else if (playerPosition.y >= halfCubeSize) {
-        currentFace = 'top';
-    } else if (playerPosition.y <= -halfCubeSize) {
-        currentFace = 'bottom';
-    }
-
-    if (currentFace = currentBlinkingFace) {
-        stopBlinking(currentFace);
+    console.log("current face:", currentFace, "current face 2:", currentFace2, "current blinking face:", currentBlinkingFace, "ball is held:", ballIsHeld)
+    if (currentFace == currentBlinkingFace || currentFace2 == currentBlinkingFace || ballIsHeld) {
+        stopBlinking();
     }
 }
 
@@ -1168,8 +1210,13 @@ function movePlayer2(player2, deltaX, deltaY) {
 
 index9;
 
-function animate() {
-
+export function animate() {
+    if (gameStarted == false) {
+        console.log('GAME STARTED IS FALSE');
+        resetGame();
+        return;
+    }
+    
     requestAnimationFrame(animate);
     TWEEN.update();
     moveLoop();
@@ -1183,7 +1230,7 @@ function animate() {
 
 
     sendGameState();
-    if (currentBlinkingFace) {
+    if (currentBlinkingFace && !ballIsHeld) {
         startBlinking(currentBlinkingFace);
     }
     renderer.autoClear = false;
@@ -1218,4 +1265,143 @@ function animate() {
     renderer.setScissorTest(false);
 }
 
-//init();
+export function displayScore(content) {
+    console.log('DISPLAYING SCORE... ', content);
+
+    let winner = content.winner;
+    let p1Score = content.player1Score;
+    let p2Score = content.player2Score
+
+    // Get the canvas and its parent
+    const canvas = document.getElementById('bg');
+    const parent = canvas.parentNode;
+
+    // Create a div for the winner
+    let winnerDiv = document.createElement('div');
+    winnerDiv.textContent = 'Winner: ' + winner;
+    winnerDiv.style.color = 'white';
+    winnerDiv.style.position = 'absolute';
+    winnerDiv.style.zIndex = '1';
+
+    // Create a div for player 1's score
+    let player1Div = document.createElement('div');
+    player1Div.textContent = 'Player 1: ' + p1Score;
+    player1Div.style.color = 'white';
+    player1Div.style.position = 'absolute';
+    player1Div.style.left = '100px';
+    player1Div.style.top = '10px';
+    player1Div.style.zIndex = '1';
+
+    // Create a div for player 2's score
+    let player2Div = document.createElement('div');
+    player2Div.textContent = 'Player 2: ' + p2Score;
+    player2Div.style.color = 'white';
+    player2Div.style.position = 'absolute';
+    player2Div.style.right = '100px';
+    player2Div.style.top = '10px';
+    player2Div.style.zIndex = '1';
+
+    // Add the divs to the parent of the canvas
+    parent.appendChild(winnerDiv);
+    parent.appendChild(player1Div);
+    parent.appendChild(player2Div);
+}
+
+function clearScene(object) {
+    console.log('CLEARING SCENE: ', object.name || 'NO NAME');
+
+    while(object.children.length > 0){ 
+        clearScene(object.children[0]);
+    }
+    if (object.geometry) {
+        object.geometry.dispose();
+    }
+    if (object.material) {
+        if (Array.isArray(object.material)) {
+            for (let i = 0; i < object.material.length; i++) {
+                object.material[i].dispose();
+            }
+        } else {
+            object.material.dispose();
+        }
+    }
+    if (object.texture) {
+        object.texture.dispose();
+    }
+    if (object.parent) { // this line is added to avoid error when the object is the scene itself
+        object.parent.remove(object);
+    }
+}
+
+export function resetGame() {
+    console.log('RESETTING GAME...');
+
+    clearScene(scene);
+
+    scene = null;
+
+    renderer.clear();
+    renderer.dispose();
+    const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
+    //context.clearRect(0, 0, canvas.width, canvas.height);
+    
+   // Reset all variables to their initial state
+    scene = null;
+    camera = null;
+    camera2 = null;
+    renderer = null;
+    cube = null;
+    pivot = null;
+    pivot2 = null;
+    player = null;
+    player2 = null;
+    ball = null;
+    aimingLine = null;
+    aimingAngle = 0;
+    resetBall_ = false;
+
+    isTransitioning = false;
+    isTransitioning2 = false;
+    wallHits = 0;
+    collisionMarker = null;
+
+    if (player1Score > player2Score)
+        playerTurn = true; // Player starts
+    player1Score = 0;
+    player2Score = 0;
+    ballIsHeld = true;
+
+    ballUpdateEnabled = true;
+    ballSpeed = new THREE.Vector3();
+    resetBall_ = false;
+
+    keyMoveSpeed = 0.05;
+    player1Score = 0;
+    player2Score = 0;
+
+    currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
+    currentFace2 = 1;
+    pivot;
+    pivot2;
+    isTransitioning = false;
+    isTransitioning2 = false;
+    ballIsHeld = true;
+    wallHits = 0;
+    aimingAngle = 0;
+
+
+    // Remove score display
+    let scoreDisplay = document.getElementById('scoreDisplay');
+    if (scoreDisplay) {
+        document.body.removeChild(scoreDisplay);
+    }
+
+    // Remove event listeners
+    document.removeEventListener('keydown', onKeyDown);
+    document.removeEventListener('keyup', onKeyUp);
+    document.removeEventListener('mousemove', onMouseMove);
+    //renderer.domElement.removeEventListener('click', requestPointerLock);
+
+    //displayScore(player1Score > player2Score ? 'PLAYER 1' : 'PLAYER 2', player1Score, player2Score);
+
+}
