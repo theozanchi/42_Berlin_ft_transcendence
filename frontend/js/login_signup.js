@@ -177,3 +177,25 @@ const signupObserver = new MutationObserver(() => {
 
 // Start observing the document with the configured parameters
 signupObserver.observe(document, { childList: true, subtree: true });
+
+const LogOutObserver = new MutationObserver(() => {
+	const logoutUser = document.getElementById('logoutUserButton');
+	const formData = new FormData();
+	const userData = getLoggedInState();
+
+	if (logoutUser) {
+		console.log('logging out');
+		fetch('/api/user_mgt/logout/', {
+			method: 'POST',
+			body: formData,
+		})
+		// fetch('/api/user_mgt/delete_cookie/', {
+		// 	method: 'POST',
+		// 	body: formData,
+		// })
+		
+	}
+});
+
+// Start observing the document with the configured parameters
+LogOutObserver.observe(document, { childList: true, subtree: true });
