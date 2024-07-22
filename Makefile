@@ -1,4 +1,3 @@
-include .env
 
 # Certificates
 DIR				:=	/tmp/certs/live/localhost
@@ -12,6 +11,7 @@ BLUE_UNDERLINE	:=	\033[4;34m
 RESET			:=	\033[0m
 PONG			:=	🏓
 
+-include .env
 # Environment Variables
 DB_CONTAINER=game_manager
 DB_HOST=$(POSTGRES_HOST)
@@ -35,6 +35,7 @@ certs:			dir
 					echo "Self-signed certificates are present."; \
 				fi
 
+
 dir:
 				@mkdir -p $(DIR)
 
@@ -46,7 +47,7 @@ env:
 				@./scripts/env.sh
 
 up:
-				@docker-compose up --build -d --no-deps
+				@docker-compose up --build -d --no-deps --remove-orphans
 				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)https://localhost:8443$(RESET)"
 
 down:
@@ -66,13 +67,17 @@ rebuild:
 crebuild:		clean-db rebuild
 
 postgres:
-				docker exec -it $(DB_CONTAINER) pgcli -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME)
+				docker exec -it $(POSTGRES_CONTAINER) pgcli -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME)
+
+prune:
+				docker compose down
+				docker container prune -f
 
 prune:
 				docker compose down
 				docker container prune -f
 
 clean-db:
-				docker exec -it $(DB_CONTAINER) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
+				docker exec -it $(POSTGRES_CONTAINER) psql -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
 
 .PHONY:			all certs dir del_certs env up down restart prune auth rebuild postgres prune crebuild
