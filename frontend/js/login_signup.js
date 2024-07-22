@@ -2,7 +2,7 @@
 // 	const login42OAuth = document.getElementById('login42SSOButton');
 
 // 	if (login42OAuth) {
-// 		// console.log('logging out'); 
+// 		// console.log('logging out');
 // 		fetch('/api/user_mgt/oauth/login/', {
 // 			method: 'POST',
 // 			body: formData,
@@ -51,7 +51,7 @@ const LogInObserver = new MutationObserver(() => {
 			e.preventDefault();
 
 
-			
+
 			formData.append('username', loginUser.value);
 			formData.append('password', loginPassword.value);
 
@@ -95,7 +95,7 @@ const LogInObserver = new MutationObserver(() => {
 	// 	// 	method: 'POST',
 	// 	// 	body: formData,
 	// 	// })
-		
+
 	// }
 });
 
@@ -103,7 +103,7 @@ const LogInObserver = new MutationObserver(() => {
 LogInObserver.observe(document, { childList: true, subtree: true });
 
 const signupObserver = new MutationObserver(() => {
-	const signupImage =document.getElementById('signupAvatar'); 
+	const signupImage =document.getElementById('signupAvatar');
 	const signupUser = document.getElementById('signupUser');
 	const signupPassword = document.getElementById('signupPassword');
 	const signupPasswordConfirm = document.getElementById('signupPasswordConfirm');
@@ -183,7 +183,7 @@ const LogOutObserver = new MutationObserver(() => {
 	const formData = new FormData();
 	const userData = getLoggedInState();
 
-	if (logoutUser) {
+/* 	if (logoutUser) {
 		console.log('logging out');
 		fetch('/api/user_mgt/logout/', {
 			method: 'POST',
@@ -193,8 +193,8 @@ const LogOutObserver = new MutationObserver(() => {
 		// 	method: 'POST',
 		// 	body: formData,
 		// })
-		
-	}
+
+	} */
 });
 
 // Start observing the document with the configured parameters
