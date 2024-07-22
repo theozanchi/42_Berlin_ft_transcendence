@@ -14,7 +14,7 @@ export function setProfileImage(user_id) {
 				return response.json();
 			}
 			throw new Error('Non-JSON response received');
-	})	
+	})
 	.then(response => {
 	if (response.player_data.user_avatar)
 		imageUrl = baseUrl + '/media/' + response.player_data.avatar;
@@ -52,18 +52,18 @@ export function updateProfileData() {
 		const password1 = updateProfilePassword.value;
 		const password2 = updateProfilePasswordConfirm.value;
 		const nickname = updateProfileNickname.value;
-	
+
 		if (password1 != password2) {
 			alert('Passwords do not match.');
 			return;
 		}
-	
+
 		const formData = new FormData();
 		if (nickname)
 			formData.append('username', document.getElementById('updateProfileNickname').value);
 		if (password1)
 			formData.append('password', document.getElementById('updateProfilePassword').value);
-	
+
 		if (updateProfileAvatar.files.length > 0) {
 			const imageFile = updateProfileAvatar.files[0];
 			formData.append('image', imageFile);
@@ -129,7 +129,7 @@ export function loadProfileData() {
 				data = data.player_data;
 				console.log(`HERE IS SOME DATA: ${data}`);
 				// ProfileObserver.disconnect();
-				
+
 				//WRITE USER DATA TO TEMPLATE
 				userAvatar.src = setProfileImage(data.user_id);
 				userNickname.textContent = data.nickname;
@@ -139,7 +139,7 @@ export function loadProfileData() {
 				userGamesWon.textContent = data.total_wins;
 				userGamesLost.textContent = data.total_lost;
 				if (data.friends) {
-					// userFriendsList.style.display = 'block'; 
+					// userFriendsList.style.display = 'block';
 					userFriendsList.removeAttribute('hidden');
 					let noFriendsState = document.getElementById('emptyState');
 					if (noFriendsState && data.friends.length)
@@ -151,8 +151,8 @@ export function loadProfileData() {
 						separator.setAttribute('class', 'm-0');
 						// newPlayer.setAttribute('remove-button', '');
 						newPlayer.setAttribute('name', element.username);
-						newPlayer.setAttribute('user_id', element.user_id); 
-						newPlayer.setAttribute('avatar', setProfileImage(element.user_id)); // FIX THIS IN PLAYER COMPONENT 
+						newPlayer.setAttribute('user_id', element.user_id);
+						newPlayer.setAttribute('avatar', setProfileImage(element.user_id)); // FIX THIS IN PLAYER COMPONENT
 						userFriendsList.appendChild(newPlayer);
 						userFriendsList.appendChild(separator);
 					});
@@ -181,7 +181,7 @@ const ProfileEditObserver = new MutationObserver(() => {
 		.then(response => {
 			// Check if the response is ok and content type is JSON
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-				// 
+				//
 				return response.json();
 			}
 			throw new Error('Non-JSON response received');

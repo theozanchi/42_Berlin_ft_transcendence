@@ -55,9 +55,6 @@ down:
 
 restart:		down up
 
-prune:
-				docker system prune -af
-
 auth:
 				@docker-compose up --build -d nginx authentication
 

@@ -76,7 +76,7 @@ class Game(models.Model):
     mode_is_local = models.BooleanField(null=True, blank=True)
 
     winner = models.ForeignKey(
-        'Player', related_name="won_games", null=True, on_delete=models.SET_NULL
+        "Player", related_name="won_games", null=True, on_delete=models.SET_NULL
     )
     host = models.CharField(max_length=255, null=True, blank=True)
 
@@ -97,15 +97,15 @@ class Game(models.Model):
         for player in players:
             Player.objects.create(
                 game=self,
-                alias=player.get("alias"), 
-                channel_name=player.get("channel_name")
+                alias=player.get("alias"),
+                channel_name=player.get("channel_name"),
             )
-    
+
     def add_existing_players_to_game(self, data):
         user_ids = data.get("user_ids", [])
         for user_id in user_ids:
             player_to_add = Player.objects.get(user=user_id)
-            player_to_add.game = self # Add a player to the game
+            player_to_add.game = self  # Add a player to the game
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -135,8 +135,18 @@ class Game(models.Model):
 
         for player in self.players.all():
             wins = player.won_rounds.count()
-            player1_score = player.player1_rounds.aggregate(total_score=Sum('player1_score'))['total_score'] or 0
-            player2_score = player.player2_rounds.aggregate(total_score=Sum('player2_score'))['total_score'] or 0
+            player1_score = (
+                player.player1_rounds.aggregate(total_score=Sum("player1_score"))[
+                    "total_score"
+                ]
+                or 0
+            )
+            player2_score = (
+                player.player2_rounds.aggregate(total_score=Sum("player2_score"))[
+                    "total_score"
+                ]
+                or 0
+            )
             score = player1_score + player2_score
             player_wins_scores.append((player, wins, score))
 
@@ -145,8 +155,17 @@ class Game(models.Model):
 
         # Assign ranks and create Participation objects
         for rank, (player, wins, score) in enumerate(player_wins_scores, start=1):
-            logging.debug("Player user: %s, wins: %s, score: %s, rank: %s, tournament: %s", player.user, wins, score, rank, self)
-            participation = Participation.objects.create(tournament=self, user=player.user, score=score, rank=rank)
+            logging.debug(
+                "Player user: %s, wins: %s, score: %s, rank: %s, tournament: %s",
+                player.user,
+                wins,
+                score,
+                rank,
+                self,
+            )
+            participation = Participation.objects.create(
+                tournament=self, user=player.user, score=score, rank=rank
+            )
             logging.debug("Created participation: %s", participation)
             player.game = None
             player.save()
@@ -178,8 +197,10 @@ class Game(models.Model):
                 round.winner = round.player1
             round.save()
 
+
 class Tournament(Game):
     pass
+
 
 class Participation(models.Model):  # Binds User and Tournament classes
 
@@ -200,7 +221,9 @@ class Player(models.Model):
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name="players")
 
-    game = models.ForeignKey(Game, related_name="players", on_delete=models.SET_NULL, null=True)
+    game = models.ForeignKey(
+        Game, related_name="players", on_delete=models.SET_NULL, null=True
+    )
     alias = models.CharField(max_length=25, null=True, blank=True)
     channel_name = models.CharField(max_length=255, null=True, blank=True)
 
