@@ -40,7 +40,7 @@ env:
 				@./scripts/env.sh
 
 up:
-				@docker-compose up --build -d --no-deps
+				@docker-compose up --build -d --no-deps --remove-orphans
 				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)https://localhost:8443$(RESET)"
 
 down:

@@ -7,7 +7,7 @@ export function setProfileImage(user_id) {
 	const baseUrl = new URL(document.location).origin;
 	let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 
-	await fetch(`/api/user_mgt/profile/${user_id}`)
+	fetch(`/api/user_mgt/profile/${user_id}`)
 		.then(response => {
 			// Check if the response is ok and content type is JSON
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
