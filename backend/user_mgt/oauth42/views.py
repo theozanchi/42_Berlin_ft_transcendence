@@ -374,14 +374,24 @@ def game_rounds(game_id):
     game_rounds = []
     if not rounds.exists():
         return game_rounds
-    for round in rounds.order_by("-round_number"):
+    for round in rounds.order_by("round_number"):
         game_round = {
             "round_number": round.round_number,
             "round_status": round.status,
-            "player1": round.player1.alias if round.player1 else None,
-            "player2": round.player2.alias if round.player2 else None,
-            "player1_score": round.player1_score,
-            "player2_score": round.player2_score,
+            "player1": {
+                "alias": round.player1.alias if round.player1 else None,
+                "score": round.player1_score if round.player1 else None,
+                "user_id": round.player1.user_id if round.player1 else None,
+            },
+            "player2": {
+                "alias": round.player2.alias if round.player2 else None,
+                "score": round.player2_score if round.player1 else None,
+                "user_id": round.player2.user_id if round.player1 else None,
+            },
+            "winner": {
+                "alias": round.winner.alias if round.winner else None,
+                "user_id": round.winner.user_id if round.winner else None,
+            }
         }
         game_rounds.append(game_round)
     return game_rounds
