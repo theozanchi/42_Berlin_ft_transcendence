@@ -35,8 +35,9 @@ let index8;
 let index9;
 
 const canvas = document.getElementById('bg');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = canvas.offsetWidth;
+canvas.height = canvas.offsetHeight;
+console.log(`CANVS SIZE: ${canvas.width} x ${canvas.height}`)
 
 let direction;
 const faceMaterials = {};
@@ -220,14 +221,17 @@ export async function init() {
     scene = new THREE.Scene();
     
     // Set up the camera
-    camera = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
-    camera2 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
-    camera3 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
+    camera2 = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
+    camera3 = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
     
     // Set up the renderer
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+
+    renderer.setSize(canvas.width, canvas.height);
+	const canvasParent = canvas.parentNode;
+	canvasParent.appendChild(renderer.domElement, canvas);
+	// document.body.appendChild(renderer.domElement);
     
     // Create the background plane
     const bgTexture = new THREE.TextureLoader().load('../assets/background.gif');
@@ -1260,10 +1264,10 @@ export function animate() {
     renderer.clear();
     
     if (remote) {
-        const x = (window.innerWidth) / 4;
+        const x = (canvas.width) / 4;
         // Render the scene from the first camera
-        renderer.setViewport(x, 0, window.innerWidth / 2, window.innerHeight);
-        renderer.setScissor(x, 0, window.innerWidth, window.innerHeight);
+        renderer.setViewport(x, 0, canvas.width / 2, canvas.height);
+        renderer.setScissor(x, 0, canvas.width, canvas.height);
         renderer.setScissorTest(false);
         if (currentPlayer === player) {
             renderer.render(scene, camera);
@@ -1275,14 +1279,14 @@ export function animate() {
         }
     } else {
         // Render the scene from the first camera
-        renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight);
-        renderer.setScissor(0, 0, window.innerWidth / 2, window.innerHeight);
+        renderer.setViewport(0, 0, canvas.width / 2, canvas.height);
+        renderer.setScissor(0, 0, canvas.width / 2, canvas.height);
         renderer.setScissorTest(true);
         renderer.render(scene, camera);
         
         // Render the scene from the second camera
-        renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
-        renderer.setScissor(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
+        renderer.setViewport(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+        renderer.setScissor(canvas.width / 2, 0, canvas.width / 2, canvas.height);
         renderer.setScissorTest(true);
         renderer.render(scene, camera2);
     }
