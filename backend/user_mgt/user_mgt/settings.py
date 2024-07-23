@@ -60,8 +60,8 @@ LOGOUT_REDIRECT_URL = "/api/user_mgt"
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = os.getenv('SERVER_NAME')
-CSRF_TRUSTED_ORIGINS = [os.getenv('SERVER_NAME') + ':' + os.getenv('SPORT')]
+CSRF_COOKIE_DOMAIN = "localhost"
+CSRF_TRUSTED_ORIGINS = ["localhost:8443"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

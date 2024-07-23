@@ -1,3 +1,4 @@
+import { urlRoute } from './url-router.js';
 // const LogIn42Observer = new MutationObserver(() => {
 // 	const login42OAuth = document.getElementById('login42SSOButton');
 
@@ -201,6 +202,7 @@ const LogOutObserver = new MutationObserver(() => {
 					console.error('Failed to get user data');
 				}
 			})();
+		urlRoute('/');
 		});
 		logoutUser.hasEventListener = true;
 	}

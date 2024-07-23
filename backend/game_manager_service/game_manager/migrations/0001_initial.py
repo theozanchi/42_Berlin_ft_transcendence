@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
                 ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rounds', to='game_manager.game')),
                 ('player1', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='player1_rounds', to='game_manager.player')),
                 ('player2', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='player2_rounds', to='game_manager.player')),
-                ('winner', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='won_rounds', to='game_manager.player')),
+                ('winner', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='won_rounds', to='game_manager.player')),
             ],
         ),
         migrations.CreateModel(

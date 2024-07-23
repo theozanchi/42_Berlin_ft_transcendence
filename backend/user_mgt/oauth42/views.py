@@ -279,6 +279,7 @@ def rankings(request):
 
 @csrf_exempt
 @login_required
+@csrf_exempt
 def update(request):
     user = request.user
     if request.method == "POST":

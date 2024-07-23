@@ -1,6 +1,5 @@
 import {getLoggedInState} from './login_signup.js';
 import { urlRoute } from './url-router.js';
-// import {urlRoute} from './url-router.js';
 
 
 // export function setProfileImage(user_id) {
@@ -206,7 +205,7 @@ export async function loadProfileData() {
         const response = await fetch(`/api/user_mgt/profile/${userId}`);
         if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
             let data = await response.json();
-            console.log('Starting to work');
+            // console.log('Starting to work');
             if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
                 data = data.player_data;
                 

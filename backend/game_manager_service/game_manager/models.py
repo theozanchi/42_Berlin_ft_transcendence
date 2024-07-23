@@ -300,7 +300,7 @@ class Round(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Round {self.round_number} - status: {self.status} - {self.player1} vs {self.player2} - winner: {self.winner}"
+        return f"Round {self.round_number} - {self.player1} vs {self.player2}"
 
 
 """ @receiver(post_save, sender=UserProfile)
