@@ -35,6 +35,7 @@ from .models import Participation, Round, Tournament, UserManager, UserProfile
 
 # return Response(response.json(), status=response.status_code)
 
+
 @csrf_exempt
 def save_avatar_from_url(user_profile, url):
     response = requests.get(url)
@@ -56,6 +57,7 @@ def home(request):
         return render(request, "oauth42/home.html", {"user": request.user})
     return render(request, "oauth42/home.html")
 
+
 @csrf_exempt
 def logout_user(request):
     if request.method == "POST":
@@ -69,9 +71,14 @@ def logout_user(request):
             request.session.flush()
             return JsonResponse({"status": "success", "message": "User logged out."})
         else:
-            return JsonResponse({"status": "error", "message": "No user logged in who could get logged out."})
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "No user logged in who could get logged out.",
+                }
+            )
 
-    return JsonResponse({"status":"error", "message":"Method not allowed"})
+    return JsonResponse({"status": "error", "message": "Method not allowed"})
 
 
 def delete_cookie(request):
@@ -90,6 +97,7 @@ def is_valid_image(image):
         return True
     except (IOError, SyntaxError):
         return False
+
 
 @csrf_exempt
 def upload_avatar(request, user_id):
@@ -125,7 +133,11 @@ def delete_avatar(request, user_id):
         user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found (def delete avatar)", "404_user_id": user_id}
+            {
+                "status": "error",
+                "message": "User not found (def delete avatar)",
+                "404_user_id": user_id,
+            }
         )
     except UserProfile.DoesNotExist:
         return JsonResponse(
@@ -143,6 +155,7 @@ def delete_avatar(request, user_id):
     else:
         return {"status": "info", "message": "No avatar to delete."}
 
+
 @csrf_exempt
 def update_avatar(request, user_id):
     try:
@@ -150,7 +163,11 @@ def update_avatar(request, user_id):
         user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found (def update_avatar)", "404_user_id": user_id}
+            {
+                "status": "error",
+                "message": "User not found (def update_avatar)",
+                "404_user_id": user_id,
+            }
         )
     except UserProfile.DoesNotExist:
         return JsonResponse(
@@ -179,6 +196,7 @@ def update_avatar(request, user_id):
     else:
         return {"status": "error", "message": "Method not allowed"}
 
+
 @csrf_exempt
 def register(request):
     if request.method == "POST":
@@ -201,8 +219,8 @@ def register(request):
             password=make_password(password),
         )
         user_profile = UserProfile.objects.create(
-            user = user,
-            alias = username,
+            user=user,
+            alias=username,
         )
         response_data = {
             "status": "success",
@@ -277,6 +295,7 @@ def rankings(request):
         )
     return JsonResponse({"status": "info", "rankings": rankings})
 
+
 @csrf_exempt
 @login_required
 @csrf_exempt
@@ -337,7 +356,11 @@ def get_total_score(user_id):
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found (def get_total_score)", "404_user_id": user_id}
+            {
+                "status": "error",
+                "message": "User not found (def get_total_score)",
+                "404_user_id": user_id,
+            }
         )
 
     total_score = Participation.objects.filter(user=user).aggregate(Sum("score"))[
@@ -346,13 +369,35 @@ def get_total_score(user_id):
     return total_score or 0
 
 
+def game_rounds(game_id):
+    rounds = Round.objects.filter(game=game_id)
+    game_rounds = []
+    if not rounds.exists():
+        return game_rounds
+    for round in rounds.order_by("-round_number"):
+        game_round = {
+            "round_number": round.round_number,
+            "round_status": round.status,
+            "player1": round.player1.alias if round.player1 else None,
+            "player2": round.player2.alias if round.player2 else None,
+            "player1_score": round.player1_score,
+            "player2_score": round.player2_score,
+        }
+        game_rounds.append(game_round)
+    return game_rounds
+
+
 def profile(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
         user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "User not found. (def profile)", "404_user_id": user_id}
+            {
+                "status": "error",
+                "message": "User not found. (def profile)",
+                "404_user_id": user_id,
+            }
         )
     except UserProfile.DoesNotExist:
         return JsonResponse(
@@ -390,6 +435,7 @@ def profile(request, user_id):
                 }
                 for p in Participation.objects.filter(tournament=tournament)
             ],
+            "rounds": game_rounds(tournament.game_id),
         }
         games.append(game)
         tournaments = tournaments + 1
@@ -594,14 +640,19 @@ def is_online(user_id):
     active_sessions = Session.objects.filter(expire_date__gte=now)
     for session in active_sessions:
         session_data = session.get_decoded()
-        if str(user_id) == session_data.get('_auth_user_id'):
+        if str(user_id) == session_data.get("_auth_user_id"):
             return True
     return False
 
 
 def online_users_view(request):
     if not request.user.is_authenticated:
-        return JsonResponse({"status": "error", "message":"Please login/register to see a list of online users."})
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Please login/register to see a list of online users.",
+            }
+        )
 
     online_user_profiles_list = list(get_online_users())
     return JsonResponse(
