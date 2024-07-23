@@ -135,6 +135,7 @@ services:
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
+      - SERVER_NAME=${SERVER_NAME}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db

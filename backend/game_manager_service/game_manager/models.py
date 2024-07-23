@@ -220,6 +220,7 @@ class Player(models.Model):
     last_activity = models.DateTimeField(auto_now=True)
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name="players")
+    registered = models.BooleanField(default=False)
 
     game = models.ForeignKey(
         Game, related_name="players", on_delete=models.SET_NULL, null=True

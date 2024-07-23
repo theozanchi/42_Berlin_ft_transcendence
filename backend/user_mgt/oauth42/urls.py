@@ -6,7 +6,7 @@ from .oauth import oauth_callback, oauth_login
 from .views import (add_friend, add_friend_view, delete_cookie, delete_profile,
                     home, logout_user, online_users_view, profile, rankings, register,
                     regular_login, remove_friend, remove_friend_view, update,
-                    who_am_i)
+                    who_am_i, registered_users_view)
 
 urlpatterns = [
     path("api/user_mgt", home, name="home"),
@@ -34,4 +34,5 @@ urlpatterns = [
     ),
     path("api/user_mgt/online_users/", online_users_view, name="online_users"),
     path("api/user_mgt/me", who_am_i, name="me"),
+    path("api/user_mgt/user_list", registered_users_view, name="user_list")
 ]
