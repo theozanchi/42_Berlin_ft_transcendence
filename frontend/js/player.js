@@ -12,15 +12,15 @@ class MyPlayer extends HTMLElement {
 				this.dispatchEvent(new CustomEvent('removePlayer'));
 			});
 		}
-		//MAKING PLAYER COMPONENT CLICKABLE
-		// if (this.hasAttribute('user_id')) {
-		// 	this.addEventListener('click', () => {
-		// 		const userId = this.getAttribute('user_id');
-		// 		if (userId) {
-		// 			window.location.href = `/profile?user=${userId}`;
-		// 		}
-		// 	});
-		// }
+		// MAKING PLAYER COMPONENT CLICKABLE
+		if (this.hasAttribute('user_id')) {
+			this.addEventListener('click', () => {
+				const userId = this.getAttribute('user_id');
+				if (userId) {
+					window.location.href = `/profile?user=${userId}`;
+				}
+			});
+		}
 	}
 
     get name() {
