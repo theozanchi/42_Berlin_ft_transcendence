@@ -202,6 +202,7 @@ const LogOutObserver = new MutationObserver(() => {
 					console.error('Failed to get user data');
 				}
 			})();
+		urlRoute('/');
 		});
 		logoutUser.hasEventListener = true;
 	}
