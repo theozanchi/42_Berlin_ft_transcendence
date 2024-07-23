@@ -1,4 +1,7 @@
 const	baseUrl = document.location.href;
+import {getLoggedInState} from './login_signup.js';
+import {loadUserList} from './all-users.js';
+import {loadProfileData, updateProfileData} from './profile.js'
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -28,17 +31,17 @@ const urlRoutes = {
 		description: "",
 	},
 	"/setup-remote": {
-		template: "/remote.html",
+		template: "/setup-remote.html",
 		title: "Lobby",
 		description: "",
 	},
 	"/host-remote": {
-		template: "/lobby.html",
+		template: "/setup-lobby.html",
 		title: "Setup",
 		description: "",
 	},
 	"/join-remote": {
-		template: "/lobby.html",
+		template: "/setup-lobby.html",
 		title: "Setup",
 		description: "",
 	},
@@ -49,7 +52,7 @@ const urlRoutes = {
 		description: "",
 	},
 	"/game-table": {
-		template: "/game_table.html",
+		template: "/game-table.html",
 		title: "Game Table",
 		description: "",
 	},
@@ -69,49 +72,104 @@ const urlRoutes = {
 		title: "Profile",
 		description: "",
 	},
-
-	"/fill": {
-		template: "/fill.html",
-		title: "Layout Tes",
+	"/edit-profile": {
+		template: "/profile-edit.html",
+		title: "Profile",
 		description: "",
 	},
+	"/users": {
+		template: "/all-users.html",
+		title: "Users",
+		description: "",
+	},
+	
 }
 
-const urlRoute = (event) => {
-	event = window.event || event;
-	console.log("HELLO");
-	event.preventDefault();
-	window.history.pushState({}, "", event.target.href);
-	console.log(event.target.href);
+export const urlRoute = (eventOrUrl) => {
+	let url;
+	// console.log(eventOrUrl);
+	// console.log(typeof eventOrUrl);
+	console.log('routing now!');
+	if (typeof eventOrUrl === 'string') {
+		url = eventOrUrl;
+	} else {
+		eventOrUrl = window.event || eventOrUrl;
+		eventOrUrl.preventDefault();
+		url = eventOrUrl.target.href;
+	}
+	// console.log(url);
+	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }
 
+async function redirectOnLogin(locationOld){
+	let location = locationOld;
+	let urlQuery = new URLSearchParams(window.location.search);
+
+// Route based on login state
+	const userStatus = await getLoggedInState();
+	const userId = userStatus.user_id;
+
+	if (userStatus.status === "success"
+		&& (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user')))) {
+			// Redirect logged-in user to their own profile if profile not specified in url
+			const newUrl = `/profile?user=${userId}`;
+			window.history.replaceState({}, "", newUrl);
+			location = '/profile'; // Update location to reflect the new URL
+	}
+	else if (userStatus.status !== "success") {
+		// User is not logged in
+		if (location === "/profile" && !urlQuery.has('user')) {
+			// Redirect guest trying to access /profile to homepage
+			// window.history.pushState({}, "", "/");
+			location = "/login";
+			window.history.replaceState({}, "", location);
+		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile") {
+			// Additional logic for other routes if needed
+			// window.history.pushState({}, "", "/login");
+			location = "/login";
+			window.history.replaceState({}, "", location);
+		}
+		// window.history.pushState({}, "", location);
+	}
+
+	return (location);
+}
+
 const urlLocationHandler = async () => {
-    let location = window.location.pathname;
-    if (location.length == 0) {
-        location = "/"
-    }
-    console.log(`MY LOCATION: ${location}`);
+	let location = window.location.pathname;
 
-    const route = urlRoutes[location] || urlRoutes[404]
+	if (location.length === 0) 
+		location = "/";
+	else
+		location = await redirectOnLogin(location);
 
-    console.log(`MY ROUTE: ${route.template}`);
+	// Fetch and display the content based on the updated location
+	let route = urlRoutes[location] || urlRoutes[404];
+	const html = await fetch(route.template).then(response => response.text());
 
-    let imageUrl = new URL(route, baseUrl);
-    console.log(imageUrl);
+	// Parse and update the page content as before
+	let parser = new DOMParser();
+	let doc = parser.parseFromString(html, "text/html");
 
-    const html = await fetch(route.template).then((response) => 
-		response.text());
+	// window.history.pushState({}, "", location);
+	document.title = doc.querySelector('title').innerText; // Update title
 
+	// Update game and settings column content as before
+	let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+	if (fetchedGameColumnContent)
+		document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
 
-	//PARSE ACTUAL PATH AND 
-    let parser = new DOMParser();
-    let doc = parser.parseFromString(html, "text/html");
-    let title = doc.querySelector('title').innerText;
+	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+	if (fetchedSettingsColumnContent)
+		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 
-	//WRITE NEW TITLE TO BROWSER TAB
-    document.title = title;
-    document.getElementById("content").innerHTML = html;
+	if (location === '/profile')
+		loadProfileData();
+	if (location === '/edit-profile')
+		updateProfileData();
+	if (location === '/users')
+		loadUserList();
 };
 
 window.onpopstate = urlLocationHandler;

@@ -112,6 +112,7 @@ def update_or_create_user(user_info, access_token):
                 "picture_url": picture_url,
                 "access_token": access_token,
                 "id42": id42,
+                "registered": True,
             },
         )
 
@@ -119,7 +120,7 @@ def update_or_create_user(user_info, access_token):
             user.set_unusable_password()
             user.save()
 
-        save_avatar_from_url(user.userprofile, picture_url)
+        save_avatar_from_url(user.player, picture_url)
     return user
 
 

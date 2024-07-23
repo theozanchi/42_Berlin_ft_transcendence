@@ -6,11 +6,21 @@ class MyPlayer extends HTMLElement {
 
 	connectedCallback() {
 		this.render();
-		if (this.hasAttribute('remove-button'))
+		if (this.hasAttribute('remove-button')){
 			this.shadow.getElementById('removeButton').addEventListener('click', () => {
 				// console.log("REMOVE CLICKED");
 				this.dispatchEvent(new CustomEvent('removePlayer'));
 			});
+		}
+		//MAKING PLAYER COMPONENT CLICKABLE
+		// if (this.hasAttribute('user_id')) {
+		// 	this.addEventListener('click', () => {
+		// 		const userId = this.getAttribute('user_id');
+		// 		if (userId) {
+		// 			window.location.href = `/profile?user=${userId}`;
+		// 		}
+		// 	});
+		// }
 	}
 
     get name() {
@@ -58,7 +68,7 @@ class MyPlayer extends HTMLElement {
 			? '<button id="removeButton" class="btn btn-outline-danger col-auto square-button"><i class="bi bi-x-lg"></i></button>' 
 			: '';
 	
-		const imgElement = `<img src="${imageUrl}" class="col-auto player-component">`;
+		const imgElement = `<div class="masked-avatar"><img src="${imageUrl}" class="col-auto player-component"></div>`;
 	
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">

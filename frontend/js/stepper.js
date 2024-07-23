@@ -5,7 +5,7 @@
 	// PROCCEED/START BUTTON
 
 // import { generateLocalGame } from './api_calls.js';
-import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+import { init, updateGameState, displayScore } from './game.js';
 
 var newsocket;
 let openPromise;
@@ -13,11 +13,9 @@ let messagePromise;
 let game_id;
 
 // For game area
-export var gameStarted = false;
-export var gameOver = false;
-export var remote = false;
+export var gameStarted = false, gameOver = false, remote = false;
 export var round_number;
-export let currentPlayer;
+export var player_id;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
@@ -47,7 +45,7 @@ function openSocket() {
         });
 
 		newsocket.onmessage = function(event) {
-			console.log('Received: ' + event.data);
+			//console.log('Received: ' + event.data);
 			let data = JSON.parse(event.data);
 				if (data.type === 'broadcast') {
 					console.log('Broadcast:', data);
@@ -69,31 +67,21 @@ function openSocket() {
 					if (data.mode === 'remote') {
 						remote = true;
 
-						if (data.player_id === 'player1')
-							currentPlayer = player;
-						else if (data.player_id === 'player2')
-							currentPlayer = player2;
-						else
-							currentPlayer = 'spectator';
+						player_id = data.player_id;
 					}
 				
                     gameStarted = true;
 					round_number = data.round_number;
-                    console.log('Game started! round number:', round_number);
 					init();
-					animate();
                 }
 				if (data.type === 'update') {
 					if (gameStarted === false)
 						return;
 					if (data.content.gameOver === true) {
 						console.log('Round Over. Winner is: ', data.content.winner);
-						currentPlayer = null;
-						//unloadLocalGame();
-						// Start next round
-						displayScore(data.content);
-
 						gameStarted = false;
+						player_id = null;
+
 						//createStartButton();
 						if (gameStarted) {
 							console.log('Game already started!');
@@ -233,6 +221,7 @@ async function hostRemoteGame() {
 		console.log('Sending JSON:', data);
         sendJson(json);
 
+		
 		createStartButton();
     })
     .catch(error => {
@@ -273,7 +262,7 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
-
+				console.log('hosting remote');
 				hostRemoteGame();
 
 			});
@@ -299,7 +288,6 @@ async function hostRemoteGame() {
 
 				// Copy the input field's value to the clipboard
 				navigator.clipboard.writeText(input.value).then(function() {
-					console.log('Copying to clipboard was successful!');
 										
 					// Change the icon to bi-clipboard-check
 					iconSpan.className = 'bi bi-clipboard-check';

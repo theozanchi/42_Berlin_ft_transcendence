@@ -6,3 +6,4 @@ from . import consumers
 websocket_urlpatterns = [
     url(r"^ws/$", consumers.APIConsumer.as_asgi()),
 ]
+

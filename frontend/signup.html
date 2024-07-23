@@ -13,66 +13,60 @@
 	<body>
 		<div  class="container-fluid">
 			<div class="min-vh-100 row row-cols-1 row-cols-lg-3">
-				<div class="col col-lg-3 ppg-blue-light">
-					<div class="spacer-48"></div>
-					<div class="d-flex row align-self-start">
-						<stepper-component></stepper-component>
-						
-						<div id="10-signup" class="step" >		
-							<!-- <div style="display: flex; align-items: center;"> -->
+				<div class="col col-lg-3 ppg-blue-light" id="settings-column">
+				
+					<div class="d-flex flex-column h-100">
+						<div>
+							<div class="spacer-48"></div>
+							<stepper-component></stepper-component>
 							<stepper-titlebar title="Sign up"></stepper-titlebar>
-							<div class="d-flex justify-content-between align-baseline">
-								<h1>Sign up</h1>
-							</div>
+						</div>
+						
 
-							<div class="d-grid gap-2">
+						<div class="spacer-48"></div>
+
+						<div class="d-grid">
+							
+							<h1>Sign up</h1>
+							<p>Choose a username and password to create a new account.</p>
+						</div>
+
+						<div class="d-flex flex-column h-100 overflow-auto">
+							<form class="d-grid gap-2" id="registrationForm">
+								<input class="form-control" type="file" id="signupAvatar">
 								<div class="form-floating">
-										<input type="email" class="form-control col" id="loginEmail" placeholder="buttercup@pongerpuffgirl.fun" aria-label="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
-										<label for="loginEmail">Email</label>
+									<input type="text" class="form-control col" id="signupUser" placeholder="username" required>
+									<label for="signupUser">Username</label>
 								</div>
+								<div class="spacer-12"></div>
 								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
+									<input type="password" class="form-control col" id="signupPassword" placeholder="" required>
 									<label for="loginPassword">Password</label>
 								</div>
 								<div class="form-floating">
-									<input type="password" class="form-control col" id="loginPassword" placeholder="buttercup@pongerpuffgirl.fun" aria-label="">
-									<label for="loginPassword">Confirm Password</label>
+									<input type="password" class="form-control col" id="signupPasswordConfirm" placeholder="" required>
+									<label for="loginPasswordConfirm">Confirm Password</label>
 								</div>
-								<button id="loginButton" class="btn btn-lg btn-primary disabled">Sign up</button>
-							</div>							
+								<button id="signupButton" class="btn btn-lg btn-primary" disabled>Sign up</button>
+							</form>
+						</div>
+						
+						<div>
+							<hr>
+							<h2>You have an Account?</h2>
+							<div class="spacer-24"></div>
+							<nav class="d-grid gap-2 d-md-block">
+								<a href="/login" id="goToLoginButton" class="btn btn-lg btn-outline-primary">Login</a>
+							</nav>
+							<div class="spacer-48"></div>
 						</div>
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
-					<!-- <div class="spacer-48"></div> -->
-					<!-- <h2>GAMING AREA</h2> -->
-					<!-- <pong-game></pong-game> -->
-
-					
-					<!-- <div>
-						<canvas id="bg"></canvas>
-						<script type="module" src="./js/pong/main.js"></script>
-					</div> -->
 				</div>
 				<div class="col col-lg-3 ppg-green-light" id="meta-column">
 					<div class="spacer-48"></div>
 					<h2>WebSocket Client</h2>
-					<!-- <div id="ws-local" class="step">
-						<stepper-titlebar title="Local Game"></stepper-titlebar>
-						<player-list mode ="local"></player-list>
-						<button id="generateLocalGameButtonWS" class="btn btn-primary btn-lg d-grid generate-game-button">Generate Game</button>
-					</div>
-					<div>
-						<button onclick="connectWebSocket()">Connect</button>
-						<button onclick="disconnectWebSocket()">Disconnect</button>
-					</div>
-					<div>
-						<textarea id="messages" rows="10" cols="30" readonly></textarea>
-					</div>
-					<div>
-						<input type="text" id="messageInput" placeholder="Enter message"/>
-						<button onclick="sendMessage()">Send</button>
-					</div> -->
 				</div>
 			</div>
 		</div>

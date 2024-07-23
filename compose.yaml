@@ -19,7 +19,6 @@ services:
     depends_on:
       - frontend
       - api_gateway
-      - user_mgt
     stop_signal: SIGINT
     stop_grace_period: 2s
 
@@ -29,12 +28,8 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html
       - ./static:/usr/share/nginx/html/static
-      - ./media_data:/usr/share/nginx/html/media
     networks:
       - frontend
-    environment:
-      - SERVER_NAME=${SERVER_NAME}
-      - SPORT=${SPORT}
     stop_signal: SIGINT
     stop_grace_period: 2s
 
@@ -49,6 +44,7 @@ services:
       - POSTGRES_DB=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=Europe/Berlin
     ports:
       - "5432:5432"
     stop_signal: SIGINT
@@ -83,10 +79,9 @@ services:
       - USR_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-      - SERVER_NAME=${SERVER_NAME}
-      - SPORT=${SPORT}
     stop_signal: SIGINT
     stop_grace_period: 2s
+
 
   api_gateway:
     image: api_gateway_service
@@ -99,16 +94,17 @@ services:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SERVER_NAME=${SERVER_NAME}
       - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
       - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
-      - SERVER_NAME=${SERVER_NAME}
     networks:
       - backend
     depends_on:
       - redis
       - game_logic
       - game_manager
+      # - authentication
       - user_mgt
     stop_signal: SIGINT
     stop_grace_period: 2s
@@ -139,8 +135,8 @@ services:
     environment:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - SERVER_NAME=${SERVER_NAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
     stop_signal: SIGINT
@@ -166,6 +162,22 @@ services:
       - db
     stop_signal: SIGINT
     stop_grace_period: 2s
+
+#  authentication:
+#    image: authentication_service # Based on debian:bookworm-slim
+#    container_name: authentication
+#    build: ./backend/authentication_service
+#    volumes:
+#      - ./backend/authentication_service:/code
+#      - ./static:/usr/share/static
+#    networks:
+#      - backend
+#    environment:
+#      - POSTGRES_NAME=${POSTGRES_NAME}
+#      - POSTGRES_USER=${POSTGRES_USER}
+#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+#    depends_on:
+#      - db
 
 networks:
   frontend:

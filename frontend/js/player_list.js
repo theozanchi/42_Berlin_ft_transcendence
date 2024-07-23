@@ -91,7 +91,7 @@ class PlayerList extends HTMLElement {
 			// console.log(`has this input: ${nameInput}`);
 			// let name = nameInput.getAttribute('value');
 			let name = player.name;
-			console.log(`has this name: ${name}`);
+			// console.log(`has this name: ${name}`);
 			playerNames.push(name);
 		});
 
@@ -127,7 +127,8 @@ class PlayerList extends HTMLElement {
 
 			<h3 id="playerCount"> ${this.count} Players</h3>
 			<div id="list-of-players">
-				<player-component name="USER" input></player-component>
+				<player-component name="Player 1" input></player-component>
+				<player-component name="Player 2" input></player-component>
 			</div>
 			
 			<div class="d-flex justify-content-center">

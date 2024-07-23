@@ -14,11 +14,17 @@ WORKDIR /code
 
 COPY requirements.txt /code/
 RUN pip install  -r requirements.txt
-
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    postgresql-client \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY . /code/
 
 COPY entrypoint.sh /code/entrypoint.sh
 RUN chmod +x /code/entrypoint.sh
+
+ENV DJANGO_SECRET_KEY python -c 'import secrets; print(secrets.token_urlsafe(50))'
 
 ENTRYPOINT ["/bin/sh", "/code/entrypoint.sh"]

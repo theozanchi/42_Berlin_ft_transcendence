@@ -8,6 +8,9 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 logging.basicConfig(
     level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+logging.basicConfig(
+    level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 GAME_MANAGER_REST_URL = "http://game_manager:8000"
@@ -24,24 +27,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.player_id = None
         self.last_sent_state = None
         self.lock = asyncio.Lock()
-        self.csrftoken = self.extract_csrftoken()
-        if self.csrftoken is None:
-            return
         await self.accept()
-
-    def extract_csrftoken(self):
-        """
-        Extracts the csrftoken from the cookie header in the raw headers.
-        """
-        for key, value in self.scope["headers"]:
-            if key.decode("utf-8") == "cookie":
-                cookies = value.decode("utf-8").split("; ")
-                for cookie in cookies:
-                    if cookie.startswith("csrftoken="):
-                        token = cookie.split("=")[1]
-                        # ISSUE validate token with authentication server
-                        return token
-        return None  # Return None if csrftoken is not found or not validated
 
     #  TO DO : the whole routine of somebody leaving should only occur if tournament is not over, if not we just let clients disconnect
     async def disconnect(self, close_code):
@@ -59,7 +45,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             )
             response.raise_for_status()
             await self.channel_layer.group_send(
-                self.game_id, {"type": "broadcast", "content": response.json()}
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content': 
+                    {
+                        'type': 'game',
+                        'content': response.json()
+                    }
+                }
             )
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
@@ -83,14 +77,13 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({"error": 'Invalid "type" or missing "type" in json'})
 
     def get_headers(self):
-        return {k.decode("utf-8"): v.decode("utf-8") for k, v in self.scope["headers"]}
-
-    async def broadcast(self, content):
-        logging.debug("broadcasting: " + str(content))
+        return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
+    
+    async def broadcast(self, event):
+        content = event.get('content')
+        logging.debug('broadcasting: ' + str(content))
         await self.send_json(content)
 
-    async def keep_alive(self, content):
-        await self.send_json({"type": "keep-alive"})
 
     # TO DO: if local game, start it immediately
     async def create_game(self, content):
@@ -162,7 +155,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
             await self.channel_layer.group_add(self.game_id, self.channel_name)
             await self.channel_layer.group_send(
-                self.game_id, {"type": "broadcast", "content": response.json()}
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content':
+                    {
+                        'type': 'game',
+                        'content': response.json()
+                    }
+                }
             )
 
         except requests.RequestException as e:
@@ -186,13 +187,22 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
             round_info = None
             for round_data in response.json():
-                if round_data.get("status") == "pending":
+                if round_data["status"] == "started":
                     round_info = round_data
                     break
 
             # Send round info to all players
             await self.channel_layer.group_send(
-                self.game_id, {"type": "broadcast", "content": response.json()}
+                self.game_id,
+                {
+                    'type': 'broadcast',
+                    'content':
+                    {
+                        'type': 'round',
+                        'action': 'new',
+                        'content': response.json()
+                    }
+                }
             )
             if round_info is not None:
                 # Send player id to pther players
