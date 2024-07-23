@@ -68,7 +68,7 @@ class MyPlayer extends HTMLElement {
 			? '<button id="removeButton" class="btn btn-outline-danger col-auto square-button"><i class="bi bi-x-lg"></i></button>' 
 			: '';
 	
-		const imgElement = `<img src="${imageUrl}" class="col-auto player-component">`;
+		const imgElement = `<div class="masked-avatar"><img src="${imageUrl}" class="col-auto player-component"></div>`;
 	
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">

@@ -122,3 +122,9 @@ body {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
 }
+
+.masked-avatar img {
+	clip-path: circle(50%);
+	object-fit: cover;
+	
+}
