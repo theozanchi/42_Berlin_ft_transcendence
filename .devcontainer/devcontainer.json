@@ -16,7 +16,23 @@
                 "ms-python.python",
                 "batisteo.vscode-django",
                 "littlefoxteam.vscode-python-test-adapter",
-                "alexcvzz.vscode-sqlite","batisteo.vscode-django","bibhasdn.django-html","donjayamanne.python-environment-manager","donjayamanne.python-extension-pack","formulahendry.vscode-mysql","github.copilot","github.copilot-chat","kevinrose.vsc-python-indent","ms-python.python","njpwerner.autodocstring","rohit-chouhan.sqlite-snippet","shamanu4.django-intellisense","visualstudioexptteam.intellicode-api-usage-examples","visualstudioexptteam.vscodeintellicode","wholroyd.jinja"
+                "alexcvzz.vscode-sqlite",
+                "batisteo.vscode-django",
+                "bibhasdn.django-html",
+                "donjayamanne.python-environment-manager",
+                "donjayamanne.python-extension-pack",
+                "formulahendry.vscode-mysql",
+                "github.copilot",
+                "github.copilot-chat",
+                "kevinrose.vsc-python-indent",
+                "ms-python.python",
+                "njpwerner.autodocstring",
+                "rohit-chouhan.sqlite-snippet",
+                "shamanu4.django-intellisense",
+                "visualstudioexptteam.intellicode-api-usage-examples",
+                "visualstudioexptteam.vscodeintellicode",
+                "wholroyd.jinja",
+                "ms-python.black-formatter"
             ]
         }
     },

@@ -1,15 +1,16 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Tournament, Participation
 from django.utils.html import format_html
 
+from .models import Participation, Game, Player, Round
 
-class UserProfileInline(admin.TabularInline):
-    model = UserProfile
+
+class PlayerInline(admin.TabularInline):
+    model = Player
     can_delete = False
-    verbose_name_plural = "UserProfiles"
-    fields = ("picture_url", "access_token", "id42")
+    verbose_name_plural = "Players"
+    fields = ("avatar", "access_token", "id42")
     readonly_fields = ("access_token", "id42")
 
     def delete_model(self, request, obj):
@@ -31,71 +32,74 @@ class ParticipationInline(admin.TabularInline):
 
 class UserAdmin(BaseUserAdmin):
     inlines = (
-        UserProfileInline,
+        PlayerInline,
         ParticipationInline,
+    )
+    readonly_fields = (
+        "last_login",
+        "date_joined",
+        "picture_url",
+        "id42",
+        "list_of_friends",
     )
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (
             ("Personal info"),
-            {"fields": ("first_name", "last_name", "email", "id42", "list_of_friends")},
+            {"fields": ("id42", "list_of_friends")},
         ),
         (
             ("Permissions"),
-            {
-                "fields": (
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups",
-                    "user_permissions",
-                )
-            },
+            {"fields": ("is_superuser",)},
         ),
         (("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    readonly_fields = ("picture_url", "id42", "list_of_friends")
     list_display = (
         "username",
-        "email",
-        "first_name",
-        "last_name",
-        "is_staff",
+        "id",
         "list_of_friends",
     )
 
     def picture_url(self, obj):
         return format_html(
-            '<img src="{}" style="height: 100px" />', obj.userprofile.picture_url
+            '<img src="{}" style="height: 100px" />', obj.player.picture_url
         )
 
     picture_url.short_description = "Picture URL"
 
     def id42(self, obj):
-        return obj.userprofile.id42
+        return obj.player.id42
 
     id42.short_description = "42 ID"
 
     def list_of_friends(self, obj):
-        return ", ".join(
-            [str(friend.username) for friend in obj.userprofile.friends.all()]
-        )
+        return ", ".join([str(friend.username) for friend in obj.player.friends.all()])
 
     list_of_friends.short_description = "Friends list"
 
 
 class TournamentAdmin(admin.ModelAdmin):
     inlines = (ParticipationInline,)
-    list_display = ("game_id", "start_date", "end_date", "mode_is_local", "winner")
-    list_filter = ("start_date", "end_date", "mode_is_local")
+    list_display = ("game_id", "start_date", "end_date", "mode", "winner")
+    list_filter = ("start_date", "end_date", "mode")
     search_fields = ("game_id", "winner")
     ordering = ("start_date",)
 
 
+class ParticipationAdmin(admin.ModelAdmin):
+    # Your admin configuration here
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Custom queryset adjustments here, if needed
+        return qs
+
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
-admin.site.register(Tournament, TournamentAdmin)
-admin.site.register(Participation)
+admin.site.register(Game, TournamentAdmin)
+admin.site.register(Participation, ParticipationAdmin)
+admin.site.register(Round)
 
 
 admin.site.site_header = "Transcendence User Management"

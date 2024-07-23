@@ -6,7 +6,6 @@ services:
     volumes:
       - ./nginx:/tmp
       - ${CERTS_DIR}:/etc/letsencrypt
-      - ./static:/usr/share/nginx/html/static
       - ./media_data:/usr/share/nginx/html/media
     networks:
       - frontend
@@ -45,6 +44,7 @@ services:
       - POSTGRES_DB=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=Europe/Berlin
     ports:
       - "5432:5432"
     stop_signal: SIGINT
@@ -116,7 +116,7 @@ services:
  #   - REDIS_PASSWORD=${REDIS_PASSWORD}  # Set Redis password if needed
  #   - REDIS_MAXCLIENTS=10000            # Example: Set maximum clients
  #   - REDIS_MAXMEMORY=2GB               # Example: Set maximum memory
-  #  - REDIS_MAXMEMORY_POLICY=volatile-lru 
+  #  - REDIS_MAXMEMORY_POLICY=volatile-lru
   #  - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - backend
@@ -154,6 +154,9 @@ services:
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SERVER_NAME=${SERVER_NAME}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
     stop_signal: SIGINT

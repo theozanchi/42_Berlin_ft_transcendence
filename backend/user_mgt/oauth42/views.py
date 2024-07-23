@@ -1,34 +1,33 @@
 # oauth42/views.py
 
-from .models import UserProfile, Round, Tournament, Participation
-from django.shortcuts import render, redirect, get_object_or_404
+import json
+import os
+import pprint
+
+import requests
+from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash, authenticate
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-import requests
-
-from .models import UserProfile, UserManager
-from django.http import HttpResponseForbidden
-from .forms import RegistrationForm, UserForm
-from django.core.files.base import ContentFile
-import pprint
-from django.db.models import Sum
-from django.views.generic.edit import CreateView
-from django import forms
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.core.files.storage import default_storage
-from django.utils import timezone
-from .middleware import is_user_online
-from django.core import serializers
-import json
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+from django.contrib.sessions.models import Session
+from django.core import serializers
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import F, Sum
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-import os
-from django.db.models import F
+from django.views.generic.edit import CreateView
 from PIL import Image
+
+from .forms import RegistrationForm, UserForm
+from .middleware import is_user_online
+from .models import Participation, Round, Tournament, UserManager, UserProfile
 
 # CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
 # CLIENT_SECRET = "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"\
@@ -36,13 +35,14 @@ from PIL import Image
 
 # return Response(response.json(), status=response.status_code)
 
-
+@csrf_exempt
 def save_avatar_from_url(user_profile, url):
     response = requests.get(url)
 
     if response.status_code == 200 and "image" in response.headers["Content-Type"]:
         image_content = ContentFile(response.content)
         filename = url.split("/")[-1]
+        print(f"save_avatar_from_url({user_profile}, {url})")
 
         if user_profile.avatar and filename in user_profile.avatar.name:
             pass
@@ -56,6 +56,23 @@ def home(request):
         return render(request, "oauth42/home.html", {"user": request.user})
     return render(request, "oauth42/home.html")
 
+@csrf_exempt
+def logout_user(request):
+    if request.method == "POST":
+        user_id = request.POST.get("user_id")
+        user_id = int(user_id) if user_id and user_id.isdigit() else 0
+        user = request.user
+        print(f"--> user_id: '{user_id}")
+
+        if user.is_authenticated and user.id == user_id:
+            logout(request)
+            request.session.flush()
+            return JsonResponse({"status": "success", "message": "User logged out."})
+        else:
+            return JsonResponse({"status": "error", "message": "No user logged in who could get logged out."})
+
+    return JsonResponse({"status":"error", "message":"Method not allowed"})
+
 
 def delete_cookie(request):
     if request.method == "POST":
@@ -65,18 +82,20 @@ def delete_cookie(request):
         response.delete_cookie(settings.SESSION_COOKIE_NAME)
         return response
 
+
 def is_valid_image(image):
     try:
-        img = Image.open(image);
+        img = Image.open(image)
         img.verify()
-        return True;
+        return True
     except (IOError, SyntaxError):
-        return False;
+        return False
 
+@csrf_exempt
 def upload_avatar(request, user_id):
     if request.method == "POST":
         try:
-            user = User.objects.get(pk=user_id);
+            user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return JsonResponse({"status": "error", "message": "User not found"})
         user_profile, created = UserProfile.objects.get_or_create(user=user)
@@ -92,19 +111,30 @@ def upload_avatar(request, user_id):
                 "avatar": user_profile.avatar,
             }
         else:
-            return {"status": "error", "message": "No valid uploaded avatar image found"}
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image found",
+            }
     else:
         return {"status": "error", "message": "Method not allowed"}
 
 
 def delete_avatar(request, user_id):
     try:
-        user = User.objects.get(pk=user_id);
-        user_profile = UserProfile.objects.get(user=user);
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found (def delete avatar)", "404_user_id": user_id}
+        )
     except UserProfile.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_userprofile_id": user_id})
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
     if user_profile.avatar:
         user_profile.avatar.delete()  # This deletes the file and clears the field
@@ -113,15 +143,23 @@ def delete_avatar(request, user_id):
     else:
         return {"status": "info", "message": "No avatar to delete."}
 
-
+@csrf_exempt
 def update_avatar(request, user_id):
     try:
-        user = User.objects.get(pk=user_id);
-        user_profile = UserProfile.objects.get(user=user);
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found (def update_avatar)", "404_user_id": user_id}
+        )
     except UserProfile.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_userprofile_id": user_id})
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User not found",
+                "404_userprofile_id": user_id,
+            }
+        )
 
     if request.method == "POST":
         new_avatar = request.FILES.get("image")
@@ -134,10 +172,12 @@ def update_avatar(request, user_id):
             response_message = f"Avatar successfully updated to {new_avatar}".strip()
             return {"status": "success", "message": response_message}
         else:
-            return {"status": "error", "message": "No valid uploaded avatar image for update found"}
+            return {
+                "status": "error",
+                "message": "No valid uploaded avatar image for update found",
+            }
     else:
         return {"status": "error", "message": "Method not allowed"}
-
 
 @csrf_exempt
 def register(request):
@@ -160,13 +200,17 @@ def register(request):
             username=username,
             password=make_password(password),
         )
+        user_profile = UserProfile.objects.create(
+            user = user,
+            alias = username,
+        )
         response_data = {
             "status": "success",
             "message": "User created successfully.",
             "user_id": user.id,
             "username": user.username,
             "provided_password": bool(password),
-            "provided_avatar": bool(image)
+            "provided_avatar": bool(image),
         }
 
         if image:
@@ -180,6 +224,7 @@ def register(request):
     return JsonResponse(
         {"status": "error", "message": "Method not allowed"}, status=405
     )
+
 
 # Only for user.id creation with username.
 def just_username_login(request):
@@ -213,10 +258,10 @@ def just_username_login(request):
         login(request, user)
         return JsonResponse(response_data, status=201)
 
-
     return JsonResponse(
         {"status": "error", "message": "Method not allowed"}, status=405
     )
+
 
 def rankings(request):
     rankings_qs = User.rankings.get_user_rankings()
@@ -232,7 +277,7 @@ def rankings(request):
         )
     return JsonResponse({"status": "info", "rankings": rankings})
 
-
+@csrf_exempt
 @login_required
 @csrf_exempt
 def update(request):
@@ -289,9 +334,11 @@ def update(request):
 
 def get_total_score(user_id):
     try:
-        user = User.objects.get(pk=user_id);
+        user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found (def get_total_score)", "404_user_id": user_id}
+        )
 
     total_score = Participation.objects.filter(user=user).aggregate(Sum("score"))[
         "score__sum"
@@ -301,15 +348,23 @@ def get_total_score(user_id):
 
 def profile(request, user_id):
     try:
-        user = User.objects.get(pk=user_id);
-        user_profile = UserProfile.objects.get(user=user);
+        user = User.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=user)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_user_id": user_id})
+        return JsonResponse(
+            {"status": "error", "message": "User not found. (def profile)", "404_user_id": user_id}
+        )
     except UserProfile.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found", "404_userprofile_id": user_id})
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Userprofile not found (def profile)",
+                "404_userprofile_id": user_id,
+            }
+        )
     participations = Participation.objects.filter(user=user)
 
-    total_wins = Tournament.objects.filter(winner=user).count()
+    total_wins = Tournament.objects.filter(winner=user.id).count()
     total_lost = participations.count() - total_wins
     total_score = get_total_score(user_id)
 
@@ -323,14 +378,14 @@ def profile(request, user_id):
             "end_date": tournament.end_date,
             "own_rank": participation.rank,
             "own_score": participation.score,
-            "winner": tournament.winner.username if tournament.winner else None,
+            "winner": tournament.winner.user.username if tournament.winner else None,
             "participants": [
                 {
                     "username": p.user.username,
                     "user_id": p.user.id,
                     "rank": p.rank,
                     "score": p.score,
-                    "avatar": p.user.userprofile.avatar.name,
+                    "avatar": p.user.player.avatar.name,
                     "online": get_online_status(p.user.id),
                 }
                 for p in Participation.objects.filter(tournament=tournament)
@@ -344,16 +399,16 @@ def profile(request, user_id):
             {
                 "username": friend.username,
                 "user_id": friend.id,
-                "avatar": friend.userprofile.avatar.name,
+                "avatar": friend.player.avatar.name,
                 "total_score": get_total_score(friend.id),
                 "online": get_online_status(friend.id),
             }
         )
-        for friend in user.userprofile.friends.all()
+        for friend in user.player.friends.all()
     ]
-    if request.user.is_authenticated and hasattr(request.user, "userprofile"):
+    if request.user.is_authenticated and hasattr(request.user, "player"):
         requesting_user_friends_ids = [
-            friend.id for friend in request.user.userprofile.friends.all()
+            friend.id for friend in request.user.player.friends.all()
         ]
     else:
         requesting_user_friends_ids = []
@@ -455,7 +510,7 @@ def add_friend(request):
             return JsonResponse(
                 {"status": "info", "message": "You cannot add yourself."}
             )
-        user_profile = request.user.userprofile
+        user_profile = request.user.player
         if friend not in user_profile.friends.all():
             user_profile.friends.add(friend)
             user_profile.save()
@@ -497,10 +552,13 @@ def remove_friend(request):
             )
         except:
             return JsonResponse(
-                {"status": "error", "message": "Database error. This should not happen."},
+                {
+                    "status": "error",
+                    "message": "Database error. This should not happen.",
+                },
                 status=200,
             )
-        user_profile = request.user.userprofile
+        user_profile = request.user.player
         if friend in user_profile.friends.all():
             user_profile.friends.remove(friend)
             user_profile.save()
@@ -531,8 +589,19 @@ def get_online_users():
     return online_user_profiles
 
 
-@login_required
+def is_online(user_id):
+    now = timezone.now()
+    active_sessions = Session.objects.filter(expire_date__gte=now)
+    for session in active_sessions:
+        session_data = session.get_decoded()
+        if str(user_id) == session_data.get('_auth_user_id'):
+            return True
+    return False
+
+
 def online_users_view(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message":"Please login/register to see a list of online users."})
 
     online_user_profiles_list = list(get_online_users())
     return JsonResponse(

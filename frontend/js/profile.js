@@ -77,18 +77,18 @@ export function updateProfileData() {
 		const password1 = updateProfilePassword.value;
 		const password2 = updateProfilePasswordConfirm.value;
 		const nickname = updateProfileNickname.value;
-	
+
 		if (password1 != password2) {
 			alert('Passwords do not match.');
 			return;
 		}
-	
+
 		const formData = new FormData();
 		if (nickname)
 			formData.append('username', document.getElementById('updateProfileNickname').value);
 		if (password1)
 			formData.append('password', document.getElementById('updateProfilePassword').value);
-	
+
 		if (updateProfileAvatar.files.length > 0) {
 			const imageFile = updateProfileAvatar.files[0];
 			formData.append('image', imageFile);
@@ -263,7 +263,7 @@ const ProfileEditObserver = new MutationObserver(() => {
 		.then(response => {
 			// Check if the response is ok and content type is JSON
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-				// 
+				//
 				return response.json();
 			}
 			throw new Error('Non-JSON response received');

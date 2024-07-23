@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, playerId } from './stepper.js';
+import { sendJson, remote, gameStarted, round_number, player_id } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -34,16 +34,20 @@ let index8;
 //---MAIN_LOOP---//
 let index9;
 
+
 const canvas = document.getElementById('bg');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+if (canvas) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
 
 const faceMaterials = {};
-const cubeSize = 2; // Size of the cube
-let scene, camera, camera2, renderer, cube, player, player2, aiPlayer, ball, collisionMarker, aimingLine;
+let scene, camera, camera2, camera3, renderer, cube, ball, collisionMarker, aimingLine;
+export let player, player2;
 
 let ballUpdateEnabled = true;
 let ballSpeed = new THREE.Vector3();
+let oldBlinkingFace = null;
 const ballRadius = 0.05; // Radius of the ball
 let resetBall_ = false;
 
@@ -51,8 +55,9 @@ let playerTurn = true; // Player starts
 let currentPlayer;
 const playerSize = { x: 0.35, y: 0.35, z: 0.05 }; // Size of the player
 let keyMoveSpeed = 0.05;
-let playerScore = 0;
-let aiScore = 0;
+let player1Score = 0;
+let player2Score = 0;
+let currentPlayer;
 
 let currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
 let currentFace2 = 1;
@@ -81,12 +86,12 @@ export function updateGameState(data) {
     // Update player positions
     //console.log("ballpos", data.ball.x, data.ball.y, data.ball.z)
     //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
-    if (data.content.player1) {
+    if (currentPlayer === player2) {
         // Update player1 position
         player.position.set(data.content.player1.x, data.content.player1.y, data.content.player1.z);
         player.rotation.set(data.content.player1.rotation.x, data.content.player1.rotation.y, data.content.player1.rotation.z);
     }
-    if (data.content.player2) {
+    if (currentPlayer === player) {
         // Update player2 position
         player2.position.set(data.content.player2.x, data.content.player2.y, data.content.player2.z);
         player2.rotation.set(data.content.player2.rotation.x, data.content.player2.rotation.y, data.content.player2.rotation.z);
@@ -103,8 +108,13 @@ export function updateGameState(data) {
     playerScore = data.content.playerScore;
     aiScore = data.content.aiScore;
     ballIsHeld = data.content.ballIsHeld;
-    currentFace = data.content.current_face;
-    currentFace2 = data.content.current_face2;
+    if (remote){
+        if (currentPlayer === player) {
+            currentFace2 = data.content.current_face2;
+        } else if (currentPlayer === player2) {
+            currentFace = data.content.current_face;
+        }
+    }
     aimingAngle = data.content.aiming_angle;
     resetBall_ = data.content.reset_ball;
     wallHits = data.content.wall_hits;
@@ -124,6 +134,8 @@ export function sendGameState() {
 
         const newGameState = {
             type: 'game-state',
+            round_number: round_number,
+            current_player: player_id,
             playerTurn: playerTurn,
             playerScore: playerScore,
             aiScore: aiScore,
@@ -146,6 +158,14 @@ export function sendGameState() {
         };
         if (remote){
             if (currentPlayer === player) {
+                newGameState.current_face = currentFace;
+            }
+            else if (currentPlayer === player2) {
+                newGameState.current_face2 = currentFace2;
+            }
+        }
+        if (remote){
+            if (currentPlayer === player) {
                 newGameState.player1 = {
                     x: player.position.x,
                     y: player.position.y,
@@ -156,7 +176,7 @@ export function sendGameState() {
                         z: player.rotation.z
                     }
                 };
-            } else {
+            } else if (currentPlayer === player2) {
                 newGameState.player2 = {
                     x: player2.position.x,
                     y: player2.position.y,
@@ -204,14 +224,8 @@ export function sendGameState() {
 index2;
 
 export async function init() {
-    if (remote == true) {
-        if (playerId === 'player1')
-            currentPlayer = player;
-        else if (playerId === 'player2')
-            currentPlayer = player2;
-        else
-            currentPlayer = 'spectator';
-    }
+    console.log('Initializing game... ROUND NUMBER: ', round_number);
+
 
     // Create the scene
     scene = new THREE.Scene();
@@ -219,6 +233,7 @@ export async function init() {
     // Set up the camera
     camera = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
     camera2 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
+    camera3 = new THREE.PerspectiveCamera(75, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
     
     // Set up the renderer
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
@@ -283,6 +298,9 @@ export async function init() {
     camera2.position.copy(camera.position.clone().multiplyScalar(-1));
     camera2.lookAt(0, 0, 0);
 
+    camera3.position.set(1, 2, cubeSize * 1.5);
+    camera3.lookAt(0, 0, 0);
+
     // Create player
     let playerGeometry = new THREE.BoxGeometry(playerSize.x, playerSize.y, playerSize.z);
     let playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -291,6 +309,7 @@ export async function init() {
     setPlayerTransparency(0.25);
     player.position.set(0, 0, cubeSize / 2 + playerSize.z / 6); // Initial position on the front face
     player.rotation.set(0, 0, 0);
+    console.log ('player position:', player.position);
     scene.add(player); // Add player to the scene, not the cube
     
     // Create palyer2
@@ -331,6 +350,15 @@ export async function init() {
     scoreDisplay.style.fontSize = '20px';
     document.body.appendChild(scoreDisplay);
 
+
+    if (player_id === 'player1')
+        currentPlayer = player;
+    else if (player_id === 'player2')
+        currentPlayer = player2;
+    else
+        currentPlayer = 'spectator';
+
+    console.log('Current player:', currentPlayer);
             //--------EVENT_LISTENERS---------//
 
 
@@ -355,9 +383,8 @@ export async function init() {
     
     
     updateScore();
-    
     animate();
-    }
+}
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
 
@@ -459,7 +486,7 @@ function onMouseMove(event) {
         if (currentPlayer == player){
             movePlayer(player, deltaX, deltaY);
         }
-        else {
+        else if (currentPlayer == player2){
             movePlayer2(player2, deltaX, deltaY);
         }
         //sendGameState();
@@ -482,7 +509,7 @@ function onKeyDownPlayer1() {
             if (keysPressed['d']) {
                 switchFace('right');
             }
-            if (keysPressed[' ']) { // Space key
+            if (keysPressed[' '] && playerTurn) { // Space key
                 if (ballIsHeld && !resetBall_) {
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
@@ -504,7 +531,7 @@ function onKeyDownPlayer1() {
         if (keysPressed['d']) {
             switchFace('right');
         }
-        if (keysPressed[' ']) { // Space key
+        if (keysPressed[' '] && playerTurn) { // Space key
             if (ballIsHeld && !resetBall_) {
                 ballIsHeld = false; // Release the ball
                 resetBall_ = true; // Reset the ball to a random position
@@ -517,7 +544,7 @@ function onKeyDownPlayer1() {
 
 function onKeyDownPlayer2() {
     if (remote) {
-        if (currentPlayer !== player) {
+        if (currentPlayer === player2) {
             if (keysPressed['s']) {
                 switchFace2('up');
             }
@@ -530,7 +557,7 @@ function onKeyDownPlayer2() {
             if (keysPressed['d']) {
                 switchFace2('right');
             }
-            if (keysPressed[' ']) { // Space key
+            if (keysPressed[' '] && !playerTurn) { // Space key
                 if (ballIsHeld && !resetBall_) {
                     ballIsHeld = false; // Release the ball
                     resetBall_ = true; // Reset the ball to a random position
@@ -552,7 +579,7 @@ function onKeyDownPlayer2() {
         if (keysPressed['ArrowRight']) {
             switchFace2('right');
         }
-        if (keysPressed[' ']) { // Space key
+        if (keysPressed[' '] && !playerTurn) { // Space key
             if (ballIsHeld && !resetBall_) {
                 ballIsHeld = false; // Release the ball
                 resetBall_ = true; // Reset the ball to a random position
@@ -883,6 +910,7 @@ function updatePlayerPositionForFace2(face) {
 index6;
 
 function updateCollisionMarker() {
+    oldBlinkingFace = currentBlinkingFace;
     const halfCubeSize = cubeSize / 2;
     const ballPosition = ball.position.clone();
     const ballVelocity = ballSpeed.clone();
@@ -992,7 +1020,9 @@ let blinkInterval = 500;
 let lastBlinkTime = 0;
 
 
-function startBlinking(faceName) {
+function startBlinking(faceNumber) {
+    if (currentBlinkingFace !== oldBlinkingFace)
+        stopBlinking();
     if (currentBlinkingFace)
     {
         const face = faceMaterials[faceName];
@@ -1015,10 +1045,15 @@ function startBlinking(faceName) {
     }
 }
 
-function stopBlinking(faceName) {
-    const face = faceMaterials[faceName];
-    face.material.opacity = 0.5; // Reset to original opacity
-    currentBlinkingFace = null;
+function stopBlinking() {
+    for (const faceName in faceMaterials) {
+        if (faceMaterials.hasOwnProperty(faceName)) {
+            const face = faceMaterials[faceName];
+            face.material.opacity = 0.5; // Reset to original opacity
+            face.material.needsUpdate = true;
+        }
+    }
+    //currentBlinkingFace = null;
 }
 
 
@@ -1026,27 +1061,9 @@ function stopBlinking(faceName) {
 
 
 function checkPlayerPosition() {
-    const playerPosition = playerTurn ? player.position : player2.position;
-    const halfCubeSize = cubeSize / 2;
-
-    let currentFace = null;
-
-    if (playerPosition.z >= halfCubeSize) {
-        currentFace = 'front';
-    } else if (playerPosition.z <= -halfCubeSize) {
-        currentFace = 'back';
-    } else if (playerPosition.x >= halfCubeSize) {
-        currentFace = 'right';
-    } else if (playerPosition.x <= -halfCubeSize) {
-        currentFace = 'left';
-    } else if (playerPosition.y >= halfCubeSize) {
-        currentFace = 'top';
-    } else if (playerPosition.y <= -halfCubeSize) {
-        currentFace = 'bottom';
-    }
-
-    if (currentFace = currentBlinkingFace) {
-        stopBlinking(currentFace);
+    if (currentFace == currentBlinkingFace || currentFace2 == currentBlinkingFace || ballIsHeld) {
+        stopBlinking();
+        currentBlinkingFace = null;
     }
 }
 
@@ -1197,8 +1214,11 @@ function animate() {
         renderer.setScissorTest(false);
         if (currentPlayer === player) {
             renderer.render(scene, camera);
-        } else {
+        } else if (currentPlayer === player2) {
             renderer.render(scene, camera2);
+        }
+        else {
+            renderer.render(scene, camera3);
         }
     } else {
         // Render the scene from the first camera
@@ -1218,4 +1238,143 @@ function animate() {
     renderer.setScissorTest(false);
 }
 
-//init();
+export function displayScore(content) {
+    console.log('DISPLAYING SCORE... ', content);
+
+    let winner = content.winner;
+    let p1Score = content.player1Score;
+    let p2Score = content.player2Score
+
+    // Get the canvas and its parent
+    const canvas = document.getElementById('bg');
+    const parent = canvas.parentNode;
+
+    // Create a div for the winner
+    let winnerDiv = document.createElement('div');
+    winnerDiv.textContent = 'Winner: ' + winner;
+    winnerDiv.style.color = 'white';
+    winnerDiv.style.position = 'absolute';
+    winnerDiv.style.zIndex = '1';
+
+    // Create a div for player 1's score
+    let player1Div = document.createElement('div');
+    player1Div.textContent = 'Player 1: ' + p1Score;
+    player1Div.style.color = 'white';
+    player1Div.style.position = 'absolute';
+    player1Div.style.left = '100px';
+    player1Div.style.top = '10px';
+    player1Div.style.zIndex = '1';
+
+    // Create a div for player 2's score
+    let player2Div = document.createElement('div');
+    player2Div.textContent = 'Player 2: ' + p2Score;
+    player2Div.style.color = 'white';
+    player2Div.style.position = 'absolute';
+    player2Div.style.right = '100px';
+    player2Div.style.top = '10px';
+    player2Div.style.zIndex = '1';
+
+    // Add the divs to the parent of the canvas
+    parent.appendChild(winnerDiv);
+    parent.appendChild(player1Div);
+    parent.appendChild(player2Div);
+}
+
+function clearScene(object) {
+
+    while(object.children.length > 0){ 
+        clearScene(object.children[0]);
+    }
+    if (object.geometry) {
+        object.geometry.dispose();
+    }
+    if (object.material) {
+        if (Array.isArray(object.material)) {
+            for (let i = 0; i < object.material.length; i++) {
+                object.material[i].dispose();
+            }
+        } else {
+            object.material.dispose();
+        }
+    }
+    if (object.texture) {
+        object.texture.dispose();
+    }
+    if (object.parent) { // this line is added to avoid error when the object is the scene itself
+        object.parent.remove(object);
+    }
+}
+
+export function resetGame() {
+    console.log('RESETTING GAME...');
+
+    clearScene(scene);
+
+    scene = null;
+
+    renderer.clear();
+    renderer.dispose();
+    const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
+    //context.clearRect(0, 0, canvas.width, canvas.height);
+    
+   // Reset all variables to their initial state
+    scene = null;
+    camera = null;
+    camera2 = null;
+    camera3 = null;
+    renderer = null;
+    cube = null;
+    pivot = null;
+    pivot2 = null;
+    player = null;
+    player2 = null;
+    ball = null;
+    aimingLine = null;
+    aimingAngle = 0;
+    resetBall_ = false;
+
+    isTransitioning = false;
+    isTransitioning2 = false;
+    wallHits = 0;
+    collisionMarker = null;
+
+    if (player1Score > player2Score)
+        playerTurn = true; // Player starts
+    player1Score = 0;
+    player2Score = 0;
+    ballIsHeld = true;
+
+    ballUpdateEnabled = true;
+    ballSpeed = new THREE.Vector3();
+    resetBall_ = false;
+
+    keyMoveSpeed = 0.05;
+    player1Score = 0;
+    player2Score = 0;
+
+    currentFace = 0; // 0 - front, 1 - back, 2 - left, 3 - right, 4 - top, 5 - bottom
+    currentFace2 = 1;
+    pivot;
+    pivot2;
+    isTransitioning = false;
+    isTransitioning2 = false;
+    ballIsHeld = true;
+    wallHits = 0;
+    aimingAngle = 0;
+
+
+    // Remove score display
+    let scoreDisplay = document.getElementById('scoreDisplay');
+    if (scoreDisplay) {
+        document.body.removeChild(scoreDisplay);
+    }
+
+    // Remove event listeners
+    document.removeEventListener('keydown', onKeyDown);
+    document.removeEventListener('keyup', onKeyUp);
+    document.removeEventListener('mousemove', onMouseMove);
+    //renderer.domElement.removeEventListener('click', requestPointerLock);
+
+    //displayScore(player1Score > player2Score ? 'PLAYER 1' : 'PLAYER 2', player1Score, player2Score);
+
+}

@@ -1,9 +1,10 @@
-from django.test import TestCase, Client
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.urls import reverse
 from django.contrib.auth import get_user_model
-from .models import UserProfile, UserManager
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
 from django.utils import timezone
+
+from .models import UserManager, UserProfile
 
 
 class RegisterViewTest(TestCase):
@@ -48,8 +49,7 @@ class RegisterViewTest(TestCase):
         self.assertContains(response, profile.avatar.url)
 
 
-from .models import User
-from .models import Tournament, Participation
+from .models import Participation, Tournament, User
 
 
 class RankingTest(TestCase):
