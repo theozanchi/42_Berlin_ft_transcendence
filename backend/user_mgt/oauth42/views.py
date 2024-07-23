@@ -221,6 +221,7 @@ def register(request):
         user_profile = UserProfile.objects.create(
             user=user,
             alias=username,
+            registered=True,
         )
         response_data = {
             "status": "success",
@@ -391,7 +392,7 @@ def game_rounds(game_id):
             "winner": {
                 "alias": round.winner.alias if round.winner else None,
                 "user_id": round.winner.user_id if round.winner else None,
-            }
+            },
         }
         game_rounds.append(game_round)
     return game_rounds
@@ -677,3 +678,40 @@ def get_online_status(user_id):
         if user["user_id"] == user_id:
             return True
     return False
+
+
+def get_registered_users():
+    registered_user_profiles = (
+        UserProfile.objects.filter(registered=True)
+        .annotate(
+            username=F("user__username"),
+        )
+        .values(
+            "username",
+            "user_id",
+            "avatar",
+            "last_login",
+            "last_activity",
+            "alias",
+            "won_games",
+            "won_rounds"
+        )
+        .order_by("username")
+    )
+    return registered_user_profiles
+
+
+def registered_users_view(request):
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Please login/register to see the list of registered users.",
+            }
+        )
+
+    registered_user_profiles_list = list(get_registered_users())
+    return JsonResponse(
+        {"status": "info", "user_list": registered_user_profiles_list},
+        safe=False,
+    )

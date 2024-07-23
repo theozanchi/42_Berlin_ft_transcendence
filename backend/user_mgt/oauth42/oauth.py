@@ -112,6 +112,7 @@ def update_or_create_user(user_info, access_token):
                 "picture_url": picture_url,
                 "access_token": access_token,
                 "id42": id42,
+                "registered": True,
             },
         )
 
