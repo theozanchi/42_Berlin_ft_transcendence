@@ -1,7 +1,6 @@
 const	baseUrl = document.location.href;
 import {getLoggedInState} from './login_signup.js';
-import {loadProfileData} from './profile.js'
-import {updateProfileData} from './profile.js'
+import {loadProfileData, updateProfileData} from './profile.js'
 
 document.addEventListener("click", (e) => {
 	const {target} = e;

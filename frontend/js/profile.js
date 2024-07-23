@@ -1,6 +1,5 @@
 import {getLoggedInState} from './login_signup.js';
 import { urlRoute } from './url-router.js';
-// import {urlRoute} from './url-router.js';
 
 
 // export function setProfileImage(user_id) {
