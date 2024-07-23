@@ -28,7 +28,7 @@ const LogInObserver = new MutationObserver(() => {
 	const loginButton = document.getElementById('loginUserButton');
 	const loginForm = document.getElementById('loginForm');
 	// const logoutUser = document.getElementById('logoutUserButton');
-	const login42OAuth = document.getElementById('');
+	// const login42OAuth = document.getElementById('');
 	const formData = new FormData();
 
 	if (loginUser && loginPassword && loginButton) {
