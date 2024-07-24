@@ -19,7 +19,7 @@ export var player_id;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
-startGameButton.textContent = 'Start Game';
+startGameButton.textContent = 'START GAME';  // Set the text content of the button
 
 // Add a margin to the top of the button
 startGameButton.style.marginTop = '100px';  // Adjust this value as needed
@@ -127,12 +127,36 @@ export async function sendJson(json) {
 }
 
 function createStartButton() {
-	const gameArea = document.getElementById('game-column');
-	if (gameArea) {
-		gameArea.appendChild(startGameButton);
-	} else {
-		console.error('Element with id "game-column" not found');
-	}
+    const canvas = document.getElementById('bg');
+    const canvasContainer = canvas.parentNode;
+    
+    // Ensure the container has a relative position
+    canvasContainer.style.position = 'relative';
+    
+    // Assuming startGameButton is already created elsewhere in your code
+    startGameButton.style.position = 'absolute';
+    startGameButton.style.top = '40%'; // Center vertically
+    startGameButton.style.left = '50%'; // Center horizontally
+    startGameButton.style.transform = 'translate(-50%, -50%)'; // Adjust to center precisely
+	// Additional styling for the start game button
+	startGameButton.style.backgroundColor = 'lightcoral'; // Light red color
+	startGameButton.style.color = 'white'; // Text color
+	startGameButton.style.border = 'none'; // Remove default border
+	startGameButton.style.borderRadius = '20px'; // Rounded corners
+	startGameButton.style.padding = '20px 40px'; // Padding inside the button
+	startGameButton.style.fontFamily = 'Arial, sans-serif'; // Different font
+	startGameButton.style.fontSize = '24px'; // Font size
+	startGameButton.style.fontWeight = 'bold'; // Bold font weight
+	startGameButton.style.cursor = 'pointer'; // Cursor on hover
+	startGameButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)'; // Optional: Add a subtle shadow for depth
+		
+    if (canvasContainer) {
+        canvasContainer.appendChild(startGameButton);
+        console.log('Start Game Button created on top of the canvas');
+    } else {
+        console.error('Container for canvas with id "bg" not found');
+    }
+    
 	
 	// Add event listener to start game button
 	startGameButton.addEventListener('click', function() {
