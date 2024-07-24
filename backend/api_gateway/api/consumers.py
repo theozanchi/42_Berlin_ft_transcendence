@@ -8,9 +8,6 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 logging.basicConfig(
     level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-logging.basicConfig(
-    level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 GAME_MANAGER_REST_URL = "http://game_manager:8000"

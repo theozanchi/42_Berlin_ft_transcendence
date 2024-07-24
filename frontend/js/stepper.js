@@ -58,8 +58,8 @@ function openSocket() {
 
 					if (data.mode === 'remote') {
 						remote = true;
-
 						player_id = data.player_id;
+						console.log('Player ID:', player);
 					}
 				
                     gameStarted = true;
@@ -192,9 +192,6 @@ async function hostRemoteGame() {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
-
-		
-		createStartButton();
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
