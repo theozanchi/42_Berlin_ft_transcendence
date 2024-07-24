@@ -1,18 +1,4 @@
 import { urlRoute } from './url-router.js';
-// const LogIn42Observer = new MutationObserver(() => {
-// 	const login42OAuth = document.getElementById('login42SSOButton');
-
-// 	if (login42OAuth) {
-// 		// console.log('logging out');
-// 		fetch('/api/user_mgt/oauth/login/', {
-// 			method: 'POST',
-// 			body: formData,
-// 		})
-// 	}
-// });
-
-// Start observing the document with the configured parameters
-// LogIn42Observer.observe(document, { childList: true, subtree: true });
 
 //FUNCTION THAT RETURNS THE LOGGED IN STATE OF CLIENT
 export async function getLoggedInState() {
@@ -27,14 +13,9 @@ const LogInObserver = new MutationObserver(() => {
 	const loginPassword = document.getElementById('loginPassword');
 	const loginButton = document.getElementById('loginUserButton');
 	const loginForm = document.getElementById('loginForm');
-	// const logoutUser = document.getElementById('logoutUserButton');
-	// const login42OAuth = document.getElementById('');
 	const formData = new FormData();
 
 	if (loginUser && loginPassword && loginButton) {
-		// If all elements exist, stop observing
-		// LogInObserver.disconnect();
-
 		function validateForm() {
 			if (loginUser.value && loginPassword.value) {
 				loginButton.disabled = false;
@@ -42,7 +23,6 @@ const LogInObserver = new MutationObserver(() => {
 				loginButton.disabled = true;
 			}
 		}
-
 		loginUser.addEventListener('input', validateForm);
 		loginPassword.addEventListener('input', validateForm);
 	}
@@ -50,8 +30,6 @@ const LogInObserver = new MutationObserver(() => {
 	if (loginForm) {
 		loginForm.addEventListener('submit', function(e) {
 			e.preventDefault();
-
-
 
 			formData.append('username', loginUser.value);
 			formData.append('password', loginPassword.value);
@@ -74,30 +52,17 @@ const LogInObserver = new MutationObserver(() => {
 			})
 			.then(data => {
 				console.log('Response:', data);
-				if (!data.error)
-					urlRoute("/");
+				if (data.status === 'success')
+					urlRoute('/');
 				else
-					alert("Invalid username or password.")
-
+					throw new Error(data.message);
 			})
 			.catch((error) => {
 				console.error('Error:', error);
+				alert(error)
 			});
 		});
 	};
-
-	// if (logoutUser) {
-	// 	console.log('logging out');
-	// 	fetch('/api/user_mgt/logout/', {
-	// 		method: 'POST',
-	// 		body: formData,
-	// 	})
-	// 	// fetch('/api/user_mgt/delete_cookie/', {
-	// 	// 	method: 'POST',
-	// 	// 	body: formData,
-	// 	// })
-
-	// }
 });
 
 // Start observing the document with the configured parameters
@@ -113,7 +78,7 @@ const signupObserver = new MutationObserver(() => {
 
 	if (signupUser && signupPassword && signupPasswordConfirm && signupButton) {
 		// If all elements exist, stop observing
-		signupObserver.disconnect();
+		// signupObserver.disconnect();
 
 		function validateForm() {
 			if (signupUser.value && signupPassword.value && signupPasswordConfirm.value && signupPassword.value === signupPasswordConfirm.value) {
@@ -134,8 +99,6 @@ const signupObserver = new MutationObserver(() => {
 			const password1 = signupPassword.value;
 			const password2 = signupPasswordConfirm.value;
 			const username = signupUser.value;
-
-
 
 			if (password1 != password2) {
 				alert('Passwords do not match.');
@@ -164,18 +127,18 @@ const signupObserver = new MutationObserver(() => {
 				throw new Error('Non-JSON response received');
 			})
 			.then(data => {
-				console.log('Success:', data);
-				urlRoute('/');
-
+				if (data.status === 'success') {
+					console.log('Success:', data);
+					urlRoute('/');
+				}
+				throw new Error(data.message);
 			})
 			.catch((error) => {
 				console.error('Error:', error);
-
+				alert(error)
 			});
 		});
 	}
-
-
 });
 
 // Start observing the document with the configured parameters
@@ -185,11 +148,15 @@ const LogOutObserver = new MutationObserver(() => {
 	const logoutUser = document.getElementById('logoutUserButton');
 	const logoutData = new FormData();
 
+	// console.log('HELLO');
+
 	if (logoutUser && !logoutUser.hasEventListener) {
 		logoutUser.addEventListener('click', function(e) {
 			// Use an IIFE to handle the async operation
 			(async () => {
 				const userData = await getLoggedInState();
+				console.log('HELLO AGAIN');
+
 				if (userData && userData.user_id) { // Ensure userData and user_id are valid
 					logoutData.append('user_id', userData.user_id);
 					console.log(`logging out user_id: ${userData.user_id}`);
@@ -197,12 +164,19 @@ const LogOutObserver = new MutationObserver(() => {
 					fetch('/api/user_mgt/logout/', {
 						method: 'POST',
 						body: logoutData,
+					})
+					.then(response => response.json())
+					.then(data => {
+						if (data.status === 'success')
+							urlRoute('/');
+						else
+							throw new Error (data.message);
 					});
 				} else {
 					console.error('Failed to get user data');
+					alert(`Error while logging you out`)
 				}
 			})();
-		urlRoute('/');
 		});
 		logoutUser.hasEventListener = true;
 	}
