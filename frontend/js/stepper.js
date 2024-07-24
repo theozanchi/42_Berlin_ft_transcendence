@@ -17,13 +17,6 @@ export var gameStarted = false, gameOver = false, remote = false;
 export var round_number;
 export var player_id;
 
-//Create the staert button
-let startGameButton = document.createElement('button');
-startGameButton.textContent = 'START ROUND';  // Set the text content of the button
-
-// Add a margin to the top of the button
-startGameButton.style.marginTop = '100px';  // Adjust this value as needed
-
 function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
 		console.log('Opening new WebSocket');
@@ -62,9 +55,7 @@ function openSocket() {
 				}
                 if (data.type === 'start-game') {
 					console.log('Game starting...');
-					if (startGameButton) {
-						startGameButton.remove();
-					}
+
 					if (data.mode === 'remote') {
 						remote = true;
 
@@ -83,7 +74,6 @@ function openSocket() {
 						gameStarted = false;
 						player_id = null;
 
-						//createStartButton();
 						if (gameStarted) {
 							console.log('Game already started!');
 							return;
@@ -126,49 +116,6 @@ export async function sendJson(json) {
     }
 }
 
-function createStartButton() {
-    const canvas = document.getElementById('bg');
-    const canvasContainer = canvas.parentNode;
-    
-    // Ensure the container has a relative position
-    canvasContainer.style.position = 'relative';
-    
-    // Assuming startGameButton is already created elsewhere in your code
-    startGameButton.style.position = 'absolute';
-    startGameButton.style.top = '35%'; // Center vertically
-    startGameButton.style.left = '50%'; // Center horizontally
-    startGameButton.style.transform = 'translate(-50%, -50%)'; // Adjust to center precisely
-	// Additional styling for the start game button
-	startGameButton.style.backgroundColor = 'lightcoral'; // Light red color
-	startGameButton.style.color = 'white'; // Text color
-	startGameButton.style.border = 'none'; // Remove default border
-	startGameButton.style.borderRadius = '20px'; // Rounded corners
-	startGameButton.style.padding = '20px 40px'; // Padding inside the button
-	startGameButton.style.fontFamily = 'Arial, sans-serif'; // Different font
-	startGameButton.style.fontSize = '24px'; // Font size
-	startGameButton.style.fontWeight = 'bold'; // Bold font weight
-	startGameButton.style.cursor = 'pointer'; // Cursor on hover
-	startGameButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)'; // Optional: Add a subtle shadow for depth
-		
-    if (canvasContainer) {
-        canvasContainer.appendChild(startGameButton);
-        console.log('Start Game Button created on top of the canvas');
-    } else {
-        console.error('Container for canvas with id "bg" not found');
-    }
-    
-	
-	// Add event listener to start game button
-	startGameButton.addEventListener('click', function() {
-		if (gameStarted) {
-			console.log('Game already started!');
-			return;
-		}
-		console.log('SENDING Starting game...');
-		sendJson(JSON.stringify({ type: 'start-game' }));
-	});
-}
-
 function generateLocalGame() {
 
 	console.log("GENERATING LOCAL GAME");
@@ -190,7 +137,7 @@ function generateLocalGame() {
 		console.log(json);
         sendJson(json);
 
-		createStartButton();
+		sendJson(JSON.stringify({ type: 'start-game' }));
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -299,7 +246,8 @@ async function hostRemoteGame() {
 				myElement.addEventListener('click', (event) => {
 					event.preventDefault();
 					
-					alert(`Get Ready to Play Your Remote Game`)	
+					alert(`Get Ready to Play Your Remote Game`)
+					sendJson(JSON.stringify({ type: 'start-game' }));
 				});
 			};
 
