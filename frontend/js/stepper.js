@@ -86,18 +86,13 @@ function handleMessage(data) {
 			// }
 			if (data.mode === 'remote') {
 				remote = true;
-				if (data.player_id === 'player1')
-					player_id = player;
-				else if (data.player_id === 'player2')
-					player_id = player2;
-				else
-					player_id = 'spectator';
+				player_id = data.player_id;
+				console.log('Player ID:', player);
 			}
 			gameStarted = true;
 			round_number = data.round_number;
 			console.log('Game started! round number:', round_number);
 			init();
-			animate();
 			break;
 		
 		case 'update':
@@ -166,7 +161,8 @@ function generateLocalGame() {
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
-		// startGameButton();
+
+		sendJson(JSON.stringify({ type: 'start-game' }));
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
