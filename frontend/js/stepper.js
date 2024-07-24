@@ -71,10 +71,12 @@ function handleMessage(data) {
 			break;
 		
 		case 'create-game':
+			console.log
 			game_id = data.game_id;
 			console.log('Game ID:', game_id);
-			console.log('routing');
-			urlRoute(`/game?id=${game_id}`);
+			if (data.mode === 'local')
+				urlRoute(`/game?id=${game_id}`);
+			
 			sendJson(JSON.stringify({ type: 'start-game' }));
 			break;
 		
@@ -241,7 +243,6 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 					event.preventDefault();
-
 					generateLocalGame();
 				});
 			};
@@ -267,10 +268,9 @@ async function hostRemoteGame() {
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
-					urlRoute('/game');
+					// urlRoute('/game');
 					event.preventDefault();
 					sendJson(JSON.stringify({ type: 'start-game' }));
-					console.log('Start Game button clicked');
 				});
 			};
 
