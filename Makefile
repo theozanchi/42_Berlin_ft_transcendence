@@ -74,10 +74,6 @@ prune:
 				docker compose down
 				docker container prune -f
 
-prune:
-				docker compose down
-				docker container prune -f
-
 clean-db:
 				docker exec -it $(GAME_MANAGER_CONTAINER) psql -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
 
