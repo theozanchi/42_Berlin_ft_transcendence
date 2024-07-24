@@ -266,10 +266,10 @@ async function hostRemoteGame() {
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
+					urlRoute('/game');
 					event.preventDefault();
 					sendJson(JSON.stringify({ type: 'start-game' }));
 					console.log('Start Game button clicked');
-					alert(`Get Ready to Play Your Remote Game`)	
 				});
 			};
 
