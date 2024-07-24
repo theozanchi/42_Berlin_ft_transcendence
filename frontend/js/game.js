@@ -233,6 +233,7 @@ export async function init() {
 	const canvasParent = canvas.parentNode;
 	console.log(`CANVAS PARENT: ${canvasParent}`);
 	canvasParent.replaceChild(renderer.domElement, canvas);
+	
 	// document.body.appendChild(renderer.domElement);
     
     // Create the background plane

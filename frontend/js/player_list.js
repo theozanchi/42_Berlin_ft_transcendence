@@ -7,9 +7,10 @@ class PlayerList extends HTMLElement {
 	constructor() {
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
-		this.count = 1;
-		// this.gameMode = "local";
+		this.count = 2;
+		// this.gameMode = "local";avatar_blossom.png
 		const gameModes = ["local", "host", "join", "friends", "online"];
+		this.pongerAvatars = ['assets/avatar_blossom.png', 'assets/avatar_bubbles.png', 'assets/avatar_buttercup.png']
 		this.PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
 	}
 
@@ -50,8 +51,10 @@ class PlayerList extends HTMLElement {
 		let separator = document.createElement('hr');
 		separator.style.margin = '6px';
 
-		console.log(this.count);
-		newPlayer.setAttribute('name', this.PongerChars[this.count]);
+		console.log(this.PongerChars.length);
+		newPlayer.setAttribute('name', this.PongerChars[this.count % this.PongerChars.length]);
+		newPlayer.setAttribute('avatar', this.pongerAvatars[this.count % this.pongerAvatars.length]);
+		console.log
 		// newPlayer.setAttribute('name', 'ThisWillChange');
 
 		if (this.gameMode === 'local')
@@ -114,9 +117,6 @@ class PlayerList extends HTMLElement {
 	
 				<div id="list-of-players">
 				`
-			
-			
-
 			this.shadow.innerHTML +='</div>';
 
 		}
@@ -127,8 +127,9 @@ class PlayerList extends HTMLElement {
 
 			<h3 id="playerCount"> ${this.count} Players</h3>
 			<div id="list-of-players">
-				<player-component name="Player 1" input></player-component>
-				<player-component name="Player 2" input></player-component>
+				<player-component name="${this.PongerChars[0]}" avatar="${this.pongerAvatars[0]}" input></player-component>
+				<hr class="my-0">
+				<player-component name="${this.PongerChars[1]}" avatar="${this.pongerAvatars[1]}" input></player-component>
 			</div>
 			
 			<div class="d-flex justify-content-center">

@@ -44,18 +44,20 @@ class MyPlayer extends HTMLElement {
     }
 
 	render() {
-		const hasInput = this.hasAttribute('input');
-		const hasRemoveButton = this.hasAttribute('remove-button');
-		const hasAvatar = this.hasAttribute('avatar');
-		const isOnline = this.hasAttribute('online');
-		const rightToLeft = this.hasAttribute('order-right');
-		const tableColumn = this.getAttribute('table-column');
-		const baseUrl = document.location.href;
-		const name = this.getAttribute('name');
-		let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
-	
-		if (hasAvatar)
+		const	hasInput = this.hasAttribute('input');
+		const	hasRemoveButton = this.hasAttribute('remove-button');
+		const	isOnline = this.hasAttribute('online');
+		const	rightToLeft = this.hasAttribute('order-right');
+		const	tableColumn = this.getAttribute('table-column');
+		const	baseUrl = document.location.href;
+		const	name = this.getAttribute('name');
+		const	avatar = this.getAttribute('avatar');
+		let		imageUrl;
+
+		if (this.getAttribute('avatar'))
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
+		else
+			imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 	
 		const nameAligned = (tableColumn === "right")
 			? `<p class="col align-middle fs-5 m-0 text-end text-truncate">${name}</p>`
