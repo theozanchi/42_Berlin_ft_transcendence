@@ -19,7 +19,7 @@ export var player_id;
 
 //Create the staert button
 let startGameButton = document.createElement('button');
-startGameButton.textContent = 'START GAME';  // Set the text content of the button
+startGameButton.textContent = 'START ROUND';  // Set the text content of the button
 
 // Add a margin to the top of the button
 startGameButton.style.marginTop = '100px';  // Adjust this value as needed
