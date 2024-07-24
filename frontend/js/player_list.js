@@ -10,8 +10,8 @@ class PlayerList extends HTMLElement {
 		this.count = 2;
 		// this.gameMode = "local";avatar_blossom.png
 		const gameModes = ["local", "host", "join", "friends", "online"];
-		this.pongerAvatars = ['assets/avatar_blossom.png', 'assets/avatar_bubbles.png', 'assets/avatar_buttercup.png']
-		this.PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'The Mayor of Townsville', 'Ms. Bellum', 'Ms. Keane', 'Narrator', 'Talking Dog', 'Mitch Mitchelson', 'Stanley Whitfield', 'Mojo Jojo', 'Fuzzy Lumpkins', 'HIM', 'Princess Morbucks', 'The Gangreen Gang', 'The Amoeba Boys', 'Sedusa', 'The Rowdyruff Boys'];
+		this.pongerAvatars = ['assets/avatar_blossom.png', 'assets/avatar_bubbles.png', 'assets/avatar_buttercup.png', 'assets/avatar_professor_utonium.png', 'assets/avatar_ms_kean.png', 'assets/avatar_mojo_jojo.png', 'assets/avatar_HIM.png'];
+		this.PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'Ms. Keane', 'Mojo Jojo', 'HIM'];
 	}
 
 	get count() {

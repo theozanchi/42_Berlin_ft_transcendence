@@ -92,6 +92,9 @@ export function updateProfileData() {
 }
 
 export async function loadProfileData() {
+	const errorContainer = document.getElementById('userProfileError');
+	const userDataContainer = document.getElementById('userProfileData');
+	const userActionBar = document.getElementById('userActionBar');
 	const userAvatar = document.getElementById('userAvatar');
 	const userNickname = document.getElementById('userNickname');
 	const userGamesPlayed = document.getElementById('userGamesPlayed');
@@ -112,10 +115,14 @@ export async function loadProfileData() {
 		const response = await fetch(`/api/user_mgt/profile/${userId}`);
 		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
 			let data = await response.json();
-			// console.log('Starting to work');
-			if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
+
+			if (data.status === 'error')
+				throw new Error (data.message);
+			else if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
 				data = data.player_data;
-				
+				errorContainer.setAttribute('hidden', '');
+				userDataContainer.removeAttribute('hidden');
+				userActionBar.removeAttribute('hidden');
 				// Set user avatar asynchronously
 				userAvatar.src = await setProfileImage(data.user_id);
 				userNickname.textContent = data.nickname;
