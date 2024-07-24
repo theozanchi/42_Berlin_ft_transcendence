@@ -92,6 +92,9 @@ export function updateProfileData() {
 }
 
 export async function loadProfileData() {
+	const errorContainer = document.getElementById('userProfileError');
+	const userDataContainer = document.getElementById('userProfileData');
+	const userActionBar = document.getElementById('userActionBar');
 	const userAvatar = document.getElementById('userAvatar');
 	const userNickname = document.getElementById('userNickname');
 	const userGamesPlayed = document.getElementById('userGamesPlayed');
@@ -112,16 +115,22 @@ export async function loadProfileData() {
 		const response = await fetch(`/api/user_mgt/profile/${userId}`);
 		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
 			let data = await response.json();
-			// console.log('Starting to work');
-			if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
+
+			if (data.status === 'error')
+				throw new Error (data.message);
+			else if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
 				data = data.player_data;
-				
+				errorContainer.setAttribute('hidden', '');
+				userDataContainer.removeAttribute('hidden');
+				userActionBar.removeAttribute('hidden');
 				// Set user avatar asynchronously
 				userAvatar.src = await setProfileImage(data.user_id);
 				userNickname.textContent = data.nickname;
-				userRank.textContent = data.rank.rank;
+				if (data.rank)
+					userRank.textContent = data.rank.rank;
 				userScore.textContent = data.total_score;
-				userGamesPlayed.value = +data.games.length;
+				if (data.games)
+					userGamesPlayed.value = +data.games.length;
 				userGamesWon.value = +data.total_wins;
 				userGamesLost.value = +data.total_lost;
 
@@ -136,7 +145,9 @@ export async function loadProfileData() {
 						let separator = document.createElement('hr');
 						separator.setAttribute('class', 'm-0');
 						newPlayer.setAttribute('name', element.username);
-						newPlayer.setAttribute('user_id', element.user_id); 
+						newPlayer.setAttribute('user_id', element.user_id);
+						if (element.online)
+							newPlayer.setAttribute('online', '');
 						// Await the setProfileImage call for each friend
 						newPlayer.setAttribute('avatar', await setProfileImage(element.user_id));
 						userFriendsList.appendChild(newPlayer);

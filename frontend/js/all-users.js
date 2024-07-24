@@ -26,7 +26,7 @@ export async function loadUserList() {
 					newPlayer.setAttribute('name', element.alias);
 					newPlayer.setAttribute('user_id', element.user_id);
 					newPlayer.setAttribute('link_profile', '');
-					newPlayer.setAttribute('avatar', await setProfileImage(element.id));
+					newPlayer.setAttribute('avatar', await setProfileImage(element.user_id));
 					
 					usersList.appendChild(newPlayer);
 					usersList.appendChild(separator);
