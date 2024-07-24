@@ -221,16 +221,18 @@ export async function init() {
     scene = new THREE.Scene();
     
     // Set up the camera
-    camera = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
-    camera2 = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
-    camera3 = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.01, 1000);
+    camera2 = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.01, 1000);
+    camera3 = new THREE.PerspectiveCamera(75, (canvas.width / 2) / canvas.height, 0.01, 1000);
     
     // Set up the renderer
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
 
     renderer.setSize(canvas.width, canvas.height);
+	console.log(`CANVAS: ${canvas}`);
 	const canvasParent = canvas.parentNode;
-	canvasParent.appendChild(renderer.domElement, canvas);
+	console.log(`CANVAS PARENT: ${canvasParent}`);
+	canvasParent.replaceChild(renderer.domElement, canvas);
 	// document.body.appendChild(renderer.domElement);
     
     // Create the background plane
