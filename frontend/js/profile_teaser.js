@@ -3,7 +3,12 @@ import {setProfileImage} from './profile.js'
 
 class ProfileTeaser extends HTMLElement {
 	connectedCallback() {
-		this.render();
+		try {
+			this.render();
+		} catch (error) {
+			console.error('Error rendering profile teaser:', error);
+			this.innerHTML = `<div class="error-message">Oops! Something went wrong. Please try again later.</div>`;
+		}
 	}
 
 	async render() {

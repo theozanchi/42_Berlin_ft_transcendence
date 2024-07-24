@@ -71,8 +71,8 @@ postgres:
 				docker exec -it $(GAME_MANAGER_CONTAINER) pgcli -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME)
 
 prune:
-				docker compose down
-				docker container prune -f
+				@docker compose down
+				@docker system prune -af
 
 clean-db:
 				docker exec -it $(GAME_MANAGER_CONTAINER) psql -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
