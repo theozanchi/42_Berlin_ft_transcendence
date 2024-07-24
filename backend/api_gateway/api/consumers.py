@@ -244,7 +244,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             return
 
         self.last_sent_state = content
-        if self.player_id != "player1" and self.player_id != "player2":
+        if self.mode == 'remote' and self.player_id != "player1" and self.player_id != "player2":
             await self.send_json({"error": "Not your turn"})
         try:
             async with self.lock:
