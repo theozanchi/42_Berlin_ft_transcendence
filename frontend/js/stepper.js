@@ -73,6 +73,9 @@ function handleMessage(data) {
 		case 'create-game':
 			game_id = data.game_id;
 			console.log('Game ID:', game_id);
+			console.log('routing');
+			urlRoute(`/game?id=${game_id}`);
+			sendJson(JSON.stringify({ type: 'start-game' }));
 			break;
 		
 		case 'start-game':
@@ -256,9 +259,7 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
-
 				hostRemoteGame();
-
 			});
 			};
 
