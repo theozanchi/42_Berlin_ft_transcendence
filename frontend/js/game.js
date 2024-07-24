@@ -1065,11 +1065,6 @@ function updateAimingLine() {
         aimingLine.material.opacity = 0;
 }
 
-function updateScore() {
-    let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player: ${player1Score} | Player_2: ${player2Score}`;
-}
-
     //////////////////////--------BLINKING-------//////////////////////
 
 index7;
@@ -1444,13 +1439,6 @@ export function resetGame() {
     ballIsHeld = true;
     wallHits = 0;
     aimingAngle = 0;
-
-
-    // Remove score display
-    let scoreDisplay = document.getElementById('scoreDisplay');
-    if (scoreDisplay) {
-        document.body.removeChild(scoreDisplay);
-    }
 
     // Remove event listeners
     document.removeEventListener('keydown', onKeyDown);
