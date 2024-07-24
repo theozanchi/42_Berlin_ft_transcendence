@@ -27,30 +27,44 @@ startGameButton.textContent = 'Start Game';
 // Add a margin to the top of the button
 startGameButton.style.marginTop = '100px';  // Adjust this value as needed
 
-function openSocket() {
+export function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
-		console.log('Opening new WebSocket');
 		const url = `wss://${window.location.host}/ws/`;
 		newsocket = new WebSocket(url);
 
 		openPromise = new Promise((resolve) => {
 			newsocket.onopen = function(event) {
-				console.log('Connected to WebSocket server.');
 				resolve();
 			};
 		});
 
         messagePromise = new Promise((resolve) => {
             newsocket.onmessage = function(event) {
-                console.log('Received: ' + event.data);
                 resolve(event.data);
             };
         });
 
 		newsocket.onmessage = function(event) {
 			let data = JSON.parse(event.data);
-				if (data.type === 'broadcast') {
-					console.log('Broadcast:', data);
+			handleMessage(data);
+		};
+
+		newsocket.onclose = function(event) {
+			console.log('Disconnected from WebSocket server.');
+		};
+
+		newsocket.onerror = function(error) {
+			console.log('WebSocket error: ' + error.message);
+		};
+    
+		return (openPromise);
+	}
+}
+
+function handleMessage(data) {
+	switch (data.type) {	
+		case 'broadcast':
+			console.log('Broadcast:', data);
 
 			if (data.content.message === 'tournament-over') {
 				console.log('Game Over. Winner is: ' + data.content.winner);
