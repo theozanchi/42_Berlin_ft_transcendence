@@ -61,6 +61,7 @@ function openSocket() {
 						console.log('Game ID:', game_id);
 				}
                 if (data.type === 'start-game') {
+					console.log('Game starting...');
 					if (startGameButton) {
 						startGameButton.remove();
 					}
