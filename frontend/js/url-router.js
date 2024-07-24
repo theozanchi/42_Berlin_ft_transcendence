@@ -1,7 +1,7 @@
 const	baseUrl = document.location.href;
 import {getLoggedInState} from './login_signup.js';
-import {loadProfileData} from './profile.js'
-import {updateProfileData} from './profile.js'
+import {loadUserList} from './all-users.js';
+import {loadProfileData, updateProfileData} from './profile.js'
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -77,12 +77,19 @@ const urlRoutes = {
 		title: "Profile",
 		description: "",
 	},
+	"/users": {
+		template: "/all-users.html",
+		title: "Users",
+		description: "",
+	},
+	
 }
 
 export const urlRoute = (eventOrUrl) => {
 	let url;
 	// console.log(eventOrUrl);
 	// console.log(typeof eventOrUrl);
+	console.log('routing now!');
 	if (typeof eventOrUrl === 'string') {
 		url = eventOrUrl;
 	} else {
@@ -115,13 +122,15 @@ async function redirectOnLogin(locationOld){
 		if (location === "/profile" && !urlQuery.has('user')) {
 			// Redirect guest trying to access /profile to homepage
 			// window.history.pushState({}, "", "/");
-			location = "/";
+			location = "/login";
+			window.history.replaceState({}, "", location);
 		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile") {
 			// Additional logic for other routes if needed
 			// window.history.pushState({}, "", "/login");
 			location = "/login";
+			window.history.replaceState({}, "", location);
 		}
-	window.history.pushState({}, "", location);
+		// window.history.pushState({}, "", location);
 	}
 
 	return (location);
@@ -159,6 +168,8 @@ const urlLocationHandler = async () => {
 		loadProfileData();
 	if (location === '/edit-profile')
 		updateProfileData();
+	if (location === '/users')
+		loadUserList();
 };
 
 window.onpopstate = urlLocationHandler;

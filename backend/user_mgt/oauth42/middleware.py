@@ -17,7 +17,7 @@ class LastActivityMiddleware:
 
 
 def is_user_online(Player):
-    if timezone.now() - Player.last_activity < timezone.timedelta(minutes=5):
+    if timezone.now() - Player.last_activity < timezone.timedelta(minutes=5) and Player.User.is_authenticated() :
         return True
     else:
         return False

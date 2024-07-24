@@ -1,5 +1,4 @@
 let socket;
-const baseUrlWithoutProtocol = `${document.location.hostname}${(document.location.port ? `:${document.location.port}` : '')}`;
 
 function connectWebSocket() {
 	// Check if WebSocket is already open
@@ -8,12 +7,8 @@ function connectWebSocket() {
 		return;
 	}
 
-	const wsUrl = `wss://${baseUrlWithoutProtocol}/ws/local/`;
-
 	// Connect to WebSocket server
-	socket = new WebSocket(webSocketUrl, {
-		headers: headers
-	});
+	socket = new WebSocket('wss://localhost:8443/ws/local/');
 
 	socket.onopen = function(event) {
 		logMessage('Connected to WebSocket server.');

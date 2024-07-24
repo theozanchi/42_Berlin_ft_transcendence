@@ -10,8 +10,8 @@ class PlayerInline(admin.TabularInline):
     model = Player
     can_delete = False
     verbose_name_plural = "Players"
-    fields = ("avatar", "access_token", "id42")
-    readonly_fields = ("access_token", "id42")
+    fields = ("avatar", "id42", "registered")
+    readonly_fields = ("id42", "registered")
 
     def delete_model(self, request, obj):
         # delete the avatar file
@@ -27,7 +27,7 @@ class PlayerInline(admin.TabularInline):
 
 class ParticipationInline(admin.TabularInline):
     model = Participation
-    extra = 1
+    extra = 3
 
 
 class UserAdmin(BaseUserAdmin):
@@ -58,6 +58,7 @@ class UserAdmin(BaseUserAdmin):
         "username",
         "id",
         "list_of_friends",
+        "registered_status",
     )
 
     def picture_url(self, obj):
@@ -66,6 +67,11 @@ class UserAdmin(BaseUserAdmin):
         )
 
     picture_url.short_description = "Picture URL"
+
+    def registered_status(self, obj):
+        return obj.player.registered
+
+    registered_status.short_description = "Registered"
 
     def id42(self, obj):
         return obj.player.id42
@@ -82,7 +88,6 @@ class TournamentAdmin(admin.ModelAdmin):
     inlines = (ParticipationInline,)
     list_display = ("game_id", "start_date", "end_date", "mode", "winner")
     list_filter = ("start_date", "end_date", "mode")
-    search_fields = ("game_id", "winner")
     ordering = ("start_date",)
 
 

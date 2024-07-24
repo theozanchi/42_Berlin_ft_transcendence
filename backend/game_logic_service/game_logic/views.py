@@ -36,6 +36,11 @@ def game_update(request):
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get("game_id")
 
+        #if not(new_game_state.get('ballIsHeld')) : print("ballisheld: ", new_game_state.get('ballIsHeld'))
+        #serializer = GameStateSerializer(data=new_game_state)
+        #if not serializer.is_valid():
+        #    return JsonResponse(serializer.errors, status=400)
+ 
         if game_id is None:
             return JsonResponse({"error": "Missing game-ID"}, status=400)
         
@@ -106,27 +111,24 @@ def handle_game_over(game_state, game_id, headers):
 def create_new_game_state(game_id, round_number):
     return {
         'game_id': game_id,
-        'round_number': round_number,
-        'gameOver': False,
 
-        'aiming_angle': 0, # Initialize aiming_angle
+        'aiming_angle': 0 , # Initialize aiming_angle
         'aimingSpeed': 0.05,  # Example speed value, adjust as needed
         'maxaiming_angle': 1.57,  # Example max angle value (90 degrees in radians)
         'minaiming_angle': -1.57, 
-        'cube_size': 1.8,
+        'cube_size': 2,
         'ball_radius': 0.05,
         'resetting_ball': False,
         'last_update_time': time.time(),
         'update_interval': 1 / 60,
-        'direction': {'x': 0, 'y': 0, 'z': 0},
 
         'player1': {'x': 0, 'y': 0, 'z': 1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
         'player2': {'x': 0, 'y': 0, 'z': -1, 'rotation': {'x': 0, 'y': 0, 'z': 0}},
         'ball': {'x': 0, 'y': 0, 'z': 0},
         'ballSpeed': {'x': 0, 'y': 0, 'z': 0},
         'playerTurn': True,  # Initial value, assuming player 1 starts
-        'player1Score': 0,
-        'player2Score': 0,
+        'playerScore': 0,
+        'aiScore': 0,
         'ballIsHeld': True,  # Initial value, assuming ball is held initially
         'current_face': 0,  # Adding initial value for current face
         'current_face2': 1,
@@ -242,6 +244,7 @@ def update_ball(game_state):
 
     # Check for collisions with players
     if check_collision(game_state):
+        print("Collision detected")
         pass
     else:
         game_state["ball"] = next_position  # Update ball position normally

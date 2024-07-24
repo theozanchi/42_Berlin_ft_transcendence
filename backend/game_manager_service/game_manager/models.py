@@ -220,6 +220,7 @@ class Player(models.Model):
     last_activity = models.DateTimeField(auto_now=True)
     access_token = models.CharField(max_length=200, null=True, blank=True)
     friends = models.ManyToManyField(User, related_name="players")
+    registered = models.BooleanField(default=False)
 
     game = models.ForeignKey(
         Game, related_name="players", on_delete=models.SET_NULL, null=True
@@ -300,7 +301,7 @@ class Round(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Round {self.round_number} - status: {self.status} - {self.player1} vs {self.player2} - winner: {self.winner}"
+        return f"Round {self.round_number} - {self.player1} vs {self.player2}"
 
 
 """ @receiver(post_save, sender=UserProfile)

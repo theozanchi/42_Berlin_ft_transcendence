@@ -4,9 +4,9 @@ from django.urls import path
 
 from .oauth import oauth_callback, oauth_login
 from .views import (add_friend, add_friend_view, delete_cookie, delete_profile,
-                    home, online_users_view, profile, rankings, register,
+                    home, logout_user, online_users_view, profile, rankings, register,
                     regular_login, remove_friend, remove_friend_view, update,
-                    who_am_i)
+                    who_am_i, registered_users_view)
 
 urlpatterns = [
     path("api/user_mgt", home, name="home"),
@@ -16,6 +16,7 @@ urlpatterns = [
     path("api/user_mgt/delete_cookie/", delete_cookie, name="delete_cookie"),
     path("api/user_mgt/register/", register, name="register"),
     path("api/user_mgt/login/", regular_login, name="login"),
+    path("api/user_mgt/logout/", logout_user, name="logout"),
     path("api/user_mgt/ranking/", rankings, name="ranking"),
     path("api/user_mgt/update/", update, name="update"),
     path("api/user_mgt/delete_profile/", delete_profile, name="delete_profile"),
@@ -33,4 +34,5 @@ urlpatterns = [
     ),
     path("api/user_mgt/online_users/", online_users_view, name="online_users"),
     path("api/user_mgt/me", who_am_i, name="me"),
+    path("api/user_mgt/user_list", registered_users_view, name="user_list")
 ]
