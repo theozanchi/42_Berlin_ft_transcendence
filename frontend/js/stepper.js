@@ -10,7 +10,7 @@ import { initTournament, updateTournament } from './tournament.js';
 
 import { urlRoute } from './url-router.js';
 
-import { startGameButton } from './lobby.js';
+// import { startGameButton } from './lobby.js';
 
 var newsocket;
 let openPromise;
@@ -161,7 +161,7 @@ function generateLocalGame() {
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
-		startGameButton();
+		// startGameButton();
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -214,7 +214,6 @@ async function hostRemoteGame() {
 	openSocket()
     .then(() => {
 		urlRoute("/host-remote");
-		startGameButton();
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
@@ -231,7 +230,7 @@ async function hostRemoteGame() {
 		}
 	
 		connectedCallback() {
-			// console.log("rendering stepper form");
+			console.log("rendering stepper form");
 
 			// let myElement = document.querySelector('')
 
@@ -264,11 +263,12 @@ async function hostRemoteGame() {
 			};
 
 
-			myElement = document.getElementById('startRemoteGameButton');
+			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 					event.preventDefault();
-					
+					sendJson(JSON.stringify({ type: 'start-game' }));
+					console.log('Start Game button clicked');
 					alert(`Get Ready to Play Your Remote Game`)	
 				});
 			};

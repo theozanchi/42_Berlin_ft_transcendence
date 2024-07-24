@@ -13,21 +13,21 @@ window.onload = function() {
 // 	setGameID('test');
 // });
 
-export function startGameButton() {
-	console.log('startGameButton called');
-	// document.addEventListener('DOMContentLoaded', (event) => {
-    const startGameButton = document.getElementById('startGameButton');
-	if (startGameButton)
-		console.log('startGameButton found in the DOM');
-	else
-		console.log('startGameButton not found in the DOM');
-    startGameButton.addEventListener('click', function() {
-		console.log('startGameButton event listener called');
-        sendJson(JSON.stringify({ type: 'start-game' }));
-        console.log('Start Game button clicked');
-    });
-	// });
-}
+// export function startGameButton() {
+// 	console.log('startGameButton called');
+// 	// document.addEventListener('DOMContentLoaded', (event) => {
+//     const startGameButton = document.getElementById('startGameButton');
+// 	if (startGameButton)
+// 		console.log('startGameButton found in the DOM');
+// 	else
+// 		console.log('startGameButton not found in the DOM');
+//     startGameButton.addEventListener('click', function() {
+// 		console.log('startGameButton event listener called');
+//         sendJson(JSON.stringify({ type: 'start-game' }));
+//         console.log('Start Game button clicked');
+//     });
+// 	// });
+// }
 
 function setGameID(gameID) {
 	if (!gameID) {
