@@ -8,6 +8,10 @@ import { init, animate, resetGame, updateGameState, displayScore } from './game.
 
 import { initTournament, updateTournament } from './tournament.js';
 
+import { urlRoute } from './url-router.js';
+
+import { startGameButton } from './lobby.js';
+
 var newsocket;
 let openPromise;
 let messagePromise;
@@ -18,14 +22,7 @@ export var gameStarted = false;
 export var gameOver = false;
 export var remote = false;
 export var round_number;
-export let currentPlayer;
-
-//Create the staert button
-let startGameButton = document.createElement('button');
-startGameButton.textContent = 'Start Game';
-
-// Add a margin to the top of the button
-startGameButton.style.marginTop = '100px';  // Adjust this value as needed
+export var player_id;
 
 export function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
@@ -79,17 +76,17 @@ function handleMessage(data) {
 			break;
 		
 		case 'start-game':
-			if (startGameButton) {
-				startGameButton.remove();
-			}
+			// if (startGameButton) {
+			// 	startGameButton.remove();
+			// }
 			if (data.mode === 'remote') {
 				remote = true;
 				if (data.player_id === 'player1')
-					currentPlayer = player;
+					player_id = player;
 				else if (data.player_id === 'player2')
-					currentPlayer = player2;
+					player_id = player2;
 				else
-					currentPlayer = 'spectator';
+					player_id = 'spectator';
 			}
 			gameStarted = true;
 			round_number = data.round_number;
@@ -103,7 +100,7 @@ function handleMessage(data) {
 				return;
 			if (data.content.gameOver === true) {
 				console.log('Round Over. Winner is: ', data.content.winner);
-				currentPlayer = null;
+				player_id = null;
 				//unloadLocalGame();
 				// Start next round
 				displayScore(data.content);
@@ -144,25 +141,6 @@ export async function sendJson(json) {
     }
 }
 
-function createStartButton() {
-	const gameArea = document.getElementById('game-column');
-	if (gameArea) {
-		gameArea.appendChild(startGameButton);
-	} else {
-		console.error('Element with id "game-column" not found');
-	}
-	
-	// Add event listener to start game button
-	startGameButton.addEventListener('click', function() {
-		if (gameStarted) {
-			console.log('Game already started!');
-			return;
-		}
-		console.log('SENDING Starting game...');
-		sendJson(JSON.stringify({ type: 'start-game' }));
-	});
-}
-
 function generateLocalGame() {
 
 	console.log("GENERATING LOCAL GAME");
@@ -183,8 +161,7 @@ function generateLocalGame() {
         var json = JSON.stringify(data);
 		console.log(json);
         sendJson(json);
-
-		createStartButton();
+		startGameButton();
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -236,11 +213,11 @@ async function hostRemoteGame() {
 
 	openSocket()
     .then(() => {
+		urlRoute("/host-remote");
+		startGameButton();
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
-		urlRoute('/host-remote');
-		createStartButton();
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
