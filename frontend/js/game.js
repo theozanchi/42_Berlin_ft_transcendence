@@ -34,10 +34,20 @@ let index8;
 //---MAIN_LOOP---//
 let index9;
 
-const canvas = document.getElementById('bg');
-canvas.width = canvas.offsetWidth;
-canvas.height = canvas.offsetHeight;
-console.log(`CANVS SIZE: ${canvas.width} x ${canvas.height}`)
+let canvas;
+let canvasParent;
+
+document.addEventListener('DOMContentLoaded', () => {
+    canvas = document.getElementById('bg');
+    if (canvas) {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        canvasParent = canvas.parentNode;
+        console.log(`CANVAS SIZE: ${canvas.width} x ${canvas.height}`);
+    } else {
+        console.error('Canvas element with id "bg" not found.');
+    }
+});
 
 let direction;
 const faceMaterials = {};
@@ -214,8 +224,19 @@ export function sendGameState() {
 index2;
 
 export async function init() {
-    console.log('Initializing game... ROUND NUMBER: ', round_number);
 
+    canvas = document.getElementById('bg');
+    if (canvas) {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        canvasParent = canvas.parentNode;
+        console.log(`CANVAS SIZE: ${canvas.width} x ${canvas.height}`);
+    } else {
+        console.error('Canvas element with id "bg" not found.');
+        return;
+    }
+
+    console.log('Initializing game... ROUND NUMBER: ', round_number);
 
     // Create the scene
     scene = new THREE.Scene();
@@ -230,8 +251,9 @@ export async function init() {
 
     renderer.setSize(canvas.width, canvas.height);
 	console.log(`CANVAS: ${canvas}`);
-	const canvasParent = canvas.parentNode;
+	//canvasParent = canvas.parentNode;
 	console.log(`CANVAS PARENT: ${canvasParent}`);
+    
 	canvasParent.replaceChild(renderer.domElement, canvas);
 	
 	// document.body.appendChild(renderer.domElement);
@@ -379,6 +401,7 @@ export async function init() {
     
     updateScore();
     animate();
+
 }
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
