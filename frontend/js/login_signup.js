@@ -52,15 +52,14 @@ const LogInObserver = new MutationObserver(() => {
 			})
 			.then(data => {
 				console.log('Response:', data);
-				if (!data.error)
+				if (data.status === 'success')
 					urlRoute('/');
 				else
-					alert("Invalid username or password.")
-
+					throw new Error(data.message);
 			})
 			.catch((error) => {
 				console.error('Error:', error);
-				alert(`Error while logging you in: ${error}`)
+				alert(error)
 			});
 		});
 	};
@@ -79,7 +78,7 @@ const signupObserver = new MutationObserver(() => {
 
 	if (signupUser && signupPassword && signupPasswordConfirm && signupButton) {
 		// If all elements exist, stop observing
-		signupObserver.disconnect();
+		// signupObserver.disconnect();
 
 		function validateForm() {
 			if (signupUser.value && signupPassword.value && signupPasswordConfirm.value && signupPassword.value === signupPasswordConfirm.value) {
@@ -149,11 +148,15 @@ const LogOutObserver = new MutationObserver(() => {
 	const logoutUser = document.getElementById('logoutUserButton');
 	const logoutData = new FormData();
 
+	// console.log('HELLO');
+
 	if (logoutUser && !logoutUser.hasEventListener) {
 		logoutUser.addEventListener('click', function(e) {
 			// Use an IIFE to handle the async operation
 			(async () => {
 				const userData = await getLoggedInState();
+				console.log('HELLO AGAIN');
+
 				if (userData && userData.user_id) { // Ensure userData and user_id are valid
 					logoutData.append('user_id', userData.user_id);
 					console.log(`logging out user_id: ${userData.user_id}`);
@@ -161,8 +164,14 @@ const LogOutObserver = new MutationObserver(() => {
 					fetch('/api/user_mgt/logout/', {
 						method: 'POST',
 						body: logoutData,
+					})
+					.then(response => response.json())
+					.then(data => {
+						if (data.status === 'success')
+							urlRoute('/');
+						else
+							throw new Error (data.message);
 					});
-					urlRoute('/');
 				} else {
 					console.error('Failed to get user data');
 					alert(`Error while logging you out`)
