@@ -135,7 +135,7 @@ function createStartButton() {
     
     // Assuming startGameButton is already created elsewhere in your code
     startGameButton.style.position = 'absolute';
-    startGameButton.style.top = '40%'; // Center vertically
+    startGameButton.style.top = '35%'; // Center vertically
     startGameButton.style.left = '50%'; // Center horizontally
     startGameButton.style.transform = 'translate(-50%, -50%)'; // Adjust to center precisely
 	// Additional styling for the start game button
