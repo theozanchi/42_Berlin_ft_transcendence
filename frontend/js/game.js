@@ -1077,6 +1077,14 @@ function updateAimingLine() {
         aimingLine.material.opacity = 0;
 }
 
+function updateScore() {
+    // let scoreDisplay = document.getElementById('scoreDisplay');
+    // scoreDisplay.innerHTML = `Player: ${player1Score} | Player_2: ${player2Score}`;
+
+	let liveScoreDisplay = document.getElementById('gameLiveScore');
+	gameLiveScore.innerHTML = `${player1Score} : ${player2Score}`;
+}
+
     //////////////////////--------BLINKING-------//////////////////////
 
 index7;

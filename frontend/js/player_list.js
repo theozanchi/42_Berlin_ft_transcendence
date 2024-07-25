@@ -83,18 +83,27 @@ class PlayerList extends HTMLElement {
 		this.shadow.getElementById('playerCount').textContent = `${this.count} Players`;
 	}
 
+	getPlayerData() {
+		const players = this.shadow.querySelectorAll('player-component');
+
+		let playerData = {};
+
+		players.forEach(player => {
+			let name = player.name;
+			let avatar = player.avatar
+			playerData[`players${index}`] = { name : name, avatar : avatar};
+		});
+
+		return playerNames;
+	}
+
 	getPlayerNames() {
 		const players = this.shadow.querySelectorAll('player-component');
 
 		let playerNames = [];
 
 		players.forEach(player => {
-			console.log(player);
-			// let nameInput = player.shadowRoot.getElementById('playerNicknameInput');
-			// console.log(`has this input: ${nameInput}`);
-			// let name = nameInput.getAttribute('value');
 			let name = player.name;
-			// console.log(`has this name: ${name}`);
 			playerNames.push(name);
 		});
 
@@ -103,44 +112,42 @@ class PlayerList extends HTMLElement {
 
 	render() {
 
-		//MODES: local, remote-host, remote-join, friends, online
+		//MODES: local, remote
 		this.gameMode = this.getAttribute('mode');
-		this.userID = this.getAttribute('userID');
+		// const isRemote = this.hasAttribute('remote')
+		// this.userID = this.getAttribute('userID');
+		
+		if (this.gameMode === 'remote') {
+			this.shadow.innerHTML = `
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+			<div id="list-of-players"></div>
+			
+			<div class="d-flex justify-content-center">
+				<div class="spinner-border" role="status">	<span class="visually-hidden">Loading...</span></div><p>Waiting for Players to join</p>
+			</div>
+			`;
 
-		// if (!gameModes.includes(gameMode))
-			// console.error(`invalid game mode: ${gameMode}`);
-
-		if (this.gameMode === 'friends' && this.userID) {
+		} else if (this.gameMode === 'local') {
 			this.shadow.innerHTML = `
 				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
 				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-	
+
+				<h3 id="playerCount"> ${this.count} Players</h3>
 				<div id="list-of-players">
-				`
-			this.shadow.innerHTML +='</div>';
-
+					<player-component name="${this.PongerChars[0]}" avatar="${this.pongerAvatars[0]}" input></player-component>
+					<hr class="my-0">
+					<player-component name="${this.PongerChars[1]}" avatar="${this.pongerAvatars[1]}" input></player-component>
+				</div>
+				
+				<div class="d-flex justify-content-center">
+					<button id="addPlayerButton" class="btn btn-outline-primary d-flex"><i class="bi bi-plus-lg"></i>Add Player</button>
+				</div>
+				`;
 		}
-
-		this.shadow.innerHTML = `
-			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"></link>
-			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-			<h3 id="playerCount"> ${this.count} Players</h3>
-			<div id="list-of-players">
-				<player-component name="${this.PongerChars[0]}" avatar="${this.pongerAvatars[0]}" input></player-component>
-				<hr class="my-0">
-				<player-component name="${this.PongerChars[1]}" avatar="${this.pongerAvatars[1]}" input></player-component>
-			</div>
-			
-			<div class="d-flex justify-content-center">
-			${this.gameMode === "local" 
-				?	'<button id="addPlayerButton" class="btn btn-outline-primary d-flex"><i class="bi bi-plus-lg"></i>Add Player</button>'
-				:	'<div class="spinner-border" role="status">	<span class="visually-hidden">Loading...</span></div><p>Waiting for Players to join</p>'
-			}
-			</div>
-			`;
+		else
+			throw new Error (`Error: Unknown gamemode: ${this.gameMode}`);
 	}
 }
-	
 
 	customElements.define('player-list', PlayerList);

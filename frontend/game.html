@@ -19,22 +19,22 @@
 			<div class="container flex-grow-1 d-flex flex-column">
 				<div class="row flex-grow-1">
 					<div class="col d-flex flex-column justify-content-center align-items-center">
-						<img src="${imageUrl}" class="game-ticker">
+						<img id="gameLivePlayer1Avatar" src="https://localhost:8443/assets/avatar_blossom.png" class="game-ticker">
 					</div>
 					<div class="col d-flex justify-content-center align-items-center">
-						<p class="fs-1 m-0 text-centered">0 : 1</p>
+						<p id="gameLiveScore" class="fs-1 m-0 text-centered">- : -</p>
 					</div>
 					<div class="col d-flex flex-column justify-content-center align-items-center">
-						<img src="${imageUrl}" class="game-ticker">
+						<img id="gameLivePlayer2Avatar" src="https://localhost:8443/assets/avatar_blossom.png" class="game-ticker">
 					</div>
 				</div>
 				<div class="row">
 					<div class="col d-flex justify-content-center align-items-center">
-						<p class="fs-2  m-0 text-center">player1</p>
+						<p id="gameLivePlayer1Name" class="fs-2 m-0 text-center">player1</p>
 					</div>
 					<div class="col"></div>
 					<div class="col d-flex justify-content-center align-items-center">
-						<p class="fs-2 m-0 text-centered">player2</p>
+						<p id="gameLivePlayer2Name" class="fs-2 m-0 text-centered">player2</p>
 					</div>
 				</div>
 			</div>
@@ -64,7 +64,6 @@
 		<div class="container">
 			<canvas id="bg"></canvas>
 		</div>
-		<script type="module" src="js/game.js"></script>
 	</div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

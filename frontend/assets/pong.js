@@ -71,14 +71,14 @@ function init() {
     document.addEventListener('mouseup', onMouseUp);
 
     // Add score display
-    let scoreDisplay = document.createElement('div');
-    scoreDisplay.id = 'scoreDisplay';
-    scoreDisplay.style.position = 'absolute';
-    scoreDisplay.style.top = '10px';
-    scoreDisplay.style.left = '10px';
-    scoreDisplay.style.color = 'white';
-    scoreDisplay.style.fontSize = '20px';
-    document.body.appendChild(scoreDisplay);
+    // let scoreDisplay = document.createElement('div');
+    // scoreDisplay.id = 'scoreDisplay';
+    // scoreDisplay.style.position = 'absolute';
+    // scoreDisplay.style.top = '10px';
+    // scoreDisplay.style.left = '10px';
+    // scoreDisplay.style.color = 'white';
+    // scoreDisplay.style.fontSize = '20px';
+    // document.body.appendChild(scoreDisplay);
 
     updateScore();
 

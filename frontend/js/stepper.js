@@ -10,9 +10,11 @@ import { initTournament, updateTournament } from './tournament.js';
 
 import { urlRoute } from './url-router.js';
 
+import { updatePlayingGameInfo } from './tournament.js';
+
 // import { startGameButton } from './lobby.js';
 
-var newsocket;
+export var newsocket;
 let openPromise;
 let messagePromise;
 let game_id;
@@ -71,8 +73,13 @@ function handleMessage(data) {
 			break;
 		
 		case 'create-game':
+			console.log
 			game_id = data.game_id;
 			console.log('Game ID:', game_id);
+			if (data.mode === 'local')
+				urlRoute(`/game?id=${game_id}`);
+			
+			sendJson(JSON.stringify({ type: 'start-game' }));
 			break;
 		
 		case 'start-game':
@@ -123,6 +130,9 @@ function handleMessage(data) {
 					updateTournament(data);
 					break;
 			}
+			let startedRound = data.content.find(round => round.status === 'started');
+			if (startedRound)
+				updatePlayingGameInfo(startedRound);
 			break;
 	}
 }
@@ -234,7 +244,6 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 					event.preventDefault();
-
 					generateLocalGame();
 				});
 			};
@@ -252,9 +261,7 @@ async function hostRemoteGame() {
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
 				event.preventDefault();
-
 				hostRemoteGame();
-
 			});
 			};
 
@@ -262,10 +269,9 @@ async function hostRemoteGame() {
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
-					urlRoute('/game');
+					// urlRoute('/game');
 					event.preventDefault();
 					sendJson(JSON.stringify({ type: 'start-game' }));
-					console.log('Start Game button clicked');
 				});
 			};
 

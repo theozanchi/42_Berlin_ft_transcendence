@@ -2,6 +2,8 @@ const	baseUrl = document.location.href;
 import {getLoggedInState} from './login_signup.js';
 import {loadUserList} from './all-users.js';
 import {loadProfileData, updateProfileData} from './profile.js'
+import { newsocket } from './stepper.js';
+
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -89,7 +91,7 @@ export const urlRoute = (eventOrUrl) => {
 	let url;
 	// console.log(eventOrUrl);
 	// console.log(typeof eventOrUrl);
-	console.log('routing now!');
+	// console.log('routing now!');
 	if (typeof eventOrUrl === 'string') {
 		url = eventOrUrl;
 	} else {
@@ -97,6 +99,7 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
+
 	// console.log(url);
 	window.history.pushState({}, "", url);
 	urlLocationHandler();
@@ -139,6 +142,13 @@ async function redirectOnLogin(locationOld){
 const urlLocationHandler = async () => {
 	let location = window.location.pathname;
 
+	// CLOSING SOCKET WHEN ROUTING 
+	// console.log(`THIS MY SOCKET: ${newsocket}`);
+	// if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+	// 	console.log('closing the websocket');
+	// 	newsocket.close();
+	// }
+
 	if (location.length === 0) 
 		location = "/";
 	else
@@ -156,9 +166,9 @@ const urlLocationHandler = async () => {
 	document.title = doc.querySelector('title').innerText; // Update title
 
 	// Update game and settings column content as before
-	let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
-	if (fetchedGameColumnContent)
-		document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
+	// let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
+	// if (fetchedGameColumnContent)
+	// 	document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
 
 	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
 	if (fetchedSettingsColumnContent)
