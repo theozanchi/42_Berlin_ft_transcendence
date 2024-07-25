@@ -64,6 +64,16 @@ CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = "localhost"
 CSRF_TRUSTED_ORIGINS = ["localhost:8443"]
 
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_DOMAIN = "localhost"
+CSRF_COOKIE_DOMAIN = "localhost"
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = ["https://localhost:8443"]
+
+CSRF_USE_SESSIONS = True
+
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

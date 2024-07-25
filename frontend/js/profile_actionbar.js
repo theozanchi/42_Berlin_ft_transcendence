@@ -26,10 +26,13 @@ async function usersAreFriends(userIdA, userIdB) {
 async function addFriend(user_id) {
     try {
         const response = await fetch(`/api/user_mgt/add_friend/`, {
-            method: 'POST', 
+            method: 'POST',
             headers: {
                 'friend': user_id,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+				headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
             },
         });
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
@@ -50,10 +53,13 @@ async function addFriend(user_id) {
 async function removeFriend(user_id) {
     try {
         const response = await fetch(`/api/user_mgt/remove_friend/`, {
-            method: 'POST', 
+            method: 'POST',
             headers: {
                 'friend': user_id,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+				headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
             },
         });
         if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
@@ -129,7 +135,7 @@ class ProfileAction extends HTMLElement {
 			</div>
 			`;
 		} else if (loggedIn.status === 'success') {
-			
+
 			this.innerHTML = `
 				<div id="userEditFriend" class="d-grid gap-2">
 					<hr class="m-0">
@@ -139,7 +145,7 @@ class ProfileAction extends HTMLElement {
 					<div class="spacer-48"></div>
 				</div>
 			`
-		
+
 			const BefriendButton = document.getElementById('userBefriendButton')
 			const UnfriendButton = document.getElementById('userUnfriendButton')
 
