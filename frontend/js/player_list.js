@@ -83,18 +83,27 @@ class PlayerList extends HTMLElement {
 		this.shadow.getElementById('playerCount').textContent = `${this.count} Players`;
 	}
 
+	getPlayerData() {
+		const players = this.shadow.querySelectorAll('player-component');
+
+		let playerData = {};
+
+		players.forEach(player => {
+			let name = player.name;
+			let avatar = player.avatar
+			playerData[`players${index}`] = { name : name, avatar : avatar};
+		});
+
+		return playerNames;
+	}
+
 	getPlayerNames() {
 		const players = this.shadow.querySelectorAll('player-component');
 
 		let playerNames = [];
 
 		players.forEach(player => {
-			console.log(player);
-			// let nameInput = player.shadowRoot.getElementById('playerNicknameInput');
-			// console.log(`has this input: ${nameInput}`);
-			// let name = nameInput.getAttribute('value');
 			let name = player.name;
-			// console.log(`has this name: ${name}`);
 			playerNames.push(name);
 		});
 

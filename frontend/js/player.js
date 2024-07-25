@@ -38,7 +38,7 @@ class MyPlayer extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'name' && oldValue !== newValue) {
-			console.log(`RERENDERING: ${name} ${oldValue}  ${newValue}`);
+			// console.log(`RERENDERING: ${name} ${oldValue}  ${newValue}`);
             this.render();
         }
     }

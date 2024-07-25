@@ -10,9 +10,11 @@ import { initTournament, updateTournament } from './tournament.js';
 
 import { urlRoute } from './url-router.js';
 
+import { updatePlayingGameInfo } from './tournament.js';
+
 // import { startGameButton } from './lobby.js';
 
-var newsocket;
+export var newsocket;
 let openPromise;
 let messagePromise;
 let game_id;
@@ -128,6 +130,9 @@ function handleMessage(data) {
 					updateTournament(data);
 					break;
 			}
+			let startedRound = data.content.find(round => round.status === 'started');
+			if (startedRound)
+				updatePlayingGameInfo(startedRound);
 			break;
 	}
 }
@@ -162,7 +167,7 @@ function generateLocalGame() {
 		console.log(json);
         sendJson(json);
 
-		sendJson(JSON.stringify({ type: 'start-game' }));
+		// sendJson(JSON.stringify({ type: 'start-game' }));
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);

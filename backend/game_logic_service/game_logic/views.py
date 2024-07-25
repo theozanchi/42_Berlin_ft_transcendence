@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 
 game_update_lock = Lock()
-WINNER_SCORE = 5
+WINNER_SCORE = 2
 
 GAME_MANAGER_REST_URL = "http://game_manager:8000"
 

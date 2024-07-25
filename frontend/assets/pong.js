@@ -71,14 +71,14 @@ function init() {
     document.addEventListener('mouseup', onMouseUp);
 
     // Add score display
-    let scoreDisplay = document.createElement('div');
-    scoreDisplay.id = 'scoreDisplay';
-    scoreDisplay.style.position = 'absolute';
-    scoreDisplay.style.top = '10px';
-    scoreDisplay.style.left = '10px';
-    scoreDisplay.style.color = 'white';
-    scoreDisplay.style.fontSize = '20px';
-    document.body.appendChild(scoreDisplay);
+    // let scoreDisplay = document.createElement('div');
+    // scoreDisplay.id = 'scoreDisplay';
+    // scoreDisplay.style.position = 'absolute';
+    // scoreDisplay.style.top = '10px';
+    // scoreDisplay.style.left = '10px';
+    // scoreDisplay.style.color = 'white';
+    // scoreDisplay.style.fontSize = '20px';
+    // document.body.appendChild(scoreDisplay);
 
     updateScore();
 
@@ -213,8 +213,8 @@ function resetBall() {
 }
 
 function updateScore() {
-    let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player 1: ${player1Score} - Player 2: ${player2Score}`;
+    // let scoreDisplay = document.getElementById('scoreDisplay');
+    // scoreDisplay.innerHTML = `Player 1: ${player1Score} - Player 2: ${player2Score}`;
 }
 
 function moveBall() {

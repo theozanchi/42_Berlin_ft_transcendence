@@ -238,6 +238,31 @@ export async function init() {
 
     console.log('Initializing game... ROUND NUMBER: ', round_number);
 
+    // Create the text element
+    const statusText = document.createElement('div');
+    statusText.style.position = 'absolute';
+    statusText.style.top = '30px';
+    statusText.style.left = '50%';
+    statusText.style.transform = 'translateX(-50%)';
+    statusText.style.padding = '10px 20px';
+    statusText.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+    statusText.style.borderRadius = '10px';
+    statusText.style.fontFamily = 'Arial, sans-serif';
+    statusText.style.fontSize = '18px';
+    statusText.style.fontWeight = 'bold';
+    statusText.style.color = 'black';
+    statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
+
+    // Set the text content based on player_id
+    if (player_id === 'spectator') {
+        statusText.textContent = 'You are watching';
+    } else {
+        statusText.textContent = 'You are playing';
+    }
+
+    // Append the text element to the canvas parent
+    canvasParent.appendChild(statusText);
+
     // Create the scene
     scene = new THREE.Scene();
     
@@ -357,17 +382,6 @@ export async function init() {
     collisionMarker = new THREE.Mesh(collisionMarkerGeometry, collisionMarkerMaterial);
     scene.add(collisionMarker);
 
-    // Add score display
-    let scoreDisplay = document.createElement('div');
-    scoreDisplay.id = 'scoreDisplay';
-    scoreDisplay.style.position = 'absolute';
-    scoreDisplay.style.top = '10px';
-    scoreDisplay.style.left = '10px';
-    scoreDisplay.style.color = 'white';
-    scoreDisplay.style.fontSize = '20px';
-    document.body.appendChild(scoreDisplay);
-
-
     if (player_id === 'player1')
         currentPlayer = player;
     else if (player_id === 'player2')
@@ -398,8 +412,6 @@ export async function init() {
         }
     });
     
-    
-    updateScore();
     animate();
 
 }
@@ -1066,8 +1078,11 @@ function updateAimingLine() {
 }
 
 function updateScore() {
-    let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player: ${player1Score} | Player_2: ${player2Score}`;
+    // let scoreDisplay = document.getElementById('scoreDisplay');
+    // scoreDisplay.innerHTML = `Player: ${player1Score} | Player_2: ${player2Score}`;
+
+	let liveScoreDisplay = document.getElementById('gameLiveScore');
+	gameLiveScore.innerHTML = `${player1Score}:${player2Score}`;
 }
 
     //////////////////////--------BLINKING-------//////////////////////
@@ -1279,8 +1294,6 @@ export function animate() {
     updateAimingLine();
     updateCollisionMarker();
     checkPlayerPosition();
-    updateScore();
-
 
     sendGameState();
     if (currentBlinkingFace && !ballIsHeld) {
@@ -1334,28 +1347,28 @@ export function displayScore(content) {
 
     // Create a div for the winner
     let winnerDiv = document.createElement('div');
-    winnerDiv.textContent = 'Winner: ' + winner;
-    winnerDiv.style.color = 'white';
-    winnerDiv.style.position = 'absolute';
-    winnerDiv.style.zIndex = '1';
+    // winnerDiv.textContent = 'Winner: ' + winner;
+    // winnerDiv.style.color = 'white';
+    // winnerDiv.style.position = 'absolute';
+    // winnerDiv.style.zIndex = '1';
 
     // Create a div for player 1's score
     let player1Div = document.createElement('div');
-    player1Div.textContent = 'Player 1: ' + p1Score;
-    player1Div.style.color = 'white';
-    player1Div.style.position = 'absolute';
-    player1Div.style.left = '100px';
-    player1Div.style.top = '10px';
-    player1Div.style.zIndex = '1';
+    // player1Div.textContent = 'Player 1: ' + p1Score;
+    // player1Div.style.color = 'white';
+    // player1Div.style.position = 'absolute';
+    // player1Div.style.left = '100px';
+    // player1Div.style.top = '10px';
+    // player1Div.style.zIndex = '1';
 
     // Create a div for player 2's score
     let player2Div = document.createElement('div');
-    player2Div.textContent = 'Player 2: ' + p2Score;
-    player2Div.style.color = 'white';
-    player2Div.style.position = 'absolute';
-    player2Div.style.right = '100px';
-    player2Div.style.top = '10px';
-    player2Div.style.zIndex = '1';
+    // player2Div.textContent = 'Player 2: ' + p2Score;
+    // player2Div.style.color = 'white';
+    // player2Div.style.position = 'absolute';
+    // player2Div.style.right = '100px';
+    // player2Div.style.top = '10px';
+    // player2Div.style.zIndex = '1';
 
     // Add the divs to the parent of the canvas
     parent.appendChild(winnerDiv);
@@ -1444,13 +1457,6 @@ export function resetGame() {
     ballIsHeld = true;
     wallHits = 0;
     aimingAngle = 0;
-
-
-    // Remove score display
-    let scoreDisplay = document.getElementById('scoreDisplay');
-    if (scoreDisplay) {
-        document.body.removeChild(scoreDisplay);
-    }
 
     // Remove event listeners
     document.removeEventListener('keydown', onKeyDown);
