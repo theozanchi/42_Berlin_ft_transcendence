@@ -47,7 +47,9 @@ def join_game(request):
         if game.mode != 'remote':
             return Response({'error': 'Game is not a remote game.'}, status=403)
         
-        user_id = request.data.get('user_id')
+        user_id = request.session.get('user_id')  # Get a session variable
+        logging.debug("session data: %s", dict(request.session.items()))
+        logging.debug("user_id: %s", user_id)
         if Player.objects.filter(game=game, user_id=user_id).exists():
             return Response({'error': 'Player already in game.'}, status=403)
         if not user_id:
@@ -56,8 +58,6 @@ def join_game(request):
             game.add_existing_players_to_game(request.data)
 
         game.save()
-
-        logging.debug("player joining game: %s", game)
 
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
@@ -143,8 +143,7 @@ def round(request):
         if round_to_play:
             round_to_play.status = "started"
             round_to_play.save()
-            rounds = Round.objects.filter(game=game)
-            logging.debug("game rounds: %s", rounds)
+            rounds = Round.objects.filter(game=game).order_by('round_number')
             serializer = RoundSerializer(rounds, many=True)
             logging.debug("/round/: rounds serializer: %s", serializer.data)
             return JsonResponse(serializer.data, safe=False, status=200)

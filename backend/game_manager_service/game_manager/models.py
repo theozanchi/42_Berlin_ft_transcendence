@@ -105,6 +105,7 @@ class Game(models.Model):
         user_ids = data.get("user_ids", [])
         for user_id in user_ids:
             player_to_add = Player.objects.get(user=user_id)
+            logging.debug("Adding player to game: %s", player_to_add)
             player_to_add.game = self  # Add a player to the game
 
     def create_rounds(self):
