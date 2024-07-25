@@ -1377,6 +1377,8 @@ export function displayScore(content) {
 }
 
 function clearScene(object) {
+	if (!object)
+		return;
 
     while(object.children.length > 0){ 
         clearScene(object.children[0]);
@@ -1405,14 +1407,15 @@ export function resetGame() {
     console.log('RESETTING GAME...');
 
     clearScene(scene);
-	// gameStarted = false;
 	setGameStarted(false);
 
     scene = null;
 
-    renderer.clear();
-    renderer.dispose();
-    const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
+	if (renderer) {
+		renderer.clear();
+    	renderer.dispose();
+	}
+	const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
     //context.clearRect(0, 0, canvas.width, canvas.height);
     
    // Reset all variables to their initial state

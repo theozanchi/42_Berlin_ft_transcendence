@@ -21,12 +21,11 @@ class StepperTitleBar extends HTMLElement {
 				if (userConfirmation){
 					if (newsocket && newsocket.readyState === WebSocket.OPEN)
 						newsocket.close();
-					window.history.back();
 					resetGame();
+					window.history.back();
 				}
-			} else {
+			} else
 				window.history.back();
-			}
 		}
 		);
 	}

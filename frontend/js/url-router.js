@@ -179,19 +179,21 @@ const urlLocationHandler = async () => {
 };
 
 window.onbeforeunload = function(event) {
-	let location = window.location.pathname;
-	if (["/game", "/host-remote", "/join-remote"].includes(location)) {
-		
-		if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-			event.returnValue = 'Are you sure you want to leave this page? Changes you made may not be saved.';
-			return event.returnValue;
-			console.log('closing the websocket');
-			newsocket.close();
-		}
-	}
+    let location = window.location.pathname;
+    if (["/game", "/host-remote", "/join-remote"].includes(location)) {
+        if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+            // This message may not be shown by most modern browsers, but setting it is necessary to trigger the confirmation dialog
+            const confirmationMessage = 'All game data will be lost if you reload this page. Continue?';
+            event.returnValue = confirmationMessage;
+
+            // Note: Directly closing the WebSocket based on user confirmation is not possible here due to browser restrictions.
+            // The WebSocket will need to be closed elsewhere if the page is actually unloaded.
+        }
+    }
 };
 
 window.onpopstate = function(event) {
+	
 	console.log(event);
 	let location = window.location.pathname;
 	console.log(`LOCATION ${location}`);
