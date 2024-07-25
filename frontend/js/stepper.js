@@ -153,8 +153,6 @@ export async function sendJson(json) {
 
 function generateLocalGame() {
 
-	console.log("GENERATING LOCAL GAME");
-
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
 	
@@ -167,12 +165,8 @@ function generateLocalGame() {
 
 	openSocket()
     .then(() => {
-		console.log("PREPARING JSON");
         var json = JSON.stringify(data);
-		console.log(json);
         sendJson(json);
-
-		// sendJson(JSON.stringify({ type: 'start-game' }));
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -241,7 +235,6 @@ async function hostRemoteGame() {
 		}
 	
 		connectedCallback() {
-			console.log("rendering stepper form");
 
 			// let myElement = document.querySelector('')
 

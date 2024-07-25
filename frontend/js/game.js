@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         canvasParent = canvas.parentNode;
-        console.log(`CANVAS SIZE: ${canvas.width} x ${canvas.height}`);
     } else {
         console.error('Canvas element with id "bg" not found.');
     }
@@ -230,7 +229,6 @@ export async function init() {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         canvasParent = canvas.parentNode;
-        console.log(`CANVAS SIZE: ${canvas.width} x ${canvas.height}`);
     } else {
         console.error('Canvas element with id "bg" not found.');
         return;
@@ -275,9 +273,6 @@ export async function init() {
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
 
     renderer.setSize(canvas.width, canvas.height);
-	console.log(`CANVAS: ${canvas}`);
-	//canvasParent = canvas.parentNode;
-	console.log(`CANVAS PARENT: ${canvasParent}`);
     
 	canvasParent.replaceChild(renderer.domElement, canvas);
 	
