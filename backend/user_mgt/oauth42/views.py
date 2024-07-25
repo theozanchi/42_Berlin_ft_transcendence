@@ -3,6 +3,7 @@
 import json
 import os
 import pprint
+import re
 
 import requests
 from django import forms
@@ -209,10 +210,57 @@ def register(request):
                 {"status": "error", "message": "Username already exists"}, status=200
             )
 
-        if not all([username]):
+        if not all([username, password]):
             return JsonResponse(
                 {"status": "error", "message": "Missing required fields"}, status=200
             )
+
+        username = username.strip()
+        username = re.sub(r"[^\w\s-]", "", username)
+        password = password.strip()
+
+        if len(password) < 8:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Password must be at least 8 characters long",
+                },
+                status=200,
+            )
+
+        if len(username) > 50:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Alias cannot be longer than 50 characters",
+                },
+                status=200,
+            )
+
+        if not any(c.isdigit() for c in password) or not any(
+            c.isalpha() for c in password
+        ):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Password must contain at least one letter and one number",
+                },
+                status=200,
+            )
+
+        if image:
+            allowed_types = ["image/jpeg", "image/png"]
+            max_file_size = 5 * 1024 * 1024
+            if image.content_type not in allowed_types:
+                return JsonResponse(
+                    {"status": "error", "message": "Invalid image file type"},
+                    status=200,
+                )
+            if image.size > max_file_size:
+                return JsonResponse(
+                    {"status": "error", "message": "Image file size exceeds the limit"},
+                    status=200,
+                )
 
         user = User.objects.create(
             username=username,
@@ -694,7 +742,7 @@ def get_registered_users():
             "last_activity",
             "alias",
             "won_games",
-            "won_rounds"
+            "won_rounds",
         )
         .order_by("username")
     )
