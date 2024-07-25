@@ -12,6 +12,8 @@ import { urlRoute } from './url-router.js';
 
 import { updatePlayingGameInfo } from './tournament.js';
 
+import { setGameID } from './lobby.js';
+
 // import { startGameButton } from './lobby.js';
 
 export var newsocket;
@@ -80,16 +82,16 @@ function handleMessage(data) {
 			console.log
 			game_id = data.game_id;
 			console.log('Game ID:', game_id);
-			if (data.mode === 'local')
+			if (data.mode === 'local') {
 				urlRoute(`/game?id=${game_id}`);
-			
-			sendJson(JSON.stringify({ type: 'start-game' }));
+				sendJson(JSON.stringify({ type: 'start-game' }));
+			} else {
+				urlRoute(`/host-remote?id=${game_id}`);
+				// setGameID();
+			}
 			break;
 		
 		case 'start-game':
-			// if (startGameButton) {
-			// 	startGameButton.remove();
-			// }
 			if (data.mode === 'remote') {
 				remote = true;
 				player_id = data.player_id;
@@ -223,6 +225,7 @@ async function joinRemoteGame() {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
+		urlRoute('join-remote?id=' + gameId);
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -253,9 +256,12 @@ async function hostRemoteGame() {
 		}
 	
 		connectedCallback() {
+			console.log("rendering stepper form");
+			this.setupEventListeners();
+			setGameID();
+		}
 
-			// let myElement = document.querySelector('')
-
+		setupEventListeners() {
 			let myElement = document.getElementById('generateLocalGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
@@ -313,8 +319,32 @@ async function hostRemoteGame() {
 				});
 			});
 			};
+
+			myElement = document.getElementById('shareUrlRemoteGameIDButton');
+			if (myElement) {
+				myElement.addEventListener('click', function() {
+					// Get the input field
+					const input = this.previousElementSibling.previousElementSibling;
+					// Get the span element containing the icon
+					const iconSpan = this.querySelector('span');
+			
+					// Construct the URL
+					const url = `${window.location.origin}/join-remote?id=${input.value}`;
+			
+					// Copy the constructed URL to the clipboard
+					navigator.clipboard.writeText(url).then(function() {
+						// Change the icon to bi-share-fill
+						iconSpan.className = 'bi bi-share-fill';
+						// Set a timeout to change the icon back to bi-share after 3 seconds
+						setTimeout(function() {
+							iconSpan.className = 'bi bi-share';
+						}, 3000);
+					}, function(err) {
+						console.error('Could not copy text: ', err);
+					});
+				});
+			}
 		}
 	}
-	
 	
 	customElements.define('stepper-component', StepperWrapper);
