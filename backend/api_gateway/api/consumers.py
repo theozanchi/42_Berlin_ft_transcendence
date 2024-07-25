@@ -116,10 +116,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             data = response.json()
             data["type"] = "create-game"
 
-            """             players_in_game = Player.object.filter(game__id=self.game_id).select_related('user')
-            players_info = [{"username": player.user.username, "user.id": player.user.id} for player in players_in_game]
-            data['test'] = players_info """
-
             await self.send_json(data)
 
         except requests.RequestException as e:

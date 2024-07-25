@@ -12,6 +12,8 @@ import { urlRoute } from './url-router.js';
 
 import { updatePlayingGameInfo } from './tournament.js';
 
+import { setGameID } from './lobby.js';
+
 // import { startGameButton } from './lobby.js';
 
 export var newsocket;
@@ -76,16 +78,16 @@ function handleMessage(data) {
 			console.log
 			game_id = data.game_id;
 			console.log('Game ID:', game_id);
-			if (data.mode === 'local')
+			if (data.mode === 'local') {
 				urlRoute(`/game?id=${game_id}`);
-			
-			sendJson(JSON.stringify({ type: 'start-game' }));
+				sendJson(JSON.stringify({ type: 'start-game' }));
+			} else {
+				urlRoute(`/host-remote?id=${game_id}`);
+				// setGameID();
+			}
 			break;
 		
 		case 'start-game':
-			// if (startGameButton) {
-			// 	startGameButton.remove();
-			// }
 			if (data.mode === 'remote') {
 				remote = true;
 				player_id = data.player_id;
@@ -174,29 +176,6 @@ function generateLocalGame() {
     });
 }
 
-function loadLocalGame() {
-/* 	if (!gameStarted) {
-		console.error('Game not started yet!');
-		return;
-	}
-
-	// Get the game area element
-    const gameArea = document.getElementById('game-column');
-
-    // Create and append the script
-    let script = document.createElement('script');
-    script.type = 'module';
-    script.src = './js/game.js';
-    gameArea.appendChild(script);
-
-    // Create and append the canvas
-    let canvas = document.createElement('canvas');
-    canvas.id = 'bg';
-    gameArea.appendChild(canvas); */
-	//init();
-	return;
-}
-
 function joinRemoteGame() {
 	const gameId = document.getElementById('searchGameID').value.trim(); 
 	const playerAlias = 'NewPlayer';
@@ -207,6 +186,7 @@ function joinRemoteGame() {
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
+		urlRoute('join-remote?id=' + gameId);
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -237,9 +217,11 @@ async function hostRemoteGame() {
 	
 		connectedCallback() {
 			console.log("rendering stepper form");
+			this.setupEventListeners();
+			setGameID();
+		}
 
-			// let myElement = document.querySelector('')
-
+		setupEventListeners() {
 			let myElement = document.getElementById('generateLocalGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
@@ -299,6 +281,5 @@ async function hostRemoteGame() {
 			};
 		}
 	}
-	
 	
 	customElements.define('stepper-component', StepperWrapper);
