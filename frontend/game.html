@@ -17,12 +17,14 @@
 			</div>
 			
 			<div class="container flex-grow-1 d-flex flex-column">
+				<div class="spacer-48"></div>
 				<div class="row flex-grow-1">
 					<div class="col d-flex flex-column justify-content-center align-items-center">
 						<img id="gameLivePlayer1Avatar" src="https://localhost:8443/assets/avatar_blossom.png" class="game-ticker">
 					</div>
-					<div class="col d-flex justify-content-center align-items-center">
-						<p id="gameLiveScore" class="fs-1 m-0 text-centered font-monospace">- : -</p>
+					<div class="col d-flex flex-column justify-content-center align-items-center">
+						<p id="gameLiveScore" class="fs-1 m-0 text-centered font-monospace fw-bold">-:-</p>
+						<p class="fs-6 m-0 text-centered">now playing</p>
 					</div>
 					<div class="col d-flex flex-column justify-content-center align-items-center">
 						<img id="gameLivePlayer2Avatar" src="https://localhost:8443/assets/avatar_blossom.png" class="game-ticker">
@@ -37,11 +39,12 @@
 						<p id="gameLivePlayer2Name" class="fs-2 m-0 text-centered">player2</p>
 					</div>
 				</div>
+				<div class="spacer-24"></div>
 			</div>
 
-			<hr>
+			<hr class="my-0">
 			<div class="spacer-12"></div>
-			<div id="upcoming-games" class="d-flex flex-column flex-grow-1 overflow-auto">
+			<div id="upcoming-games" class="d-flex flex-column flex-grow-1 overflow-auto h-100">
 				<game-table-component></game-table-component>
 			</div>
 

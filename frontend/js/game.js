@@ -1082,7 +1082,7 @@ function updateScore() {
     // scoreDisplay.innerHTML = `Player: ${player1Score} | Player_2: ${player2Score}`;
 
 	let liveScoreDisplay = document.getElementById('gameLiveScore');
-	gameLiveScore.innerHTML = `${player1Score} : ${player2Score}`;
+	gameLiveScore.innerHTML = `${player1Score}:${player2Score}`;
 }
 
     //////////////////////--------BLINKING-------//////////////////////
@@ -1347,28 +1347,28 @@ export function displayScore(content) {
 
     // Create a div for the winner
     let winnerDiv = document.createElement('div');
-    winnerDiv.textContent = 'Winner: ' + winner;
-    winnerDiv.style.color = 'white';
-    winnerDiv.style.position = 'absolute';
-    winnerDiv.style.zIndex = '1';
+    // winnerDiv.textContent = 'Winner: ' + winner;
+    // winnerDiv.style.color = 'white';
+    // winnerDiv.style.position = 'absolute';
+    // winnerDiv.style.zIndex = '1';
 
     // Create a div for player 1's score
     let player1Div = document.createElement('div');
-    player1Div.textContent = 'Player 1: ' + p1Score;
-    player1Div.style.color = 'white';
-    player1Div.style.position = 'absolute';
-    player1Div.style.left = '100px';
-    player1Div.style.top = '10px';
-    player1Div.style.zIndex = '1';
+    // player1Div.textContent = 'Player 1: ' + p1Score;
+    // player1Div.style.color = 'white';
+    // player1Div.style.position = 'absolute';
+    // player1Div.style.left = '100px';
+    // player1Div.style.top = '10px';
+    // player1Div.style.zIndex = '1';
 
     // Create a div for player 2's score
     let player2Div = document.createElement('div');
-    player2Div.textContent = 'Player 2: ' + p2Score;
-    player2Div.style.color = 'white';
-    player2Div.style.position = 'absolute';
-    player2Div.style.right = '100px';
-    player2Div.style.top = '10px';
-    player2Div.style.zIndex = '1';
+    // player2Div.textContent = 'Player 2: ' + p2Score;
+    // player2Div.style.color = 'white';
+    // player2Div.style.position = 'absolute';
+    // player2Div.style.right = '100px';
+    // player2Div.style.top = '10px';
+    // player2Div.style.zIndex = '1';
 
     // Add the divs to the parent of the canvas
     parent.appendChild(winnerDiv);

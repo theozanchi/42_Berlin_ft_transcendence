@@ -33,8 +33,8 @@ export function updatePlayingGameInfo(data) {
 
 	player1name.innerHTML = data.player1;
 	player2name.innerHTML = data.player2;
-	player1avatar.src = data.player1avatar;
-	player2avatar.src = data.player2avatar;
+	// player1avatar.src = data.player1avatar;
+	// player2avatar.src = data.player2avatar;
 }
 
 class GameTable extends HTMLElement {
@@ -64,10 +64,11 @@ class GameTable extends HTMLElement {
 		let nextNum = 0;
 		let finishedNum = 0;
 
-		let nextGames = 		`<h3>Next Up</h3>
+		let nextGames = 		`<div class="spacer-24"></div>
+								<h3 class="fw-bold">Next Up</h3>
 								<div>`;
-		let finishedGames = 	`<div class="spacer-48"></div>
-								<h3>Completed</h3>
+		let finishedGames = 	`<div class="spacer-24"></div>
+								<h3 class="fw-bold">Completed</h3>
 								<div>`;
 		
 		this._data.content.forEach(round => {
@@ -115,15 +116,12 @@ class GameTable extends HTMLElement {
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 			<link rel="stylesheet" href="./css/styles.css">
 
-			
+
 			<div id="upcoming-games" class="d-flex flex-column flex-grow-1 overflow-y-auto">
 				${nextGames}
-			</div>
-
-			
-			<div id="finished-games" class="d-flex flex-column flex-grow-1 overflow-y-auto">
 				${finishedGames}
 			</div>
+			
 		`;
 	}
 }

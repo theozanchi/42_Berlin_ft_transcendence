@@ -213,8 +213,8 @@ function resetBall() {
 }
 
 function updateScore() {
-    let scoreDisplay = document.getElementById('scoreDisplay');
-    scoreDisplay.innerHTML = `Player 1: ${player1Score} - Player 2: ${player2Score}`;
+    // let scoreDisplay = document.getElementById('scoreDisplay');
+    // scoreDisplay.innerHTML = `Player 1: ${player1Score} - Player 2: ${player2Score}`;
 }
 
 function moveBall() {

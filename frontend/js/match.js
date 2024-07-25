@@ -56,7 +56,7 @@ class match extends HTMLElement {
 				</div>
 				<div class="col-auto mx-2">
 					<div class="text-center">
-						<p class="fs-5 my-0 font-monospace"">${this.player1Score} : ${this.player2Score}</p>
+						<p class="fs-5 my-0 font-monospace"">${this.player1Score}:${this.player2Score}</p>
 						${dateFormatted}
 					</div>
 				</div>
