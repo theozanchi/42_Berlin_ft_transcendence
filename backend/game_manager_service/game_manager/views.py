@@ -42,14 +42,14 @@ def create_game(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def join_game(request):
-    logging.debug("JOIN GAME: headers: %s", request.headers)
-    logging.debug("JOIN GAME: cookies: %s", request.COOKIES)
     try:
         game = Game.objects.get(pk=request.data.get('game_id'))
         if game.mode != 'remote':
             return Response({'error': 'Game is not a remote game.'}, status=403)
         
-        user_id = request.data.get('user_id')
+        user_id = request.session.get('user_id')  # Get a session variable
+        logging.debug("session data: %s", dict(request.session.items()))
+        logging.debug("user_id: %s", user_id)
         if Player.objects.filter(game=game, user_id=user_id).exists():
             return Response({'error': 'Player already in game.'}, status=403)
         if not user_id:
