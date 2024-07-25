@@ -1,6 +1,4 @@
 import { urlRoute } from './url-router.js';
-import * as csrfModule from './csrf.js';
-import { getCookie } from './csrf.js';
 
 function fetchCSRFToken() {
 	fetch('/api/user_mgt/get-csrf-token')

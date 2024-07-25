@@ -723,6 +723,7 @@ def get_registered_users():
 
 
 def registered_users_view(request):
+    logger.debug("Registered users view")
     if not request.user.is_authenticated:
         return JsonResponse(
             {
