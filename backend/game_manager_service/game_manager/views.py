@@ -42,6 +42,8 @@ def create_game(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def join_game(request):
+    logging.debug("JOIN GAME: headers: %s", request.headers)
+    logging.debug("JOIN GAME: cookies: %s", request.COOKIES)
     try:
         game = Game.objects.get(pk=request.data.get('game_id'))
         if game.mode != 'remote':
@@ -56,8 +58,6 @@ def join_game(request):
             game.add_existing_players_to_game(request.data)
 
         game.save()
-
-        logging.debug("player joining game: %s", game)
 
         serializer = GameSerializer(game)
         return Response(serializer.data, status=200)
@@ -143,8 +143,7 @@ def round(request):
         if round_to_play:
             round_to_play.status = "started"
             round_to_play.save()
-            rounds = Round.objects.filter(game=game)
-            logging.debug("game rounds: %s", rounds)
+            rounds = Round.objects.filter(game=game).order_by('round_number')
             serializer = RoundSerializer(rounds, many=True)
             logging.debug("/round/: rounds serializer: %s", serializer.data)
             return JsonResponse(serializer.data, safe=False, status=200)
