@@ -4,10 +4,8 @@ import {loadUserList} from './all-users.js';
 import {loadProfileData, updateProfileData} from './profile.js'
 import { newsocket } from './stepper.js';
 
-
 document.addEventListener("click", (e) => {
 	const {target} = e;
-	// console.log(e);
 	if(!target.matches("nav a", "nav button")) {
 		return;
 	}
@@ -89,7 +87,7 @@ const urlRoutes = {
 
 export const urlRoute = (eventOrUrl) => {
 	let url;
-	// console.log(eventOrUrl);
+	// alert(`HEYHEY ${location}`);
 	// console.log(typeof eventOrUrl);
 	// console.log('routing now!');
 	if (typeof eventOrUrl === 'string') {
@@ -99,6 +97,7 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
+
 
 	// console.log(url);
 	window.history.pushState({}, "", url);
@@ -140,15 +139,12 @@ async function redirectOnLogin(locationOld){
 }
 
 const urlLocationHandler = async () => {
+
+
 	let location = window.location.pathname;
 
-	// CLOSING SOCKET WHEN ROUTING 
-	// console.log(`THIS MY SOCKET: ${newsocket}`);
-	// if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-	// 	console.log('closing the websocket');
-	// 	newsocket.close();
-	// }
-
+	// CLOSING SOCKET WHEN ROUTING
+	
 	if (location.length === 0) 
 		location = "/";
 	else
@@ -182,14 +178,26 @@ const urlLocationHandler = async () => {
 		loadUserList();
 };
 
-window.onpopstate = urlLocationHandler;
+window.onbeforeunload = function(event) {
+	let location = window.location.pathname;
+	if (["/game", "/host-remote", "/join-remote"].includes(location)) {
+		
+		if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+			event.returnValue = 'Are you sure you want to leave this page? Changes you made may not be saved.';
+			return event.returnValue;
+			console.log('closing the websocket');
+			newsocket.close();
+		}
+	}
+};
+
+window.onpopstate = function(event) {
+	console.log(event);
+	let location = window.location.pathname;
+	console.log(`LOCATION ${location}`);
+	urlLocationHandler();
+};
+
 window.route = urlRoute;
 
 urlLocationHandler();
-
-
-// document.getElementById('backButton2').addEventListener('click', goBack);
-
-// function goBack() {
-// 	window.history.back();
-// }

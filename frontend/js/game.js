@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, gameStarted, round_number, player_id } from './stepper.js';
+import { sendJson, remote, gameStarted, round_number, player_id, setGameStarted } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -1405,6 +1405,8 @@ export function resetGame() {
     console.log('RESETTING GAME...');
 
     clearScene(scene);
+	// gameStarted = false;
+	setGameStarted(false);
 
     scene = null;
 

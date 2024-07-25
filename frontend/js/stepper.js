@@ -26,6 +26,10 @@ export var remote = false;
 export var round_number;
 export var player_id;
 
+export function setGameStarted(value) {
+    gameStarted = value;
+}
+
 export function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
 		const url = `wss://${window.location.host}/ws/`;
@@ -143,6 +147,7 @@ export async function sendJson(json) {
         await newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
+		console.log(json);
     }
 }
 

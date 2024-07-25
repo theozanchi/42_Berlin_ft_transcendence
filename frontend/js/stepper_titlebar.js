@@ -4,6 +4,8 @@
 	// TITLE
 
 
+import { newsocket, gameStarted } from "./stepper.js";
+import { resetGame } from "./game.js"
 class StepperTitleBar extends HTMLElement {
 	constructor() {
 		super();
@@ -12,10 +14,21 @@ class StepperTitleBar extends HTMLElement {
 
 	async connectedCallback() {
 		await this.render();
-		this.shadow.getElementById('backButton').addEventListener('click', () => {
-			console.log("WE NEED TO GO BACK");
-			window.history.back();
-		});
+		this.shadow.getElementById('backButton').addEventListener('click', (event) => {
+			let location = window.location.pathname;
+			if (["/game", "/host-remote", "/join-remote"].includes(location)) {
+				let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
+				if (userConfirmation){
+					if (newsocket && newsocket.readyState === WebSocket.OPEN)
+						newsocket.close();
+					window.history.back();
+					resetGame();
+				}
+			} else {
+				window.history.back();
+			}
+		}
+		);
 	}
 
 	render() {
