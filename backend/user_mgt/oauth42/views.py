@@ -677,6 +677,7 @@ def is_online(user_id):
     return False
 
 
+@login_required
 def online_users_view(request):
     if not request.user.is_authenticated:
         return JsonResponse(
@@ -722,6 +723,7 @@ def get_registered_users():
     return registered_user_profiles
 
 
+@login_required
 def registered_users_view(request):
     logger.debug("Registered users view")
     if not request.user.is_authenticated:

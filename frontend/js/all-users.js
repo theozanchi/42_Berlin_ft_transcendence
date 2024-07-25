@@ -1,5 +1,5 @@
 import { setProfileImage } from './profile.js';
-import { getCSRFToken } from './login_signup.js';
+import { fetchCSRFToken } from './login_signup.js';
 
 
 export async function loadUserList() {
@@ -11,14 +11,9 @@ export async function loadUserList() {
 	try {
 		console.log('getting user list');
 		const response = await fetch(`/api/user_mgt/user_list`,
-			{
-			method: 'GET',
-			credentials: 'include',
-			headers: {
-				'X-CSRFToken': getCSRFToken(),
-			},
-		}
+
 		);
+		fetchCSRFToken();
 		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
 			let data = await response.json();
 			if (data.status === 'info' && data.user_list) {
