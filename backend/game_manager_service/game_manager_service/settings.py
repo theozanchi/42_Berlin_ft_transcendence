@@ -58,8 +58,12 @@ MIDDLEWARE = [
 ]
 
 # Set up CSRF trusted origins if needed (e.g., for CORS requests)
-CSRF_TRUSTED_ORIGINS = ["https://" + os.getenv("SERVER_NAME")]
-
+CSRF_TRUSTED_ORIGINS = ["https://localhost:8443"]
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_DOMAIN = "localhost"
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 ROOT_URLCONF = "game_manager_service.urls"
 
 TEMPLATES = [

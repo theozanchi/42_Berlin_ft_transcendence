@@ -5,10 +5,8 @@ export function initTournament(data) {
         return;
     }
 
-	console.log(`INPUT: ${JSON.stringify(data, null, 2)}`);
+	//sort JSON
 	data.content.sort((a, b) => a.round_number - b.round_number);
-	console.log(`SORTED: ${JSON.stringify(data, null, 2)}`);
-
 
     // Update the tournament data
     const gameTable = document.querySelector('game-table-component');

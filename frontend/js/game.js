@@ -3,7 +3,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.134.0';
 import TWEEN from 'https://cdn.skypack.dev/@tweenjs/tween.js@18.6.4';
 
-import { sendJson, remote, gameStarted, round_number, player_id } from './stepper.js';
+import { sendJson, remote, gameStarted, round_number, player_id, setGameStarted } from './stepper.js';
 
 //////////////--------INDEX--------///////////////
 
@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         canvasParent = canvas.parentNode;
-        console.log(`CANVAS SIZE: ${canvas.width} x ${canvas.height}`);
     } else {
         console.error('Canvas element with id "bg" not found.');
     }
@@ -230,7 +229,6 @@ export async function init() {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         canvasParent = canvas.parentNode;
-        console.log(`CANVAS SIZE: ${canvas.width} x ${canvas.height}`);
     } else {
         console.error('Canvas element with id "bg" not found.');
         return;
@@ -275,9 +273,6 @@ export async function init() {
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
 
     renderer.setSize(canvas.width, canvas.height);
-	console.log(`CANVAS: ${canvas}`);
-	//canvasParent = canvas.parentNode;
-	console.log(`CANVAS PARENT: ${canvasParent}`);
     
 	canvasParent.replaceChild(renderer.domElement, canvas);
 	
@@ -1377,6 +1372,8 @@ export function displayScore(content) {
 }
 
 function clearScene(object) {
+	if (!object)
+		return;
 
     while(object.children.length > 0){ 
         clearScene(object.children[0]);
@@ -1405,12 +1402,15 @@ export function resetGame() {
     console.log('RESETTING GAME...');
 
     clearScene(scene);
+	setGameStarted(false);
 
     scene = null;
 
-    renderer.clear();
-    renderer.dispose();
-    const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
+	if (renderer) {
+		renderer.clear();
+    	renderer.dispose();
+	}
+	const context = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('2d');
     //context.clearRect(0, 0, canvas.width, canvas.height);
     
    // Reset all variables to their initial state

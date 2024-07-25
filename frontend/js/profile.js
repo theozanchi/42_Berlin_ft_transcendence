@@ -6,8 +6,6 @@ export async function setProfileImage(user_id) {
     const baseUrl = new URL(document.location).origin;
     let imageUrl = new URL('assets/avatar_blossom.png', baseUrl).toString();
 
-	console.log('setting image');
-
     try {
         const response = await fetch(`/api/user_mgt/profile/${user_id}`);
         if (response.ok && response.headers.get('Content-Type').includes('application/json')) {

@@ -59,6 +59,7 @@ LOGOUT_REDIRECT_URL = "/api/user_mgt"
 
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = "localhost"
 CSRF_TRUSTED_ORIGINS = ["localhost:8443"]
