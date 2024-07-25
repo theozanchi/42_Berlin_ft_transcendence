@@ -110,6 +110,20 @@ class PlayerList extends HTMLElement {
 		return playerNames;
 	}
 
+	addRemotePlayer(playerData) {
+		let playerList = this.shadow.getElementById('player-list');
+		let newPlayer = document.createElement('player-component');
+		let separator = document.createElement('hr');
+		separator.style.margin = '6px';
+
+		newPlayer.setAttribute('name', playerData.name);
+		newPlayer.setAttribute('avatar', playerData.avatar);
+		newPlayer.setAttribute('disabled', '');
+
+		playerList.appendChild(separator);
+		playerList.appendChild(newPlayer);
+	}
+
 	render() {
 
 		//MODES: local, remote
@@ -150,4 +164,4 @@ class PlayerList extends HTMLElement {
 	}
 }
 
-	customElements.define('player-list', PlayerList);
+customElements.define('player-list', PlayerList);

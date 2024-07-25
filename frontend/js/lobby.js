@@ -29,13 +29,14 @@ window.onload = function() {
 // 	// });
 // }
 
-function setGameID(gameID) {
+export function setGameID(gameID) {
 	if (!gameID) {
 		let params = new URLSearchParams(window.location.search);
 		gameID = params.get('id');
 	}
 
 	let input = document.getElementById("lobbyGameID");
-	if (input)
+	if (input) {
 		input.value = gameID;
+	}
 }
