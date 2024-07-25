@@ -19,7 +19,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.game_id = None
         self.host = False
-        self.alias = None
         self.mode = None
         self.player_id = None
         self.last_sent_state = None
@@ -31,7 +30,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         if self.game_id:
             content = {
                 "game-id": self.game_id,
-                "alias": self.alias,
                 "channel_name": self.channel_name,
             }
             logging.debug("Player left: " + str(content))
@@ -63,7 +61,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             "create-game": self.create_game,
             "join-game": self.join_game,
             "start-game": self.start_game,
-            "set-alias": self.set_alias,
         }
 
         method = type_to_method.get(content.get("type"))
@@ -86,7 +83,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def create_game(self, content):
         try:
             content["channel_name"] = self.channel_name
-            self.alias = content.get("players")[0]
 
             # Update players with alias and channel name
             players = content.get("players", [])
@@ -128,7 +124,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def join_game(self, content):
         try:
             content["channel_name"] = self.channel_name
-            self.alias = content.get("players")[0]
 
             # Update players with alias and channel name
             players = content.get("players", [])
@@ -231,7 +226,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 "type": "start-game",
                 "mode": self.mode,
                 "player_id": self.player_id,
-                "alias": self.alias,
                 "round_number": self.round_number,
             }
         )
@@ -266,10 +260,3 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         async with self.lock:
             await self.send_json(content)
 
-    async def set_alias(self, content):
-        if content.get("alias"):
-            self.alias = content.get("alias")
-            await self.send_json({"alias": self.alias})
-            await self.send_json({"alias": self.alias})
-        else:
-            await self.send_json({"error": "No alias received"})

@@ -101,12 +101,11 @@ class Game(models.Model):
                 channel_name=player.get("channel_name"),
             )
 
-    def add_existing_players_to_game(self, data):
-        user_ids = data.get("user_ids", [])
-        for user_id in user_ids:
-            player_to_add = Player.objects.get(user=user_id)
-            logging.debug("Adding player to game: %s", player_to_add)
-            player_to_add.game = self  # Add a player to the game
+    def add_existing_players_to_game(self, user):
+        player_to_add = Player.objects.get(user=user)
+        logging.debug("Adding player %s to game %s", player_to_add, self)
+        player_to_add.game = self  # Add a player to the game
+        player_to_add.save()
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
