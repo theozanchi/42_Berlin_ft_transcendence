@@ -81,7 +81,7 @@ class GameTable extends HTMLElement {
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 			<link rel="stylesheet" href="./css/styles.css">
 
-			<div id="upcoming-games" class="d-flex flex-column ppg-green flex-grow-1 overflow-auto">
+			<div id="upcoming-games" class="d-flex flex-column ppg-green flex-grow-1 overflow-y-auto">
 				${nextGames}
 			</div>
 		`;
