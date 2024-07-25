@@ -187,10 +187,27 @@ function loadLocalGame() {
 	return;
 }
 
-function joinRemoteGame() {
-	const gameId = document.getElementById('searchGameID').value.trim(); 
-	const playerAlias = 'NewPlayer';
-	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', players: [playerAlias]};
+async function getCurrentUser() {
+    try {
+        const response = await fetch('/api/user_mgt/me');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('User credentials received:', data);
+        return data.user_id;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        return null;
+    }
+}
+
+async function joinRemoteGame() {
+	const gameId = document.getElementById('searchGameID').value.trim();
+
+	const userId = await getCurrentUser();
+	
+	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', 'user_id': userId};
 
 	openSocket()
 	.then(() => {
@@ -205,7 +222,8 @@ function joinRemoteGame() {
 
 async function hostRemoteGame() {	
 	// Create data object with type key
-	let data = {type: 'create-game', 'game-mode': 'remote', 'players': ['Player1']};
+	const userId = await getCurrentUser();
+	let data = {type: 'create-game', 'game-mode': 'remote', 'user_id': userId};
 
 	openSocket()
     .then(() => {

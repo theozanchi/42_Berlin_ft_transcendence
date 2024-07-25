@@ -15,6 +15,7 @@ from .serialize import GameSerializer, RoundSerializer
 from django.core.exceptions import ValidationError
 import logging
 from .exceptions import InsufficientPlayersError
+from django.contrib.auth.models import User
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -27,7 +28,12 @@ logger = logging.getLogger(__name__)
 def create_game(request):
     try:
         game = Game.objects.create(mode=request.data.get('game-mode'), host=request.data.get('channel_name'))
-        game.create_players_for_game(request.data)
+        if game.mode == 'remote':
+            user_id = request.data.get('user_id')
+            user = User.objects.get(pk=user_id)
+            game.add_existing_players_to_game(user)
+        else:
+            game.create_players_for_game(request.data)
         game.save()
 
         logging.debug("creating new game: %s", game)
@@ -37,6 +43,8 @@ def create_game(request):
 
     except KeyError as e:
         return Response({"error": e}, status=400)
+    except ObjectDoesNotExist as e:
+        return Response({"error": e}, status=404)
 
 
 @api_view(["POST"])
@@ -47,19 +55,21 @@ def join_game(request):
         if game.mode != 'remote':
             return Response({'error': 'Game is not a remote game.'}, status=403)
         
-        user_id = request.session.get('user_id')  # Get a session variable
-        logging.debug("session data: %s", dict(request.session.items()))
-        logging.debug("user_id: %s", user_id)
-        if Player.objects.filter(game=game, user_id=user_id).exists():
+        user_id = request.data.get('user_id')
+        user = User.objects.get(pk=user_id)
+        logging.debug("User: %s", user.username)
+
+        if Player.objects.filter(game=game, user=user).exists():
             return Response({'error': 'Player already in game.'}, status=403)
-        if not user_id:
-            game.create_players_for_game(request.data)
+        if not user.is_authenticated:
+            return Response({'error': 'User not authenticated.'}, status=403)
         else:
-            game.add_existing_players_to_game(request.data)
+            game.add_existing_players_to_game(user)
 
         game.save()
 
         serializer = GameSerializer(game)
+        logging.debug("Joing game response: %s", serializer.data)
         return Response(serializer.data, status=200)
 
     except Game.DoesNotExist:
