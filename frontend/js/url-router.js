@@ -193,7 +193,12 @@ export function handleGameExit(event) {
 	}
 }
 
+window.onbeforeunload = function(event) {
+	return handleGameExit(event)
+};
+
 window.onpopstate = function(event) {
+	// handleGameExit(event);
 	urlLocationHandler();
 };
 
