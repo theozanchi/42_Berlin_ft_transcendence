@@ -5,6 +5,11 @@ export function initTournament(data) {
         return;
     }
 
+	console.log(`INPUT: ${JSON.stringify(data, null, 2)}`);
+	data.content.sort((a, b) => a.round_number - b.round_number);
+	console.log(`SORTED: ${JSON.stringify(data, null, 2)}`);
+
+
     // Update the tournament data
     const gameTable = document.querySelector('game-table-component');
     if (gameTable) {
@@ -19,7 +24,7 @@ export function updateTournament(data) {
 }
 
 export function updatePlayingGameInfo(data) {
-	console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
+	// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
 
 	let player1name = document.getElementById('gameLivePlayer1Name');
 	let player2name = document.getElementById('gameLivePlayer2Name');
@@ -52,25 +57,54 @@ class GameTable extends HTMLElement {
 	render() {
 		if (!this._data) {
 			// _data is not defined, so there's nothing to render
-			console.error('nothing to render tournament');
+			// console.error('nothing to render tournament');
 			return;
 		}
 
-		let nextGames = '<div>';
+		let nextNum = 0;
+		let finishedNum = 0;
 
+		let nextGames = 		`<h3>Next Up</h3>
+								<div>`;
+		let finishedGames = 	`<div class="spacer-48"></div>
+								<h3>Completed</h3>
+								<div>`;
+		
 		this._data.content.forEach(round => {
-			if (!this._data.content.winner) {
-				nextGames += '<hr class="m-0">';
+			// console.log(`MY ROUND: ${round}`);
+			// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
+			// if (!this._data.content.winner) {
+			if (round.status === 'pending') {
 				nextGames += `<match-component 
+									status="${round.status}"
 									player1="${round.player1}" 
 									player2="${round.player2}" 
 									player1Score="${round.player1_score}" 
 									player2Score="${round.player2_score}">
 								</match-component>`;
+				nextGames += '<hr class="m-0">';
+				nextNum++;
+			} else if (round.status === 'completed') {
+				finishedGames += `<match-component 
+			// 						status="${round.status}"
+			// 						player1="${round.player1}" 
+			// 						player2="${round.player2}" 
+			// 						player1Score="${round.player1_score}" 
+			// 						player2Score="${round.player2_score}">
+			// 					</match-component>`;
+				finishedGames += '<hr class="m-0">';
+				finishedNum++;
 			}
 		});
 
 		nextGames += '</div>';
+		finishedGames += '</div>';
+
+
+		if (!nextNum)
+			nextGames = '';
+		if (!finishedNum && !nextNum)
+			finishedGames = '';
 
 		const baseUrl = document.location.href;
 		let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
@@ -81,8 +115,14 @@ class GameTable extends HTMLElement {
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 			<link rel="stylesheet" href="./css/styles.css">
 
-			<div id="upcoming-games" class="d-flex flex-column ppg-green flex-grow-1 overflow-y-auto">
+			
+			<div id="upcoming-games" class="d-flex flex-column flex-grow-1 overflow-y-auto">
 				${nextGames}
+			</div>
+
+			
+			<div id="finished-games" class="d-flex flex-column flex-grow-1 overflow-y-auto">
+				${finishedGames}
 			</div>
 		`;
 	}
