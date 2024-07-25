@@ -3,15 +3,15 @@
 import re
 
 import requests
+import logging
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.db.models import F, Sum
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -23,20 +23,35 @@ from .middleware import is_user_online
 from .models import Participation, Round, Tournament, UserProfile
 
 
+logger = logging.getLogger(__name__)
+
+
 @csrf_exempt
 def save_avatar_from_url(user_profile, url):
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
 
-    if response.status_code == 200 and "image" in response.headers["Content-Type"]:
-        image_content = ContentFile(response.content)
-        filename = url.split("/")[-1]
-        print(f"save_avatar_from_url({user_profile}, {url})")
+        if "image" in response.headers["Content-Type"]:
+            image_content = ContentFile(response.content)
+            filename = url.split("/")[-1]
 
-        if user_profile.avatar and filename in user_profile.avatar.name:
-            pass
+            if user_profile.avatar and filename in user_profile.avatar.name:
+                pass
+            else:
+                user_profile.avatar.save(filename, image_content)
+                user_profile.save()
         else:
-            user_profile.avatar.save(filename, image_content)
-            user_profile.save()
+            raise ValueError("The URL does not contain an image.")
+    except requests.RequestException as e:
+        # Handle network-related errors
+        logging.debug(f"Error fetching image from URL: {e}")
+    except ValueError as e:
+        # Handle content type error
+        logging.debug(f"Error with image content: {e}")
+    except Exception as e:
+        # Handle any other unexpected errors
+        logging.debug(f"Unexpected error occurred: {e}")
 
 
 def home(request):
@@ -470,13 +485,7 @@ def profile(request, user_id):
             }
         )
         for friend in user.player.friends.all()
-    ]
-    if request.user.is_authenticated and hasattr(request.user, "player"):
-        requesting_user_friends_ids = [
-            friend.id for friend in request.user.player.friends.all()
-        ]
-    else:
-        requesting_user_friends_ids = []
+    ]   
 
     player_data = {
         "user_id": user.id,
