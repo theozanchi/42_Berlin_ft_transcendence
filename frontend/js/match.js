@@ -4,13 +4,13 @@ class match extends HTMLElement {
 		this.shadow = this.attachShadow({mode: 'open'});
         this.player1Name = '';
         this.player2Name = '';
-        this.player1Score = 0;
-        this.player2Score = 0;
+        this.player1Score = '-';
+        this.player2Score = '-';
 
 	}
 
 	static get observedAttributes() {
-		return ['player1', 'player2', 'player1_score', 'player2_score'];
+		return ['player1', 'player2', 'player1score', 'player2score'];
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
@@ -18,11 +18,15 @@ class match extends HTMLElement {
 			this.player1Name = newValue;
 		} else if (name === 'player2') {
 			this.player2Name = newValue;
-		} else if (name === 'player1_score') {
+		} else if (name === 'player1score') {
 			this.player1Score = newValue;
-		} else if (name === 'player2_score') {
+		} else if (name === 'player2score') {
 			this.player2Score = newValue;
 		}
+		if (this.player1Score === '-1')
+			this.player1Score = '-';
+		if (this.player2Score === '-1')
+			this.player2Score = '-';
 		this.render();
 	}
 
