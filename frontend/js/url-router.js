@@ -3,6 +3,7 @@ import {getLoggedInState} from './login_signup.js';
 import {loadUserList} from './all-users.js';
 import {loadProfileData, updateProfileData} from './profile.js'
 import { newsocket } from './stepper.js';
+import { resetGame } from "./game.js"
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -87,9 +88,7 @@ const urlRoutes = {
 
 export const urlRoute = (eventOrUrl) => {
 	let url;
-	// alert(`HEYHEY ${location}`);
-	// console.log(typeof eventOrUrl);
-	// console.log('routing now!');
+	let location = window.location.pathname;
 	if (typeof eventOrUrl === 'string') {
 		url = eventOrUrl;
 	} else {
@@ -97,9 +96,6 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
-
-
-	// console.log(url);
 	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }
@@ -114,37 +110,47 @@ async function redirectOnLogin(locationOld){
 
 	if (userStatus.status === "success"
 		&& (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user')))) {
-			// Redirect logged-in user to their own profile if profile not specified in url
 			const newUrl = `/profile?user=${userId}`;
 			window.history.replaceState({}, "", newUrl);
 			location = '/profile'; // Update location to reflect the new URL
 	}
 	else if (userStatus.status !== "success") {
-		// User is not logged in
 		if (location === "/profile" && !urlQuery.has('user')) {
-			// Redirect guest trying to access /profile to homepage
-			// window.history.pushState({}, "", "/");
 			location = "/login";
 			window.history.replaceState({}, "", location);
 		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile") {
-			// Additional logic for other routes if needed
-			// window.history.pushState({}, "", "/login");
 			location = "/login";
 			window.history.replaceState({}, "", location);
 		}
-		// window.history.pushState({}, "", location);
 	}
 
 	return (location);
 }
 
+var inGame = false;
+
 const urlLocationHandler = async () => {
 
+	if (inGame) {
+		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
+		if (userConfirmation){
+			if (newsocket && newsocket.readyState === WebSocket.OPEN)
+				newsocket.close();
+			resetGame();
+			inGame = false;
+		} else {
+			inGame = false;
+			window.history.forward();
+		}
+	}
 
 	let location = window.location.pathname;
-
+	console.log(`I AM HERE ${location}`)
 	// CLOSING SOCKET WHEN ROUTING
 	
+	if (["/game", "/host-remote", "/join-remote"].includes(location))
+		inGame = true;
+
 	if (location.length === 0) 
 		location = "/";
 	else
@@ -158,7 +164,6 @@ const urlLocationHandler = async () => {
 	let parser = new DOMParser();
 	let doc = parser.parseFromString(html, "text/html");
 
-	// window.history.pushState({}, "", location);
 	document.title = doc.querySelector('title').innerText; // Update title
 
 	// Update game and settings column content as before
@@ -178,25 +183,17 @@ const urlLocationHandler = async () => {
 		loadUserList();
 };
 
-window.onbeforeunload = function(event) {
-    let location = window.location.pathname;
-    if (["/game", "/host-remote", "/join-remote"].includes(location)) {
-        if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-            // This message may not be shown by most modern browsers, but setting it is necessary to trigger the confirmation dialog
-            const confirmationMessage = 'All game data will be lost if you reload this page. Continue?';
-            event.returnValue = confirmationMessage;
-
-            // Note: Directly closing the WebSocket based on user confirmation is not possible here due to browser restrictions.
-            // The WebSocket will need to be closed elsewhere if the page is actually unloaded.
-        }
-    }
-};
+export function handleGameExit(event) {
+	let location = window.location.pathname;
+	if (["/game", "/host-remote", "/join-remote"].includes(location)) {
+		if (newsocket && newsocket.readyState === WebSocket.OPEN) {
+			const confirmationMessage = 'All game data will be lost if you reload this page. Continue?';
+			event.returnValue = confirmationMessage;
+		}
+	}
+}
 
 window.onpopstate = function(event) {
-	
-	console.log(event);
-	let location = window.location.pathname;
-	console.log(`LOCATION ${location}`);
 	urlLocationHandler();
 };
 

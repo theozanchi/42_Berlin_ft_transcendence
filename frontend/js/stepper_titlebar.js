@@ -4,7 +4,7 @@
 	// TITLE
 
 
-import { newsocket, gameStarted } from "./stepper.js";
+import { newsocket } from "./stepper.js";
 import { resetGame } from "./game.js"
 class StepperTitleBar extends HTMLElement {
 	constructor() {
