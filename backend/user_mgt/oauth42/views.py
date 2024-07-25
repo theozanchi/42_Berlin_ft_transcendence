@@ -1,12 +1,8 @@
 # oauth42/views.py
 
-import json
-import os
-import pprint
 import re
 
 import requests
-from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -14,27 +10,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
-from django.core import serializers
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.db import transaction
 from django.db.models import F, Sum
-from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.edit import CreateView
 from PIL import Image
 
-from .forms import RegistrationForm, UserForm
 from .middleware import is_user_online
-from .models import Participation, Round, Tournament, UserManager, UserProfile
-
-# CLIENT_ID = "u-s4t2ud-9e96f9ff721ed4a4fdfde4cd65bdccc71959f355f62c3a5079caa896688bffe8"
-# CLIENT_SECRET = "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"\
-
-
-# return Response(response.json(), status=response.status_code)
+from .models import Participation, Round, Tournament, UserProfile
 
 
 @csrf_exempt
@@ -65,7 +51,6 @@ def logout_user(request):
         user_id = request.POST.get("user_id")
         user_id = int(user_id) if user_id and user_id.isdigit() else 0
         user = request.user
-        print(f"--> user_id: '{user_id}")
 
         if user.is_authenticated and user.id == user_id:
             logout(request)
@@ -92,6 +77,7 @@ def delete_cookie(request):
 
 
 def is_valid_image(image):
+
     try:
         img = Image.open(image)
         img.verify()
@@ -150,7 +136,7 @@ def delete_avatar(request, user_id):
         )
 
     if user_profile.avatar:
-        user_profile.avatar.delete()  # This deletes the file and clears the field
+        user_profile.avatar.delete()
         user_profile.save()
         return {"status": "info", "message": "Avatar deleted successfully."}
     else:
@@ -198,12 +184,63 @@ def update_avatar(request, user_id):
         return {"status": "error", "message": "Method not allowed"}
 
 
+def sanitize_input(username=None, password=None, image=None):
+
+    errors = []
+
+    if username is not None:
+        username = username.strip()
+        username = re.sub(r"[^\w\s-]", "", username)
+        if len(username) > 50:
+            errors.append("Username cannot be longer than 50 characters")
+
+    if password is not None:
+        password = password.strip()
+        if len(password) < 8:
+            errors.append("Password must be at least 8 characters long")
+        if not any(c.isdigit() for c in password) or not any(
+            c.isalpha() for c in password
+        ):
+            errors.append(
+                "Password must contain at least one letter and one number and be at least 8 characters long"
+            )
+
+    if image is not None:
+        allowed_types = ["image/jpeg", "image/png"]
+        max_file_size = 5 * 1024 * 1024
+        if image.content_type not in allowed_types:
+            errors.append("Invalid image file type (only jpg and png)")
+        if image.size > max_file_size:
+            errors.append("Image file size exceeds the limit")
+        if not is_valid_image(image):
+            errors.append("Image is not a valid image!")
+
+    if errors:
+        error_message = " - ".join(errors)
+        return error_message, 400
+    else:
+        return {
+            "status": "success",
+            "username": username,
+            "password": password,
+            "image": image,
+        }, 200
+
+
 @csrf_exempt
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
         image = request.FILES.get("image")
+
+        sanitized_data, status_code = sanitize_input(username, password, image)
+        if status_code != 200:
+            return JsonResponse({"status": "error", "message": sanitized_data})
+
+        username = sanitized_data["username"]
+        password = sanitized_data["password"]
+        image = sanitized_data["image"]
 
         if User.objects.filter(username=username).exists():
             return JsonResponse(
@@ -214,53 +251,6 @@ def register(request):
             return JsonResponse(
                 {"status": "error", "message": "Missing required fields"}, status=200
             )
-
-        username = username.strip()
-        username = re.sub(r"[^\w\s-]", "", username)
-        password = password.strip()
-
-        if len(password) < 8:
-            return JsonResponse(
-                {
-                    "status": "error",
-                    "message": "Password must be at least 8 characters long",
-                },
-                status=200,
-            )
-
-        if len(username) > 50:
-            return JsonResponse(
-                {
-                    "status": "error",
-                    "message": "Alias cannot be longer than 50 characters",
-                },
-                status=200,
-            )
-
-        if not any(c.isdigit() for c in password) or not any(
-            c.isalpha() for c in password
-        ):
-            return JsonResponse(
-                {
-                    "status": "error",
-                    "message": "Password must contain at least one letter and one number",
-                },
-                status=200,
-            )
-
-        if image:
-            allowed_types = ["image/jpeg", "image/png"]
-            max_file_size = 5 * 1024 * 1024
-            if image.content_type not in allowed_types:
-                return JsonResponse(
-                    {"status": "error", "message": "Invalid image file type"},
-                    status=200,
-                )
-            if image.size > max_file_size:
-                return JsonResponse(
-                    {"status": "error", "message": "Image file size exceeds the limit"},
-                    status=200,
-                )
 
         user = User.objects.create(
             username=username,
@@ -285,48 +275,10 @@ def register(request):
             response_data.update(avatar_status)
 
         login(request, user)
-        return JsonResponse(response_data, status=201)
-
-    # return render(request, "register.html")
-    return JsonResponse(
-        {"status": "error", "message": "Method not allowed"}, status=405
-    )
-
-
-# Only for user.id creation with username.
-def just_username_login(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        image = request.FILES.get("image")
-
-        if User.objects.filter(username=username).exists():
-            return JsonResponse(
-                {"status": "error", "message": "Username already exists"}, status=200
-            )
-
-        if not all([username]):
-            return JsonResponse(
-                {"status": "error", "message": "Missing required fields"}, status=200
-            )
-
-        user = User.objects.create(
-            username=username,
-        )
-        response_data = {
-            "status": "success",
-            "message": "User created successfully ONLY USERNAME.",
-            "user_id": user.id,
-        }
-
-        if image:
-            avatar_status = upload_avatar(request, user.id)
-            response_data.update(avatar_status)
-
-        login(request, user)
-        return JsonResponse(response_data, status=201)
+        return JsonResponse(response_data, status=200)
 
     return JsonResponse(
-        {"status": "error", "message": "Method not allowed"}, status=405
+        {"status": "error", "message": "Method not allowed"}, status=200
     )
 
 
@@ -345,7 +297,6 @@ def rankings(request):
     return JsonResponse({"status": "info", "rankings": rankings})
 
 
-@csrf_exempt
 @login_required
 @csrf_exempt
 def update(request):
@@ -354,6 +305,14 @@ def update(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         image = request.FILES.get("image")
+
+        sanitized_data, status_code = sanitize_input(username, password, image)
+        if status_code != 200:
+            return JsonResponse({"status": "error", "message": sanitized_data})
+
+        username = sanitized_data["username"]
+        password = sanitized_data["password"]
+        image = sanitized_data["image"]
 
         if (
             username
@@ -385,18 +344,19 @@ def update(request):
                 setattr(user, field, value)
             user.save()
 
-        avatar_status = update_avatar(request, user.id)
+        if image:
+            avatar_status = update_avatar(request, user.id)
 
         response_data = {
             "status": "success",
             "message": "User updated successfully.",
             "user_id": user.id,
         }
-        response_data.update(avatar_status)
+        if image:
+            response_data.update(avatar_status)
 
         return JsonResponse(response_data, status=201)
     else:
-        # return render(request, "update.html")
         return JsonResponse({"status": "error", "message": "Method not allowed."})
 
 
@@ -564,6 +524,12 @@ def regular_login(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
 
+        sanitized_data, status_code = sanitize_input(
+            username=username, password=password
+        )
+        if status_code != 200:
+            return JsonResponse({"status": "error", "message": sanitized_data})
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -576,7 +542,6 @@ def regular_login(request):
             )
 
     else:
-        # return render(request, "login.html")
         return JsonResponse({"status": "success", "message": "Wrong method"})
 
 
