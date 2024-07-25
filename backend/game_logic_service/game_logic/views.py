@@ -128,7 +128,7 @@ def create_new_game_state(game_id, round_number):
         'ballSpeed': {'x': 0, 'y': 0, 'z': 0},
         'playerTurn': True,  # Initial value, assuming player 1 starts
         'player1Score': 0,
-        'plauyer2Score': 0,
+        'player2Score': 0,
         'ballIsHeld': True,  # Initial value, assuming ball is held initially
         'current_face': 0,  # Adding initial value for current face
         'current_face2': 1,
