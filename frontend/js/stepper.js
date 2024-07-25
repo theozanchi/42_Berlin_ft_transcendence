@@ -26,6 +26,10 @@ export var remote = false;
 export var round_number;
 export var player_id;
 
+export function setGameStarted(value) {
+    gameStarted = value;
+}
+
 export function openSocket() {
 	if (!newsocket || newsocket.readyState !== WebSocket.OPEN) {
 		const url = `wss://${window.location.host}/ws/`;
@@ -143,12 +147,11 @@ export async function sendJson(json) {
         await newsocket.send(json);
     } else {
         console.log('WebSocket is not connected.');
+		console.log(json);
     }
 }
 
 function generateLocalGame() {
-
-	console.log("GENERATING LOCAL GAME");
 
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
@@ -162,12 +165,8 @@ function generateLocalGame() {
 
 	openSocket()
     .then(() => {
-		console.log("PREPARING JSON");
         var json = JSON.stringify(data);
-		console.log(json);
         sendJson(json);
-
-		// sendJson(JSON.stringify({ type: 'start-game' }));
     })
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
@@ -254,7 +253,6 @@ async function hostRemoteGame() {
 		}
 	
 		connectedCallback() {
-			console.log("rendering stepper form");
 
 			// let myElement = document.querySelector('')
 
