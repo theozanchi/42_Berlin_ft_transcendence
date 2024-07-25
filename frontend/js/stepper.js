@@ -279,6 +279,31 @@ async function hostRemoteGame() {
 				});
 			});
 			};
+
+			myElement = document.getElementById('shareUrlRemoteGameIDButton');
+			if (myElement) {
+				myElement.addEventListener('click', function() {
+					// Get the input field
+					const input = this.previousElementSibling.previousElementSibling;
+					// Get the span element containing the icon
+					const iconSpan = this.querySelector('span');
+			
+					// Construct the URL
+					const url = `${window.location.origin}/join-remote?id=${input.value}`;
+			
+					// Copy the constructed URL to the clipboard
+					navigator.clipboard.writeText(url).then(function() {
+						// Change the icon to bi-share-fill
+						iconSpan.className = 'bi bi-share-fill';
+						// Set a timeout to change the icon back to bi-share after 3 seconds
+						setTimeout(function() {
+							iconSpan.className = 'bi bi-share';
+						}, 3000);
+					}, function(err) {
+						console.error('Could not copy text: ', err);
+					});
+				});
+			}
 		}
 	}
 	
