@@ -22,12 +22,10 @@ class GameHistory extends HTMLElement {
 	}
 
 	connectedCallback() {
-        this.fetchData(); // Automatically fetch data when element is added to the DOM		
+        this.fetchData();
     }
 
 	render() {
-
-		console.log(`RENDERING HISTORY OF ${this.user_id}`);
 
 		if (!this._data || !this._data.player_data || !this._data.player_data.games) {
 			console.error('No data to render');
@@ -36,9 +34,15 @@ class GameHistory extends HTMLElement {
 
 		let gameHistoryHTML = '';
 
+		if (this._data.player_data.games.length){
+			let emptyState = document.getElementById('empty-state');
+			if (emptyState)
+				emptyState.setAttribute('hidden', '');
+		}
+
 		this._data.player_data.games.forEach(game => {
 
-			console.log(game);
+			
 			const date = new Date(game.end_date);
 			let GameDate = `${date.getDate()}.${date.getMonth()}.${date.getFullYear()}`;
 
@@ -47,8 +51,6 @@ class GameHistory extends HTMLElement {
 								<div>`;
 
 			game.rounds.forEach(round => {
-				// round = JSON.parse(round);
-				console.log(`RENDERING ROUND: ${round.round_status}`);
 				if (round.round_status === 'completed') {
 					gameHistoryHTML += `<hr class="m-0">
 										<match-component 
