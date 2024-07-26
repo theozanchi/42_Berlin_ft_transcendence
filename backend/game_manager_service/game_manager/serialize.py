@@ -56,6 +56,7 @@ class GameSerializer(serializers.ModelSerializer):
                     "alias": player.alias,
                     "username": player.user.username,
                     "user_id": player.user_id,
+                    "avatar": player.picture_url,
                 }
             )
         return players_info

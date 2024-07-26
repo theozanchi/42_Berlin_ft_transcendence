@@ -99,6 +99,7 @@ class Game(models.Model):
                 game=self,
                 alias=player.get("alias"),
                 channel_name=player.get("channel_name"),
+                picture_url=player.get("avatar"),
             )
 
     def add_existing_players_to_game(self, user):
