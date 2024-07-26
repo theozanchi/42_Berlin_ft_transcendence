@@ -38,7 +38,6 @@ def create_game(request):
 
 
         serializer = GameSerializer(game)
-        logging.debug("creating new game: %s", serializer.data)
         return JsonResponse(serializer.data, status=200)
 
     except KeyError as e:
@@ -164,7 +163,6 @@ def round(request):
             round_to_play.save()
             rounds = Round.objects.filter(game=game).order_by('round_number')
             serializer = RoundSerializer(rounds, many=True)
-            logging.debug("/round/: rounds serializer: %s", serializer.data)
             return JsonResponse(serializer.data, safe=False, status=200)
         else:
             if game.winner:
