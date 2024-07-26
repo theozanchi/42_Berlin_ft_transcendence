@@ -152,8 +152,9 @@ async function redirectOnLogin(locationOld){
 var inGame = false;
 
 const urlLocationHandler = async () => {
+	let location = window.location.pathname;
 
-	if (inGame) {
+	if (inGame && location !== '/game') {
 		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
 		if (userConfirmation){
 			// if (newsocket && newsocket.readyState === WebSocket.OPEN)
@@ -166,7 +167,6 @@ const urlLocationHandler = async () => {
 		}
 	}
 
-	let location = window.location.pathname;
 	console.log(`I AM HERE ${location}`)
 	// CLOSING SOCKET WHEN ROUTING
 

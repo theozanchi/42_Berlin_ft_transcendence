@@ -22,17 +22,18 @@ export function updateTournament(data) {
 }
 
 export function updatePlayingGameInfo(data) {
-	// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
+	console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
 
 	let player1name = document.getElementById('gameLivePlayer1Name');
 	let player2name = document.getElementById('gameLivePlayer2Name');
 	let player1avatar = document.getElementById('gameLivePlayer1Avatar');
 	let player2avatar = document.getElementById('gameLivePlayer2Avatar');
 
-	player1name.innerHTML = data.player1;
-	player2name.innerHTML = data.player2;
-	// player1avatar.src = data.player1avatar;
-	// player2avatar.src = data.player2avatar;
+	player1name.innerHTML = data.player1.name;
+	player2name.innerHTML = data.player2.name;
+	player1avatar.src = data.player1.avatar;
+	player2avatar.src = data.player2.avatar;
+
 }
 
 class GameTable extends HTMLElement {
@@ -71,25 +72,29 @@ class GameTable extends HTMLElement {
 		
 		this._data.content.forEach(round => {
 			// console.log(`MY ROUND: ${round}`);
-			console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
+			// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
 			// if (!this._data.content.winner) {
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
 									status="${round.status}"
-									player1="${round.player1}" 
-									player2="${round.player2}" 
 									player1Score="${round.player1_score}" 
-									player2Score="${round.player2_score}">
+									player2Score="${round.player2_score}" 
+									player1="${round.player1.name}" 
+									player2="${round.player2.name}" 
+									player1Avatar="${round.player1.avatar}" 
+									player2Avatar="${round.player2.avatar}">
 								</match-component>`;
 				nextGames += '<hr class="m-0">';
 				nextNum++;
 			} else if (round.status === 'completed') {
 				finishedGames += `<match-component 
 			// 						status="${round.status}"
-			// 						player1="${round.player1}" 
-			// 						player2="${round.player2}" 
-			// 						player1Score="${round.player1_score}" 
-			// 						player2Score="${round.player2_score}">
+									player1Score="${round.player1_score}" 
+									player2Score="${round.player2_score}" 
+									player1="${round.player1.name}" 
+									player2="${round.player2.name}" 
+									player1Avatar="${round.player1.avatar}" 
+									player2Avatar="${round.player2.avatar}">
 			// 					</match-component>`;
 				finishedGames += '<hr class="m-0">';
 				finishedNum++;

@@ -6,6 +6,8 @@ class match extends HTMLElement {
 	this.player2Name = '';
 	this.player1Score = '-';
 	this.player2Score = '-';
+	this.player1Avatar = 'assets/avatar_HIM.png';
+	this.player2Avatar = 'assets/avatar_HIM.png';
 
 	}
 
@@ -26,6 +28,10 @@ class match extends HTMLElement {
 			this.player1Name = newValue;
 		} else if (name === 'player2') {
 			this.player2Name = newValue;
+		} else if (name === 'player1avatar') {
+			this.player1Avatar = newValue;
+		} else if (name === 'player2avatar') {
+			this.player2Avatar = newValue;
 		}
 		this.render();
 	}
@@ -52,7 +58,7 @@ class match extends HTMLElement {
 
 			<div class="row align-items-center mx-0 g-0">
 				<div class="col">
-					<player-component name="${this.player1Name}" order-right></player-component>
+					<player-component name="${this.player1Name}" avatar="${this.player1Avatar}" order-right></player-component>
 				</div>
 				<div class="col-auto mx-2">
 					<div class="text-center">
@@ -61,7 +67,7 @@ class match extends HTMLElement {
 					</div>
 				</div>
 				<div class="col mx-0">
-					<player-component name="${this.player2Name}" table-column="right"></player-component>
+					<player-component name="${this.player2Name}" avatar="${this.player2Avatar}" table-column="right"></player-component>
 				</div>
 			</div>
 		`;

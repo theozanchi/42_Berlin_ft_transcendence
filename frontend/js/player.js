@@ -31,7 +31,7 @@ class MyPlayer extends HTMLElement {
 
     set name(newValue) {
         this.setAttribute('name', newValue);
-        this.render();
+        // this.render();
     }
 
 	get avatar() {
@@ -40,7 +40,7 @@ class MyPlayer extends HTMLElement {
 		
 	set avatar(newValue) {
 		this.setAttribute('name', avatar);
-		this.render();
+		// this.render();
 	}
 
     static get observedAttributes() {
@@ -50,7 +50,7 @@ class MyPlayer extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'name' && oldValue !== newValue) {
 			// console.log(`RERENDERING: ${name} ${oldValue}  ${newValue}`);
-            this.render();
+            // this.render();
         }
     }
 
@@ -69,9 +69,8 @@ class MyPlayer extends HTMLElement {
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 		else
 			imageUrl = setProfileImage();
-			// imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 	
-	console.log(`imageUrl: ${imageUrl}`);
+		console.log(`imageUrl final: ${imageUrl}`);
 
 		const nameAligned = (tableColumn === "right")
 			? `<p class="col align-middle fs-5 m-0 text-end text-truncate">${name}</p>`
@@ -86,6 +85,7 @@ class MyPlayer extends HTMLElement {
 			: '';
 	
 		const imgElement = `<div class="masked-avatar"><img src="${imageUrl}" class="col-auto player-component"></div>`;
+		console.log( imgElement );
 
 		const onlineBadge = isOnline
 			? `<span class="badge rounded-pill text-bg-success">online</span>`
