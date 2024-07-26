@@ -157,6 +157,8 @@ function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
+	let playerData = playerList.getPlayerData();
+	console.log(playerData);
 	
 	// Create data object with type key
 	let data = {type: 'create-game'}
@@ -164,6 +166,7 @@ function generateLocalGame() {
 	
 	// Add players to JSON
 	data.players = playerNames;
+	//data.players = playerData; // THIS SENDS AVATARS TO BACKEND
 
 	openSocket()
     .then(() => {

@@ -32,6 +32,15 @@ class MyPlayer extends HTMLElement {
         this.render();
     }
 
+	get name() {
+		return this.getAttribute('name');
+	}
+		
+	set name(newValue) {
+		this.setAttribute('name', newValue);
+		this.render();
+	}
+
     static get observedAttributes() {
         return ['name'];
     }
