@@ -32,20 +32,19 @@ GAME_MANAGER_REST_URL = "http://game_manager:8000"
 @permission_classes([AllowAny])
 @api_view(["POST"])
 def game_update(request):
+    global last_update_time
+
     try:
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get("game_id")
 
-        #if not(new_game_state.get('ballIsHeld')) : print("ballisheld: ", new_game_state.get('ballIsHeld'))
-        #serializer = GameStateSerializer(data=new_game_state)
-        #if not serializer.is_valid():
-        #    return JsonResponse(serializer.errors, status=400)
- 
         if game_id is None:
             return JsonResponse({"error": "Missing game-ID"}, status=400)
         
         with game_update_lock:
             cached_game_state = cache.get(game_id)
+            current_time = time.time()
+
             # Check if cached game is the same round as the new game state
             if cached_game_state is not None and new_game_state.get(
                 "round_number"
@@ -67,6 +66,8 @@ def game_update(request):
 
             # Perform game logic
             update_game_state(game_state)
+
+            last_update_time = current_time
 
             cache.set(game_id, game_state, timeout=30)
 
