@@ -43,6 +43,7 @@ def create_game(request):
     except KeyError as e:
         logging.error("Error creating game: %s", e)
         return JsonResponse({"error": str(e)}, status=400)
+    
     except ObjectDoesNotExist as e:
         logging.error("Error creating game: %s", e)
         return JsonResponse({"error": str(e)}, status=404)
@@ -59,19 +60,23 @@ def join_game(request):
         
         user_id = request.data.get('user_id')
         user = User.objects.get(pk=user_id)
+        logging.debug("User joining: %s", user)
 
         if Player.objects.filter(game=game, user=user).exists():
             logging.error("Error: player already in game.")
             return JsonResponse({'error': 'Player already in game.'}, status=403)
+        
         if not user.is_authenticated:
             logging.error("Error: user not authenticated.")
             return JsonResponse({'error': 'User not authenticated.'}, status=403)
+        
         else:
             game.add_existing_players_to_game(user, request.data.get('channel_name'))
 
         game.save()
 
         serializer = GameSerializer(game)
+        logging.debug("Game joined: %s", serializer.data)
         return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
