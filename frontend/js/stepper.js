@@ -14,7 +14,7 @@ import { updatePlayingGameInfo } from './tournament.js';
 
 import { setGameID } from './lobby.js';
 
-import { addRemotePlayer } from './player_list.js';
+import { replacePlayerList } from './player_list.js';
 
 // import { startGameButton } from './lobby.js';
 
@@ -68,7 +68,7 @@ export function openSocket() {
 	}
 }
 
-function handleMessage(data) {
+async function handleMessage(data) {
 	switch (data.type) {	
 		case 'broadcast':
 			console.log('Broadcast:', data);
@@ -89,7 +89,7 @@ function handleMessage(data) {
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			} else {
 				urlRoute(`/host-remote?id=${game_id}`);
-				addRemotePlayer(data.users[0]);
+				await replacePlayerList(data.users);
 			}
 			break;
 		
@@ -144,7 +144,7 @@ function handleMessage(data) {
 			break;
 
 		case 'new-player':
-			addRemotePlayer(data.content.players[0]);
+			await replacePlayerList(data.content.users);
 			break;
 	}
 }

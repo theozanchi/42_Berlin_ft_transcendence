@@ -154,21 +154,27 @@ class PlayerList extends HTMLElement {
 
 customElements.define('player-list', PlayerList);
 
-export async function addRemotePlayer(playerData) {
+export async function replacePlayerList(usersArray) {
 	let playerList = document.getElementById('list-of-players');
 	if (playerList) {
-		let newPlayer = document.createElement('player-component');
-		let separator = document.createElement('hr');
-		separator.style.margin = '6px';
+		while (playerList.firstChild) {
+			playerList.removeChild(playerList.firstChild);
+		}
 
-		const avatar = await setProfileImage(playerData.user_id);
+		for (const playerData of usersArray) {
+			let newPlayer = document.createElement('player-component');
+			let separator = document.createElement('hr');
+			separator.style.margin = '6px';
 
-		newPlayer.setAttribute('name', playerData.alias);
-		newPlayer.setAttribute('avatar', avatar);
+			const avatar = await setProfileImage(playerData.user_id);
 
-		// Append the new player component to the last player-component's parent
-		playerList.appendChild(separator);
-		playerList.appendChild(newPlayer);
+			newPlayer.setAttribute('name', playerData.username);
+			newPlayer.setAttribute('avatar', avatar);
+
+			// Append the new player component to the last player-component's parent
+			playerList.appendChild(separator);
+			playerList.appendChild(newPlayer);
+		}
 	} else {
 		console.error('No list-of-players found');
 	}
