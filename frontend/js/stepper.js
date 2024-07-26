@@ -20,6 +20,7 @@ export var newsocket;
 let openPromise;
 let messagePromise;
 let game_id;
+let is_host = false;
 
 // For game area
 export var gameStarted = false;
@@ -81,6 +82,7 @@ function handleMessage(data) {
 		case 'create-game':
 			console.log('Game created:', data);
 			game_id = data.game_id;
+			is_host = true;
 			if (data.mode === 'local') {
 				urlRoute(`/game?id=${game_id}`);
 				sendJson(JSON.stringify({ type: 'start-game' }));
@@ -94,7 +96,7 @@ function handleMessage(data) {
 			if (data.mode === 'remote') {
 				remote = true;
 				player_id = data.player_id;
-				console.log('Player ID:', player);
+				console.log('Player ID:', player_id);
 			}
 			gameStarted = true;
 			round_number = data.round_number;
@@ -270,7 +272,11 @@ async function hostRemoteGame() {
 				myElement.addEventListener('click', (event) => {
 					// urlRoute('/game');
 					event.preventDefault();
-					sendJson(JSON.stringify({ type: 'start-game' }));
+					if (is_host) {
+						sendJson(JSON.stringify({ type: 'start-game' }));
+					} else {
+						alert('Only the host can start the game.');
+					}
 				});
 			};
 
