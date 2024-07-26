@@ -2,10 +2,10 @@ class match extends HTMLElement {
 	constructor() {
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
-        this.player1Name = '';
-        this.player2Name = '';
-        this.player1Score = '-';
-        this.player2Score = '-';
+	this.player1Name = '';
+	this.player2Name = '';
+	this.player1Score = '-';
+	this.player2Score = '-';
 
 	}
 
