@@ -79,9 +79,8 @@ function handleMessage(data) {
 			break;
 		
 		case 'create-game':
-			console.log
+			console.log('Game created:', data);
 			game_id = data.game_id;
-			console.log('Game ID:', game_id);
 			if (data.mode === 'local') {
 				urlRoute(`/game?id=${game_id}`);
 				sendJson(JSON.stringify({ type: 'start-game' }));

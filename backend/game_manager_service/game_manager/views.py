@@ -36,9 +36,9 @@ def create_game(request):
             game.create_players_for_game(request.data)
         game.save()
 
-        logging.debug("creating new game: %s", game)
 
         serializer = GameSerializer(game)
+        logging.debug("creating new game: %s", serializer.data)
         return Response(serializer.data, status=200)
 
     except KeyError as e:
