@@ -14,6 +14,8 @@ import { updatePlayingGameInfo } from './tournament.js';
 
 import { setGameID } from './lobby.js';
 
+import { addRemotePlayer } from './player_list.js';
+
 // import { startGameButton } from './lobby.js';
 
 export var newsocket;
@@ -86,7 +88,7 @@ function handleMessage(data) {
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			} else {
 				urlRoute(`/host-remote?id=${game_id}`);
-				// setGameID();
+				addRemotePlayer(data.users[0]);
 			}
 			break;
 		
@@ -136,6 +138,10 @@ function handleMessage(data) {
 			let startedRound = data.content.find(round => round.status === 'started');
 			if (startedRound)
 				updatePlayingGameInfo(startedRound);
+			break;
+
+		case 'new-player':
+			addRemotePlayer(data.content.players[0]);
 			break;
 	}
 }
