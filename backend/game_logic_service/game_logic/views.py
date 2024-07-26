@@ -32,7 +32,6 @@ GAME_MANAGER_REST_URL = "http://game_manager:8000"
 @permission_classes([AllowAny])
 @api_view(["POST"])
 def game_update(request):
-    global last_update_time
 
     try:
         new_game_state = json.loads(request.body)
