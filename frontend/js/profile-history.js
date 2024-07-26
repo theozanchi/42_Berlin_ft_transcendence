@@ -50,14 +50,14 @@ class GameHistory extends HTMLElement {
 				// round = JSON.parse(round);
 				console.log(`RENDERING ROUND: ${round.round_status}`);
 				if (round.round_status === 'completed') {
-					gameHistoryHTML += `<match-component 
+					gameHistoryHTML += `<hr class="m-0">
+										<match-component 
 											status="${round.status}"
 											player1="${round.player1.alias}" 
 											player2="${round.player2.alias}" 
 											player1Score="${round.player1.score}" 
 											player2Score="${round.player2.score}">
-										</match-component>
-										<hr class="m-0">`;
+										</match-component>`;
 				}
 			});
 			gameHistoryHTML += '</div>'; // Close the game div
