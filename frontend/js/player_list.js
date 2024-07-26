@@ -85,20 +85,6 @@ class PlayerList extends HTMLElement {
 
 	getPlayerData() {
 		const players = this.shadow.querySelectorAll('player-component');
-
-		let playerData = {};
-
-		players.forEach(player => {
-			let name = player.name;
-			let avatar = player.avatar
-			playerData[`players${index}`] = { name : name, avatar : avatar};
-		});
-
-		return playerNames;
-	}
-
-	getPlayerData() {
-		const players = this.shadow.querySelectorAll('player-component');
 	
 		let playerData = {};
 	
@@ -108,9 +94,20 @@ class PlayerList extends HTMLElement {
 					playerData[`player${index}`] = { name : name, avatar : avatar};
 				});
 	
-		console.log(playerData);
-	
 		return (playerData);
+	}
+
+	getPlayerNames() {
+		const players = this.shadow.querySelectorAll('player-component');
+
+		let playerNames = [];
+
+		players.forEach(player => {
+			let name = player.name;
+			playerNames.push(name);
+		});
+
+		return playerNames;
 	}
 
 	addRemotePlayer(playerData) {

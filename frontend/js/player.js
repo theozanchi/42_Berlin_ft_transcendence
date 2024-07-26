@@ -32,12 +32,12 @@ class MyPlayer extends HTMLElement {
         this.render();
     }
 
-	get name() {
-		return this.getAttribute('name');
+	get avatar() {
+		return this.getAttribute('avatar');
 	}
 		
-	set name(newValue) {
-		this.setAttribute('name', newValue);
+	set avatar(newValue) {
+		this.setAttribute('name', avatar);
 		this.render();
 	}
 
