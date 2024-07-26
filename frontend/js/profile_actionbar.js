@@ -1,4 +1,5 @@
-import {getLoggedInState} from './login_signup.js';
+import { getLoggedInState } from './login_signup.js';
+import { getCSRFToken } from './login_signup.js';
 
 async function usersAreFriends(userIdA, userIdB) {
 	const userData = await getLoggedInState(userIdA);
@@ -24,51 +25,54 @@ async function usersAreFriends(userIdA, userIdB) {
 }
 
 async function addFriend(user_id) {
-    try {
-        const response = await fetch(`/api/user_mgt/add_friend/`, {
-            method: 'POST', 
-            headers: {
-                'friend': user_id,
-                'Content-Type': 'application/json'
-            },
-        });
-        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
-            const data = await response.json();
-            // alert(data.message);
-            if (data.status === "success") {
-                return true;
-            }
-        } else {
-            throw new Error('Non-JSON response received');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-    return false;
+	try {
+		const response = await fetch(`/api/user_mgt/add_friend/`, {
+			method: 'POST',
+			headers: {
+				'friend': user_id,
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCSRFToken(),
+			},
+		});
+		if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+			const data = await response.json();
+			// alert(data.message);
+			if (data.status === "success") {
+				return true;
+			}
+		} else {
+			throw new Error('Non-JSON response received');
+		}
+	} catch (error) {
+		console.error('Error:', error);
+	}
+	return false;
 }
 
 async function removeFriend(user_id) {
-    try {
-        const response = await fetch(`/api/user_mgt/remove_friend/`, {
-            method: 'POST', 
-            headers: {
-                'friend': user_id,
-                'Content-Type': 'application/json'
-            },
-        });
-        if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
-            const data = await response.json();
-            // alert(data.message);
-            if (data.status === "success") {
-                return true;
-            }
-        } else {
-            throw new Error('Non-JSON response received');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-    return false;
+	try {
+		const response = await fetch(`/api/user_mgt/remove_friend/`, {
+			method: 'POST',
+			headers: {
+				'friend': user_id,
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCSRFToken(),
+
+			},
+		});
+		if (response.ok && response.headers.get("Content-Type").includes("application/json")) {
+			const data = await response.json();
+			// alert(data.message);
+			if (data.status === "success") {
+				return true;
+			}
+		} else {
+			throw new Error('Non-JSON response received');
+		}
+	} catch (error) {
+		console.error('Error:', error);
+	}
+	return false;
 }
 
 class ProfileAction extends HTMLElement {
@@ -107,7 +111,7 @@ class ProfileAction extends HTMLElement {
 		const loggedIn = await getLoggedInState();
 
 		if (loggedIn.status === 'success' && loggedIn.user_id === this.RequestedUserId) {
-			console.log (`OKAY`);
+			console.log(`OKAY`);
 			fetch(`/api/user_mgt/profile/${loggedIn.user_id}`)
 				.then(response => {
 					if (!response.ok) {
@@ -129,7 +133,7 @@ class ProfileAction extends HTMLElement {
 			</div>
 			`;
 		} else if (loggedIn.status === 'success') {
-			
+
 			this.innerHTML = `
 				<div id="userEditFriend" class="d-grid gap-2">
 					<hr class="m-0">
@@ -139,7 +143,7 @@ class ProfileAction extends HTMLElement {
 					<div class="spacer-48"></div>
 				</div>
 			`
-		
+
 			const BefriendButton = document.getElementById('userBefriendButton')
 			const UnfriendButton = document.getElementById('userUnfriendButton')
 
