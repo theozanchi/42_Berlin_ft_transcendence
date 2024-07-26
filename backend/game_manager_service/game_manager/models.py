@@ -93,19 +93,26 @@ class Game(models.Model):
         super().save(*args, **kwargs)
 
     def create_players_for_game(self, data):
-        players = data.get("players", [])
-        for player_key, player in players.items():
-            Player.objects.create(
-                game=self,
-                alias=player.get("name"),
-                channel_name=player.get("channel_name"),
-                picture_url=player.get("avatar"),
-            )
+        try:
+            players = data.get("players", [])
+            for player_key, player in players.items():
+                Player.objects.create(
+                    game=self,
+                    alias=player.get("name"),
+                    channel_name=player.get("channel_name"),
+                    picture_url=player.get("avatar"),
+                )
+        except KeyError as e:
+            logging.error("Error creating players: %s", e)
 
     def add_existing_players_to_game(self, user, channel_name):
-        player_to_add = Player.objects.get(user=user, channel_name=channel_name)
-        player_to_add.game = self  # Add a player to the game
-        player_to_add.save()
+        try:
+            player_to_add = Player.objects.get(user=user)
+            player_to_add.channel_name = channel_name
+            player_to_add.game = self  # Add a player to the game
+            player_to_add.save()
+        except Player.DoesNotExist:
+            logging.error("Player does not exist")
 
     def create_rounds(self):
         rounds = Round.objects.filter(game=self)
@@ -126,7 +133,6 @@ class Game(models.Model):
                 round_number=round_number,
                 winner=None,
             )
-            logging.debug("round created: %s", round)
             round.save()
             round_number += 1
 
@@ -155,18 +161,9 @@ class Game(models.Model):
 
         # Assign ranks and create Participation objects
         for rank, (player, wins, score) in enumerate(player_wins_scores, start=1):
-            logging.debug(
-                "Player user: %s, wins: %s, score: %s, rank: %s, tournament: %s",
-                player.user,
-                wins,
-                score,
-                rank,
-                self,
-            )
             participation = Participation.objects.create(
                 tournament=self, user=player.user, score=score, rank=rank
             )
-            logging.debug("Created participation: %s", participation)
             player.game = None
             player.save()
 
