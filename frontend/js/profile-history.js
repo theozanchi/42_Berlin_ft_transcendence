@@ -44,7 +44,7 @@ class GameHistory extends HTMLElement {
 
 			
 			const date = new Date(game.end_date);
-			let GameDate = `${date.getDate()}.${date.getMonth()}.${date.getFullYear()}`;
+			let GameDate = `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} | ${date.getHours()}:${date.getMinutes()}`;
 
 			gameHistoryHTML += `<div class="spacer-24"></div>
 								<h3 class="fw-bold">${GameDate}</h3>
