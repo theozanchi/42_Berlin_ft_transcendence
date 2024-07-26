@@ -84,6 +84,8 @@ let timingStarted = false;
 let isGameStateUpdating = false; 
 const sendInterval = 1000 / 60;
 
+const statusText = document.createElement('div');
+
 
 export function updateGameState(data) {
     //if (!data) return;
@@ -235,31 +237,21 @@ export async function init() {
     }
     
     // Set the text content based on player_i
-    if (remote == true) {
-        // Create the text element
-        const statusText = document.createElement('div');
-        statusText.style.position = 'absolute';
-        statusText.style.top = '30px';
-        statusText.style.left = '50%';
-        statusText.style.transform = 'translateX(-50%)';
-        statusText.style.padding = '10px 20px';
-        statusText.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-        statusText.style.borderRadius = '10px';
-        statusText.style.fontFamily = 'Arial, sans-serif';
-        statusText.style.fontSize = '18px';
-        statusText.style.fontWeight = 'bold';
-        statusText.style.color = 'black';
-        statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
-
-        if (player_id === 'spectator') {
-            statusText.textContent = 'You are watching';
-        } else {
-            statusText.textContent = 'You are playing';
-        }
-        // Append the text element to the canvas parent
-        canvasParent.appendChild(statusText);
-    }
-
+    // Create the text element
+    statusText.style.position = 'absolute';
+    statusText.style.top = '30px';
+    statusText.style.left = '50%';
+    statusText.style.transform = 'translateX(-50%)';
+    statusText.style.padding = '10px 20px';
+    statusText.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+    statusText.style.borderRadius = '10px';
+    statusText.style.fontFamily = 'Arial, sans-serif';
+    statusText.style.fontSize = '18px';
+    statusText.style.fontWeight = 'bold';
+    statusText.style.color = 'black';
+    statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
+    
+    canvasParent.appendChild(statusText);
 
     // Create the scene
     scene = new THREE.Scene();
@@ -1243,6 +1235,25 @@ export function animate() {
         console.log('GAME STARTED IS FALSE');
         resetGame();
         return;
+    }
+    if (remote == true) {
+        if (player_id === 'spectator') {
+            statusText.textContent = 'You are watching';
+        } else {
+            if (playerTurn && currentPlayer === player) {
+                statusText.textContent = 'Your turn';
+            }
+            else {
+                statusText.textContent = 'Opponent\'s turn';
+            }
+        }
+    } else {
+        if (playerTurn) {
+            statusText.textContent = 'Player 1\'s turn';
+        }
+        else {
+            statusText.textContent = 'Player 2\'s turn';
+        }
     }
     
     requestAnimationFrame(animate);
