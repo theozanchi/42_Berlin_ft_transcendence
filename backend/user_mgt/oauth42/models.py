@@ -99,15 +99,11 @@ class Game(models.Model):
         super().save(*args, **kwargs)
 
     def add_players_to_game(self, data):
-        # ISSUE make sure alias is unique and send back the unique alias to the client
         players = data.get("players", [])
 
         for player in players:
             alias = player.get("alias")
 
-            # make unqiue alias for player if the alias already exists in this game
-            # if Player.objects.get(alias=alias, game=self):
-            #    alias = player.get('alias') + ''.join(random.choices(string.digits, k=3))
             logging.debug("creating player: %s", alias)
             Player.objects.create(
                 game=self, alias=alias, channel_name=player.get("channel_name")
@@ -123,7 +119,6 @@ class Game(models.Model):
         round_number = 1
         players_list = list(self.players.all())
 
-        # Generate all possible matchups for league play
         for player1, player2 in combinations(players_list, 2):
             round = Round.objects.create(
                 game=self,
@@ -181,7 +176,7 @@ class Tournament(Game):
     pass
 
 
-class Participation(models.Model):  # Binds User and Tournament classes
+class Participation(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Game, on_delete=models.CASCADE)
@@ -190,7 +185,7 @@ class Participation(models.Model):  # Binds User and Tournament classes
 
     class Meta:
         managed = False
-        db_table = "game_manager_participation"  # Explicitly set the table name
+        db_table = "game_manager_participation"
 
     def __str__(self):
         return (
@@ -199,7 +194,6 @@ class Participation(models.Model):  # Binds User and Tournament classes
 
 
 class Player(models.Model):
-    ###### ISSUE:truncate name for player in case it's too long AND unique alias
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     id42 = models.IntegerField(null=True)
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
@@ -221,7 +215,6 @@ class Player(models.Model):
     def save(self, *args, **kwargs):
         if not self.alias:
             self.alias = self.user.username
-            # raise ValueError("Player must have an alias.")
         if not hasattr(self, "user") or self.user is None:
             username = self.alias
             unique_username_found = False
@@ -242,7 +235,7 @@ class Player(models.Model):
 
     class Meta:
         managed = False
-        db_table = "game_manager_player"  # Explicitly set the table name
+        db_table = "game_manager_player"
 
 
 class UserProfile(Player):
@@ -300,7 +293,7 @@ class Round(models.Model):
 
     class Meta:
         managed = False
-        db_table = "game_manager_round"  # Explicitly set the table name
+        db_table = "game_manager_round"
 
 
 @receiver(post_save, sender=UserProfile)

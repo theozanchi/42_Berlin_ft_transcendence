@@ -178,14 +178,17 @@ const signupObserver = new MutationObserver(() => {
 				const imageFile = imageInput.files[0];
 				formData.append('image', imageFile);
 			}
-
+			getCSRFToken();
+			console.log("CSRF TOKEN in register: ", getCSRFToken());
 			fetch('/api/user_mgt/register/', {
 				method: 'POST',
 				body: formData,
+				credentials: 'include',
 				headers: {
 					'X-CSRFToken': getCSRFToken(),
-				}
+				},
 			})
+
 				.then(response => {
 					// Check if the response is ok and content type is JSON
 					if (response.ok && response.headers.get('Content-Type').includes('application/json')) {

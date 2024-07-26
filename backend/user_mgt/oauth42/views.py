@@ -1,10 +1,7 @@
-# oauth42/views.py
-
 import re
 
 import requests
 import logging
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -15,7 +12,7 @@ from django.core.files.base import ContentFile
 from django.db.models import F, Sum
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from PIL import Image
@@ -51,12 +48,6 @@ def save_avatar_from_url(user_profile, url):
         logging.debug(f"Unexpected error occurred: {e}")
 
 
-def home(request):
-    if request.user.is_authenticated:
-        return render(request, "oauth42/home.html", {"user": request.user})
-    return render(request, "oauth42/home.html")
-
-
 def logout_user(request):
     if request.method == "POST":
         user_id = request.POST.get("user_id")
@@ -83,15 +74,6 @@ def logout_user(request):
     )
 
 
-def delete_cookie(request):
-    if request.method == "POST":
-        logout(request)
-        request.session.flush()
-        response = redirect("/")
-        response.delete_cookie(settings.SESSION_COOKIE_NAME)
-        return response
-
-
 def is_valid_image(image):
 
     try:
@@ -103,30 +85,27 @@ def is_valid_image(image):
 
 
 def upload_avatar(request, user_id):
-    if request.method == "POST":
-        try:
-            user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "User not found"})
-        user_profile, created = UserProfile.objects.get_or_create(user=user)
-        avatar = request.FILES.get("image")
-        is_valid = is_valid_image(avatar)
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "User no found"})
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+    avatar = request.FILES.get("image")
+    is_valid = is_valid_image(avatar)
 
-        if avatar and is_valid:
-            user_profile.avatar = avatar
-            user_profile.save()
-            return {
-                "status": "success",
-                "message": "Avatar uploaded successfully",
-                "avatar": user_profile.avatar,
-            }
-        else:
-            return {
-                "status": "error",
-                "message": "No valid uploaded avatar image found",
-            }
+    if avatar and is_valid:
+        user_profile.avatar = avatar
+        user_profile.save()
+        return {
+            "status": "success",
+            "message": "Avatar uploaded successfully",
+            "avatar": user_profile.avatar,
+        }
     else:
-        return {"status": "error", "message": "Method not allowed"}
+        return {
+            "status": "error",
+            "message": "No valid uploaded avatar image found",
+        }
 
 
 def delete_avatar(request, user_id):
@@ -237,7 +216,6 @@ def sanitize_input(username=None, password=None, image=None):
             "status": "success",
             "username": username,
             "password": password,
-            "image": image,
         }, 200
 
 
@@ -248,12 +226,13 @@ def register(request):
         image = request.FILES.get("image")
 
         sanitized_data, status_code = sanitize_input(username, password, image)
+        logger.info(f"Sanitized data status_code: {status_code}")
         if status_code != 200:
+            sanitized_data.pop("image", None)
             return JsonResponse({"status": "error", "message": sanitized_data})
-
+        logger.info(f"Sanitized data: {sanitized_data}")
         username = sanitized_data["username"]
         password = sanitized_data["password"]
-        image = sanitized_data["image"]
 
         if User.objects.filter(username=username).exists():
             return JsonResponse(
@@ -282,10 +261,9 @@ def register(request):
             "provided_password": bool(password),
             "provided_avatar": bool(image),
         }
-
         if image:
             avatar_status = upload_avatar(request, user.id)
-            response_data.update(avatar_status)
+            # response_data.update(avatar_status)
 
         login(request, user)
         return JsonResponse(response_data, status=200)
@@ -608,11 +586,6 @@ def add_friend(request):
 
 
 @login_required
-def add_friend_view(request, user_id):
-    return render(request, "add-friend.html", {"user_id": user_id})
-
-
-@login_required
 def remove_friend(request):
     if request.method == "POST":
         user_id = request.headers.get("friend")
@@ -648,11 +621,6 @@ def remove_friend(request):
             {"status": "info", "message": "This user was not your friend."}
         )
     return JsonResponse({"status": "error", "message": "Method not valid"})
-
-
-@login_required
-def remove_friend_view(request, user_id):
-    return render(request, "remove-friend.html", {"user_id": user_id})
 
 
 def get_online_users():

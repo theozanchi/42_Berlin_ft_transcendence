@@ -164,4 +164,3 @@ def save_avatar_from_url(user_profile: UserProfile, url: str) -> None:
 def error_response(message: str) -> JsonResponse:
     logger.error(f"Error: {message}. 42 login failed.")
     return redirect("/oresult")
-    # return JsonResponse({"status": "error", "message": message})
