@@ -5,15 +5,14 @@
 
 import { setProfileImage } from "./profile.js";
 
+import { pongerAvatars, PongerChars } from "./login_signup.js";
+
 class PlayerList extends HTMLElement {
 	constructor() {
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
 		this.count = 2;
-		// this.gameMode = "local";avatar_blossom.png
 		const gameModes = ["local", "host", "join", "friends", "online"];
-		this.pongerAvatars = ['assets/avatar_blossom.png', 'assets/avatar_bubbles.png', 'assets/avatar_buttercup.png', 'assets/avatar_professor_utonium.png', 'assets/avatar_ms_kean.png', 'assets/avatar_mojo_jojo.png', 'assets/avatar_HIM.png'];
-		this.PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'Ms. Keane', 'Mojo Jojo', 'HIM'];
 	}
 
 	get count() {
@@ -53,11 +52,8 @@ class PlayerList extends HTMLElement {
 		let separator = document.createElement('hr');
 		separator.style.margin = '6px';
 
-		console.log(this.PongerChars.length);
-		newPlayer.setAttribute('name', this.PongerChars[this.count % this.PongerChars.length]);
-		newPlayer.setAttribute('avatar', this.pongerAvatars[this.count % this.pongerAvatars.length]);
-		console.log
-		// newPlayer.setAttribute('name', 'ThisWillChange');
+		newPlayer.setAttribute('name', PongerChars[this.count % PongerChars.length]);
+		newPlayer.setAttribute('avatar', pongerAvatars[this.count % pongerAvatars.length]);
 
 		if (this.gameMode === 'local')
 			newPlayer.setAttribute('input', '');
@@ -113,11 +109,8 @@ class PlayerList extends HTMLElement {
 	}
 
 	render() {
-
-		//MODES: local, remote
 		this.gameMode = this.getAttribute('mode');
-		// const isRemote = this.hasAttribute('remote')
-		// this.userID = this.getAttribute('userID');
+		console.log(`rendering list`)
 		
 		if (this.gameMode === 'remote') {
 			this.shadow.innerHTML = `
@@ -137,9 +130,9 @@ class PlayerList extends HTMLElement {
 
 				<h3 id="playerCount"> ${this.count} Players</h3>
 				<div id="list-of-players">
-					<player-component name="${this.PongerChars[0]}" avatar="${this.pongerAvatars[0]}" input></player-component>
+					<player-component name="${PongerChars[0]}" avatar="${pongerAvatars[0]}" input></player-component>
 					<hr class="my-0">
-					<player-component name="${this.PongerChars[1]}" avatar="${this.pongerAvatars[1]}" input></player-component>
+					<player-component name="${PongerChars[1]}" avatar="${pongerAvatars[1]}" input></player-component>
 				</div>
 				
 				<div class="d-flex justify-content-center">
@@ -154,21 +147,27 @@ class PlayerList extends HTMLElement {
 
 customElements.define('player-list', PlayerList);
 
-export async function addRemotePlayer(playerData) {
+export async function replacePlayerList(usersArray) {
 	let playerList = document.getElementById('list-of-players');
 	if (playerList) {
-		let newPlayer = document.createElement('player-component');
-		let separator = document.createElement('hr');
-		separator.style.margin = '6px';
+		while (playerList.firstChild) {
+			playerList.removeChild(playerList.firstChild);
+		}
 
-		const avatar = await setProfileImage(playerData.user_id);
+		for (const playerData of usersArray) {
+			let newPlayer = document.createElement('player-component');
+			let separator = document.createElement('hr');
+			separator.style.margin = '6px';
 
-		newPlayer.setAttribute('name', playerData.alias);
-		newPlayer.setAttribute('avatar', avatar);
+			const avatar = await setProfileImage(playerData.user_id);
 
-		// Append the new player component to the last player-component's parent
-		playerList.appendChild(separator);
-		playerList.appendChild(newPlayer);
+			newPlayer.setAttribute('name', playerData.username);
+			newPlayer.setAttribute('avatar', avatar);
+
+			// Append the new player component to the last player-component's parent
+			playerList.appendChild(separator);
+			playerList.appendChild(newPlayer);
+		}
 	} else {
 		console.error('No list-of-players found');
 	}

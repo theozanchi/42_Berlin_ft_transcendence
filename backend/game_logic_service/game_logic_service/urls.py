@@ -22,5 +22,4 @@ from game_logic import routing, urls
 
 urlpatterns = [
     path("", include(urls)),
-    path("ws/", include(routing.websocket_urlpatterns)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

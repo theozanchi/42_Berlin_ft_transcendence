@@ -1,5 +1,10 @@
 import { urlRoute } from './url-router.js';
 
+
+export const pongerAvatars = ['assets/avatar_blossom.png', 'assets/avatar_bubbles.png', 'assets/avatar_buttercup.png', 'assets/avatar_professor_utonium.png', 'assets/avatar_ms_kean.png', 'assets/avatar_mojo_jojo.png', 'assets/avatar_HIM.png'];
+export const PongerChars = ['Blossom', 'Bubbles', 'Buttercup', 'Professor Utonium', 'Ms. Keane', 'Mojo Jojo', 'HIM'];
+
+
 function fetchCSRFToken() {
 	fetch('/api/user_mgt/get-csrf-token')
 		.then(response => response.json())
@@ -9,6 +14,8 @@ function fetchCSRFToken() {
 		})
 		.catch(error => console.error(error));
 }
+
+
 
 
 function getCSRFToken() {
@@ -174,8 +181,10 @@ const signupObserver = new MutationObserver(() => {
 			formData.append('password', password1);
 
 			const imageInput = signupImage;
+			console.log (`IMAGE: ${imageInput}`);
 			if (imageInput.files.length > 0) {
 				const imageFile = imageInput.files[0];
+				console.log (`IMAGE: ${imageFile}`);
 				formData.append('image', imageFile);
 			}
 			getCSRFToken();
@@ -225,7 +234,6 @@ const LogOutObserver = new MutationObserver(() => {
 			// Use an IIFE to handle the async operation
 			(async () => {
 				const userData = await getLoggedInState();
-				console.log('HELLO AGAIN');
 
 				if (userData && userData.user_id) { // Ensure userData and user_id are valid
 					logoutData.append('user_id', userData.user_id);

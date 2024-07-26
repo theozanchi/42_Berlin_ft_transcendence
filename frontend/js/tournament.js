@@ -71,7 +71,7 @@ class GameTable extends HTMLElement {
 		
 		this._data.content.forEach(round => {
 			// console.log(`MY ROUND: ${round}`);
-			// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
+			console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
 			// if (!this._data.content.winner) {
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
@@ -104,10 +104,6 @@ class GameTable extends HTMLElement {
 			nextGames = '';
 		if (!finishedNum && !nextNum)
 			finishedGames = '';
-
-		const baseUrl = document.location.href;
-		let imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
-		const imgElement = `<img src="${imageUrl}" class="col-auto player-component">`;
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">

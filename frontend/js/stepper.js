@@ -4,7 +4,7 @@
 	// VIEW TO EDIT SETTINGS
 	// PROCCEED/START BUTTON
 
-import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+import { init, updateGameState, displayScore } from './game.js';
 
 import { initTournament, updateTournament } from './tournament.js';
 
@@ -14,7 +14,7 @@ import { updatePlayingGameInfo } from './tournament.js';
 
 import { setGameID } from './lobby.js';
 
-import { addRemotePlayer } from './player_list.js';
+import { replacePlayerList } from './player_list.js';
 
 // import { startGameButton } from './lobby.js';
 
@@ -69,7 +69,7 @@ export function openSocket() {
 	}
 }
 
-function handleMessage(data) {
+async function handleMessage(data) {
 	switch (data.type) {	
 		case 'broadcast':
 			console.log('Broadcast:', data);
@@ -90,7 +90,7 @@ function handleMessage(data) {
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			} else {
 				urlRoute(`/host-remote?id=${game_id}`);
-				addRemotePlayer(data.users[0]);
+				await replacePlayerList(data.users);
 			}
 			break;
 		
@@ -129,6 +129,7 @@ function handleMessage(data) {
 			break;
 
 		case 'round':
+			console.log('Round:', data);
 			switch (data.action) {
 				case 'new':
 					initTournament(data);
@@ -143,7 +144,7 @@ function handleMessage(data) {
 			break;
 
 		case 'new-player':
-			addRemotePlayer(data.content.players[0]);
+			await replacePlayerList(data.content.users);
 			break;
 	}
 }
@@ -161,7 +162,6 @@ export async function sendJson(json) {
 function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
-	let playerNames = playerList.getPlayerNames();
 	let playerData = playerList.getPlayerData();
 	console.log(playerData);
 	
@@ -170,7 +170,7 @@ function generateLocalGame() {
 	data['mode'] = 'local';
 	
 	// Add players to JSON
-	//data.players = playerNames;
+	// data.players = playerNames;
 	data.players = playerData; // THIS SENDS AVATARS TO BACKEND
 
 	openSocket()
@@ -224,7 +224,6 @@ async function hostRemoteGame() {
 
 	openSocket()
     .then(() => {
-		urlRoute("/host-remote");
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
@@ -276,7 +275,7 @@ async function hostRemoteGame() {
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
-					// urlRoute('/game');
+					urlRoute('/game');
 					event.preventDefault();
 					if (is_host) {
 						sendJson(JSON.stringify({ type: 'start-game' }));

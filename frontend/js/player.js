@@ -1,3 +1,5 @@
+import { setProfileImage } from "./profile.js";
+
 class MyPlayer extends HTMLElement {
 	constructor() {
 		super();
@@ -66,8 +68,11 @@ class MyPlayer extends HTMLElement {
 		if (this.getAttribute('avatar'))
 			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
 		else
-			imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
+			imageUrl = setProfileImage();
+			// imageUrl = new URL('assets/avatar_blossom.png', baseUrl);
 	
+	console.log(`imageUrl: ${imageUrl}`);
+
 		const nameAligned = (tableColumn === "right")
 			? `<p class="col align-middle fs-5 m-0 text-end text-truncate">${name}</p>`
 			: `<p class="col align-middle fs-5 m-0 text-truncate">${name}</p>`

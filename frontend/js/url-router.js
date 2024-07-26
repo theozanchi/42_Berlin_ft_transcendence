@@ -105,6 +105,7 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
+	console.log(`pushing this: ${url}`)
 	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }
@@ -117,20 +118,32 @@ async function redirectOnLogin(locationOld){
 	const userStatus = await getLoggedInState();
 	const userId = userStatus.user_id;
 
-	if (userStatus.status === "success"
-		&& (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user')))) {
+	if (userStatus.status === "success"){
+		if (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user'))) {
 			const newUrl = `/profile?user=${userId}`;
 			window.history.replaceState({}, "", newUrl);
-			location = '/profile'; // Update location to reflect the new URL
+			location = '/profile'; 
+		} else if (location === '/game' && !newsocket) {
+			location = '/';
+			inGame = false;
+			window.history.replaceState({}, "", location);
+		}
+
 	}
 	else if (userStatus.status !== "success") {
 		if (location === "/profile" && !urlQuery.has('user')) {
 			location = "/login";
 			window.history.replaceState({}, "", location);
-		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile") {
+		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile" || location === "/game-history") {
 			location = "/login";
 			window.history.replaceState({}, "", location);
 		}
+		else if (location === '/game' && !newsocket) {
+			location = "/";
+			inGame = false;
+			window.history.replaceState({}, "", location);
+		}
+
 	}
 
 	return (location);
@@ -143,8 +156,8 @@ const urlLocationHandler = async () => {
 	if (inGame) {
 		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
 		if (userConfirmation){
-			if (newsocket && newsocket.readyState === WebSocket.OPEN)
-				newsocket.close();
+			// if (newsocket && newsocket.readyState === WebSocket.OPEN)
+			// 	newsocket.close();
 			resetGame();
 			inGame = false;
 		} else {
