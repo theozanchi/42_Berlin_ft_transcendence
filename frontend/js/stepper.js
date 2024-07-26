@@ -175,29 +175,6 @@ function generateLocalGame() {
     });
 }
 
-function loadLocalGame() {
-/* 	if (!gameStarted) {
-		console.error('Game not started yet!');
-		return;
-	}
-
-	// Get the game area element
-    const gameArea = document.getElementById('game-column');
-
-    // Create and append the script
-    let script = document.createElement('script');
-    script.type = 'module';
-    script.src = './js/game.js';
-    gameArea.appendChild(script);
-
-    // Create and append the canvas
-    let canvas = document.createElement('canvas');
-    canvas.id = 'bg';
-    gameArea.appendChild(canvas); */
-	//init();
-	return;
-}
-
 async function getCurrentUser() {
     try {
         const response = await fetch('/api/user_mgt/me');
