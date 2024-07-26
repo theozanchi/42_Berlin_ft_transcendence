@@ -76,7 +76,6 @@ def join_game(request):
         game.save()
 
         serializer = GameSerializer(game)
-        logging.debug("Game joined: %s", serializer.data)
         return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
@@ -168,7 +167,6 @@ def round(request):
             round_to_play.save()
             rounds = Round.objects.filter(game=game).order_by('round_number')
             serializer = RoundSerializer(rounds, many=True)
-            logging.debug("Round to play: %s", serializer.data)
             return JsonResponse(serializer.data, safe=False, status=200)
         else:
             if game.winner:

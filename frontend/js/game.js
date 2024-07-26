@@ -233,9 +233,6 @@ export async function init() {
         console.error('Canvas element with id "bg" not found.');
         return;
     }
-
-    console.log('Initializing game... ROUND NUMBER: ', round_number);
-
     
     // Set the text content based on player_i
     if (remote == true) {

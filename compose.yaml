@@ -139,6 +139,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - SERVER_NAME=${SERVER_NAME}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
     depends_on:
       - db
     stop_signal: SIGINT
