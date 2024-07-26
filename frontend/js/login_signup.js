@@ -1,12 +1,39 @@
 import { urlRoute } from './url-router.js';
 
+function fetchCSRFToken() {
+	fetch('/api/user_mgt/get-csrf-token')
+		.then(response => response.json())
+		.then(data => {
+			console.log(data.csrfToken);
+			localStorage.setItem('csrftoken', data.csrfToken);
+		})
+		.catch(error => console.error(error));
+}
+
+
+function getCSRFToken() {
+	return localStorage.getItem('csrftoken');
+}
+
+export { fetchCSRFToken, getCSRFToken };
+
 //FUNCTION THAT RETURNS THE LOGGED IN STATE OF CLIENT
 export async function getLoggedInState() {
-	const loggedIn = await fetch('/api/user_mgt/me')
+	fetchCSRFToken();
+	const loggedIn = await fetch('/api/user_mgt/me', {
+		method: 'GET',
+		credentials: 'include',
+		headers: {
+			'X-CSRFToken': getCSRFToken(),
+		},
+	})
 		.then(response => response.json())
 		.catch(() => ({ status: "error" }));
+
+
 	return loggedIn;
 }
+
 
 const LogInObserver = new MutationObserver(() => {
 	const loginUser = document.getElementById('loginUser');
@@ -28,7 +55,7 @@ const LogInObserver = new MutationObserver(() => {
 	}
 
 	if (loginForm) {
-		loginForm.addEventListener('submit', function(e) {
+		loginForm.addEventListener('submit', function (e) {
 			e.preventDefault();
 
 			formData.append('username', loginUser.value);
@@ -42,25 +69,28 @@ const LogInObserver = new MutationObserver(() => {
 			fetch('/api/user_mgt/login/', {
 				method: 'POST',
 				body: formData,
-			})
-			.then(response => {
-				// Check if the response is ok and content type is JSON
-				if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-					return response.json();
+				headers: {
+					'X-CSRFToken': getCSRFToken(),
 				}
-				throw new Error('Non-JSON response received');
 			})
-			.then(data => {
-				console.log('Response:', data);
-				if (data.status === 'success')
-					urlRoute('/');
-				else
-					throw new Error(data.message);
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-				alert(error)
-			});
+				.then(response => {
+					// Check if the response is ok and content type is JSON
+					if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+						return response.json();
+					}
+					throw new Error('Non-JSON response received');
+				})
+				.then(data => {
+					console.log('Response:', data);
+					if (data.status === 'success')
+						urlRoute('/');
+					else
+						throw new Error(data.message);
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+					alert(error)
+				});
 		});
 	};
 });
@@ -69,7 +99,7 @@ const LogInObserver = new MutationObserver(() => {
 LogInObserver.observe(document, { childList: true, subtree: true });
 
 const signupObserver = new MutationObserver(() => {
-	const signupImage =document.getElementById('signupAvatar');
+	const signupImage = document.getElementById('signupAvatar');
 	const signupUser = document.getElementById('signupUser');
 	const signupPassword = document.getElementById('signupPassword');
 	const signupPasswordConfirm = document.getElementById('signupPasswordConfirm');
@@ -94,7 +124,7 @@ const signupObserver = new MutationObserver(() => {
 	}
 
 	if (registrationForm) {
-		registrationForm.addEventListener('submit', function(e) {
+		registrationForm.addEventListener('submit', function (e) {
 			e.preventDefault();
 			const password1 = signupPassword.value;
 			const password2 = signupPasswordConfirm.value;
@@ -118,25 +148,28 @@ const signupObserver = new MutationObserver(() => {
 			fetch('/api/user_mgt/register/', {
 				method: 'POST',
 				body: formData,
-			})
-			.then(response => {
-				// Check if the response is ok and content type is JSON
-				if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-					return response.json();
+				headers: {
+					'X-CSRFToken': getCSRFToken(),
 				}
-				throw new Error('Non-JSON response received');
 			})
-			.then(data => {
-				if (data.status === 'success') {
-					console.log('Success:', data);
-					urlRoute('/');
-				}
-				throw new Error(data.message);
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-				alert(error)
-			});
+				.then(response => {
+					// Check if the response is ok and content type is JSON
+					if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+						return response.json();
+					}
+					throw new Error('Non-JSON response received');
+				})
+				.then(data => {
+					if (data.status === 'success') {
+						console.log('Success:', data);
+						urlRoute('/');
+					}
+					throw new Error(data.message);
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+					alert(error)
+				});
 		});
 	}
 });
@@ -151,26 +184,29 @@ const LogOutObserver = new MutationObserver(() => {
 	// console.log('HELLO');
 
 	if (logoutUser && !logoutUser.hasEventListener) {
-		logoutUser.addEventListener('click', function(e) {
+		logoutUser.addEventListener('click', function (e) {
 			// Use an IIFE to handle the async operation
 			(async () => {
 				const userData = await getLoggedInState();
 
 				if (userData && userData.user_id) { // Ensure userData and user_id are valid
 					logoutData.append('user_id', userData.user_id);
-					console.log(`logging out user_id: ${userData.user_id}`);
+
 
 					fetch('/api/user_mgt/logout/', {
 						method: 'POST',
 						body: logoutData,
+						headers: {
+							'X-CSRFToken': getCSRFToken()
+						}
 					})
-					.then(response => response.json())
-					.then(data => {
-						if (data.status === 'success')
-							urlRoute('/');
-						else
-							throw new Error (data.message);
-					});
+						.then(response => response.json())
+						.then(data => {
+							if (data.status === 'success')
+								urlRoute('/');
+							else
+								throw new Error(data.message);
+						});
 				} else {
 					console.error('Failed to get user data');
 					alert(`Error while logging you out`)

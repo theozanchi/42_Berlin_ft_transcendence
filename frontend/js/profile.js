@@ -1,16 +1,25 @@
 import {getLoggedInState} from './login_signup.js';
 import { urlRoute } from './url-router.js';
+import { getCSRFToken } from './login_signup.js';
 
 
 export async function setProfileImage(user_id) {
     const baseUrl = new URL(document.location).origin;
     let imageUrl = new URL('assets/avatar_blossom.png', baseUrl).toString();
 
-	try {
-		const response = await fetch(`/api/user_mgt/profile/${user_id}`);
-		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-			const data = await response.json();
-			if (data.player_data && data.player_data.avatar) {
+    try {
+        const response = await fetch(`/api/user_mgt/profile/${user_id}`,
+			{
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'X-CSRFToken': getCSRFToken(),
+				},
+			}
+		);
+        if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+            const data = await response.json();
+            if (data.player_data && data.player_data.avatar) {
 				console.log(data);
 				imageUrl = baseUrl + '/media/' + data.player_data.avatar;
 				console.log(imageUrl);
@@ -71,6 +80,10 @@ export function updateProfileData() {
 		fetch('/api/user_mgt/update/', {
 			method: 'POST',
 			body: formData,
+			credentials: 'include',
+			headers: {
+				'X-CSRFToken': getCSRFToken(),
+			}
 		})
 		.then(response => {
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
@@ -110,7 +123,15 @@ export async function loadProfileData() {
 	}
 
 	try {
-		const response = await fetch(`/api/user_mgt/profile/${userId}`);
+		const response = await fetch(`/api/user_mgt/profile/${userId}`,
+			{
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'X-CSRFToken': getCSRFToken(),
+				},
+			}
+		);
 		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
 			let data = await response.json();
 
@@ -170,7 +191,15 @@ const ProfileEditObserver = new MutationObserver(() => {
 
 
 	if (userEditAvatar && userEditNickname && userPassword && userPasswordConfirm && userAccountDelete) {
-		fetch('/api/user_mgt/me')
+		fetch('/api/user_mgt/me',
+			{
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'X-CSRFToken': getCSRFToken(),
+				},
+			}
+		)
 		.then(response => {
 			// Check if the response is ok and content type is JSON
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
@@ -181,7 +210,15 @@ const ProfileEditObserver = new MutationObserver(() => {
 		})
 		.then(data => {
 			// Use the user_id from the first API call in the second API call
-			return fetch(`/api/user_mgt/profile/${data.user_id}`);
+			return fetch(`/api/user_mgt/profile/${data.user_id}`,
+				{
+					method: 'GET',
+					credentials: 'include',
+					headers: {
+						'X-CSRFToken': getCSRFToken(),
+					},
+				}
+			);
 		})
 		.then(response => response.json())
 		.then(data => {
