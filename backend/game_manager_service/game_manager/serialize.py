@@ -1,8 +1,17 @@
 from django.core import serializers
 from rest_framework import serializers
-
 from .models import Game, Player, Round
 
+
+class PlayerSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='alias')
+    avatar = serializers.CharField(source='picture_url')
+    user_id = serializers.IntegerField()
+    channel_name = serializers.CharField()
+
+    class Meta:
+        model = Player
+        fields = ['name', 'avatar', 'user_id', 'channel_name']
 
 class RoundSerializer(serializers.ModelSerializer):
     player1 = serializers.CharField(source="player1.alias")
@@ -36,9 +45,7 @@ class RoundSerializer(serializers.ModelSerializer):
 
 class GameSerializer(serializers.ModelSerializer):
     rounds = RoundSerializer(many=True, read_only=True)
-    players = serializers.SlugRelatedField(
-        slug_field="alias", many=True, queryset=Player.objects.all()
-    )
+    players = PlayerSerializer(many=True, read_only=True)
     winner = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
 
@@ -56,6 +63,7 @@ class GameSerializer(serializers.ModelSerializer):
                     "alias": player.alias,
                     "username": player.user.username,
                     "user_id": player.user_id,
+                    "avatar": player.picture_url,
                 }
             )
         return players_info
