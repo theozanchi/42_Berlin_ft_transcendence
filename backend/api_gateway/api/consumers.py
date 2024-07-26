@@ -148,7 +148,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     'type': 'broadcast',
                     'content':
                     {
-                        'type': 'game',
+                        'type': 'new-player',
                         'content': response.json()
                     }
                 }

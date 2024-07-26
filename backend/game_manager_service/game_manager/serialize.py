@@ -33,7 +33,6 @@ class RoundSerializer(serializers.ModelSerializer):
             "player2_channel_name",
         ]
 
-
 class GameSerializer(serializers.ModelSerializer):
     rounds = RoundSerializer(many=True, read_only=True)
     players = serializers.SlugRelatedField(
@@ -50,7 +49,7 @@ class GameSerializer(serializers.ModelSerializer):
 
     def get_users(self, obj):
         players_info = []
-        for player in obj.players.all():
+        for player in obj.players.all().order_by('last_activity'):
             players_info.append(
                 {
                     "alias": player.alias,
@@ -63,3 +62,4 @@ class GameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
         fields = ["game_id", "mode", "winner", "rounds", "players", "host", "users"]
+

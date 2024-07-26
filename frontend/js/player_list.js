@@ -3,6 +3,8 @@
 	// LIST OF PLAYER-COMPONENT
 	// ADD PLAYER BUTTON (OPTIONAL)
 
+import { setProfileImage } from "./profile.js";
+
 class PlayerList extends HTMLElement {
 	constructor() {
 		super();
@@ -110,20 +112,6 @@ class PlayerList extends HTMLElement {
 		return playerNames;
 	}
 
-	addRemotePlayer(playerData) {
-		let playerList = this.shadow.getElementById('player-list');
-		let newPlayer = document.createElement('player-component');
-		let separator = document.createElement('hr');
-		separator.style.margin = '6px';
-
-		newPlayer.setAttribute('name', playerData.name);
-		newPlayer.setAttribute('avatar', playerData.avatar);
-		newPlayer.setAttribute('disabled', '');
-
-		playerList.appendChild(separator);
-		playerList.appendChild(newPlayer);
-	}
-
 	render() {
 
 		//MODES: local, remote
@@ -165,3 +153,23 @@ class PlayerList extends HTMLElement {
 }
 
 customElements.define('player-list', PlayerList);
+
+export async function addRemotePlayer(playerData) {
+	let playerList = document.getElementById('list-of-players');
+	if (playerList) {
+		let newPlayer = document.createElement('player-component');
+		let separator = document.createElement('hr');
+		separator.style.margin = '6px';
+
+		const avatar = await setProfileImage(playerData.user_id);
+
+		newPlayer.setAttribute('name', playerData.alias);
+		newPlayer.setAttribute('avatar', avatar);
+
+		// Append the new player component to the last player-component's parent
+		playerList.appendChild(separator);
+		playerList.appendChild(newPlayer);
+	} else {
+		console.error('No list-of-players found');
+	}
+}
