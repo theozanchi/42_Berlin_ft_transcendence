@@ -4,7 +4,7 @@
 	// VIEW TO EDIT SETTINGS
 	// PROCCEED/START BUTTON
 
-import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+import { init, updateGameState, displayScore } from './game.js';
 
 import { initTournament, updateTournament } from './tournament.js';
 
