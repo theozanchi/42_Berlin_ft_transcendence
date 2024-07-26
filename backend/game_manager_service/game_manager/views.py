@@ -27,24 +27,26 @@ logger = logging.getLogger(__name__)
 @permission_classes([AllowAny])
 def create_game(request):
     try:
-        game = Game.objects.create(mode=request.data.get('game-mode'), host=request.data.get('channel_name'))
+        game = Game.objects.create(mode=request.data.get('mode'), host=request.data.get('channel_name'))
         if game.mode == 'remote':
             user_id = request.data.get('user_id')
             user = User.objects.get(pk=user_id)
-            game.add_existing_players_to_game(user)
+            game.add_existing_players_to_game(user, request.data.get('channel_name'))
         else:
             game.create_players_for_game(request.data)
         game.save()
 
 
         serializer = GameSerializer(game)
-        logging.debug("creating new game: %s", serializer.data)
-        return Response(serializer.data, status=200)
+        return JsonResponse(serializer.data, status=200)
 
     except KeyError as e:
-        return Response({"error": e}, status=400)
+        logging.error("Error creating game: %s", e)
+        return JsonResponse({"error": str(e)}, status=400)
+    
     except ObjectDoesNotExist as e:
-        return Response({"error": e}, status=404)
+        logging.error("Error creating game: %s", e)
+        return JsonResponse({"error": str(e)}, status=404)
 
 
 @api_view(["POST"])
@@ -53,30 +55,36 @@ def join_game(request):
     try:
         game = Game.objects.get(pk=request.data.get('game_id'))
         if game.mode != 'remote':
-            return Response({'error': 'Game is not a remote game.'}, status=403)
+            logging.error("Error: tried to join game that is not a remote game.")
+            return JsonResponse({'error': 'Game is not a remote game.'}, status=403)
         
         user_id = request.data.get('user_id')
         user = User.objects.get(pk=user_id)
-        logging.debug("User: %s", user.username)
+        logging.debug("User joining: %s", user)
 
         if Player.objects.filter(game=game, user=user).exists():
-            return Response({'error': 'Player already in game.'}, status=403)
+            logging.error("Error: player already in game.")
+            return JsonResponse({'error': 'Player already in game.'}, status=403)
+        
         if not user.is_authenticated:
-            return Response({'error': 'User not authenticated.'}, status=403)
+            logging.error("Error: user not authenticated.")
+            return JsonResponse({'error': 'User not authenticated.'}, status=403)
+        
         else:
-            game.add_existing_players_to_game(user)
+            game.add_existing_players_to_game(user, request.data.get('channel_name'))
 
         game.save()
 
         serializer = GameSerializer(game)
-        logging.debug("Joing game response: %s", serializer.data)
-        return Response(serializer.data, status=200)
+        return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
-        return Response({"error": "Game not found."}, status=404)
+        logging.error("Error: game not found.")
+        return JsonResponse({"error": "Game not found."}, status=404)
 
     except KeyError as e:
-        return Response({"error": e}, status=400)
+        logging.error("Error: %s", e)
+        return JsonResponse({"error": e}, status=400)
 
 
 @api_view(["GET"])
@@ -85,17 +93,17 @@ def get_game(request):
     try:
         game = Game.objects.get(pk=request.data.get('game_id'))
         serializer = GameSerializer(game)
-        return Response(serializer.data, status=200)
+        return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
-        return Response({"error": "Game not found."}, status=404)
+        logging.error("Error: game not found.")
+        return JsonResponse({"error": "Game not found."}, status=404)
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def update_round_status(request):
     try:
-        logging.debug("UPDATE ROUND STATUS: request data: %s", request.data)
         game = Game.objects.get(pk=request.data.get("game_id"))
 
         round_played = Round.objects.get(
@@ -103,7 +111,8 @@ def update_round_status(request):
             round_number=request.data.get("round_number"),
         )
         if round_played.winner:
-            return Response({"message": "Round already played."}, status=403)
+            logging.error("Error: Round already updated.")
+            return JsonResponse({"message": "Round already played."}, status=403)
 
         round_played.player1_score = request.data.get("player1Score")
         round_played.player2_score = request.data.get("player2Score")
@@ -120,16 +129,19 @@ def update_round_status(request):
             game.calculate_scores()
             game.save()
 
-        return Response(serializer.data, status=200)
+        return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
-        return Response({"error": "Game not found."}, status=404)
+        logging.error("Error: game not found.")
+        return JsonResponse({"error": "Game not found."}, status=404)
 
     except Round.DoesNotExist:
-        return Response({"error": "No round found."}, status=404)
+        logging.error("Error: round not found.")
+        return JsonResponse({"error": "No round found."}, status=404)
 
     except ValidationError as e:
-        return Response({"error": str(e)}, status=400)
+        logging.error("Error: %s", e)
+        return JsonResponse({"error": str(e)}, status=400)
 
 
 @api_view(["POST"])
@@ -154,8 +166,9 @@ def round(request):
             round_to_play.status = "started"
             round_to_play.save()
             rounds = Round.objects.filter(game=game).order_by('round_number')
+
             serializer = RoundSerializer(rounds, many=True)
-            logging.debug("/round/: rounds serializer: %s", serializer.data)
+            logging.debug("Round to play: %s", serializer.data)
             return JsonResponse(serializer.data, safe=False, status=200)
         else:
             if game.winner:
@@ -166,12 +179,15 @@ def round(request):
             return JsonResponse({"message": "No rounds to play."}, status=403)
 
     except InsufficientPlayersError as e:
+        logging.error("Error: %s", e)
         return JsonResponse({"error": str(e)}, status=418)
 
     except Game.DoesNotExist:
+        logging.error("Error: game not found.")
         return JsonResponse({"error": "Game not found."}, status=404)
 
     except Exception as e:
+        logging.error("Error: %s", e)
         return JsonResponse({"error": str(e)}, status=400)
 
 
@@ -191,12 +207,20 @@ def update_players(request):
                 logging.debug("No more players in game, setting host to None")
                 game.host = None
         game.update_scores_abandon(request.data.get("channel_name"))
+
+        player = game.players.filter(channel_name=request.data.get("channel_name")).first()
+        if player:
+            logging.debug("Setting game field to None for player: %s", player.channel_name)
+            player.game = None
+            player.save()
         game.save()
         serializer = GameSerializer(game)
-        return Response(serializer.data, status=200)
+        return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
-        return Response({"error": "Game not found."}, status=404)
+        logging.error("Error: game not found.")
+        return JsonResponse({"error": "Game not found."}, status=404)
 
     except KeyError as e:
-        return Response({"error": e}, status=400)
+        logging.error("Error: %s", e)
+        return JsonResponse({"error": e}, status=400)

@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Generate a secret key
-export DJANGO_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(50))')
-
 apt install redis-tools
 # Collect static files
 python manage.py collectstatic --noinput

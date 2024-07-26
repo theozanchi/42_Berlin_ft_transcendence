@@ -14,19 +14,11 @@ class PlayerSerializer(serializers.ModelSerializer):
         fields = ['name', 'avatar', 'user_id', 'channel_name']
 
 class RoundSerializer(serializers.ModelSerializer):
-    player1 = serializers.CharField(source="player1.alias")
-    player1_channel_name = serializers.CharField(source="player1.channel_name")
+    player1 = PlayerSerializer()
 
-    player2 = serializers.CharField(source="player2.alias")
-    player2_channel_name = serializers.CharField(source="player2.channel_name")
+    player2 = PlayerSerializer()
 
-    winner = serializers.SerializerMethodField()
-
-    def get_winner(self, obj):
-        if obj.winner and hasattr(obj.winner, "alias"):
-            return obj.winner.alias
-        else:
-            return None
+    winner = PlayerSerializer()
 
     class Meta:
         model = Round
@@ -38,8 +30,6 @@ class RoundSerializer(serializers.ModelSerializer):
             "winner",
             "player1_score",
             "player2_score",
-            "player1_channel_name",
-            "player2_channel_name",
         ]
 
 class GameSerializer(serializers.ModelSerializer):

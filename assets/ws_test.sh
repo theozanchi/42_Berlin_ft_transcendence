@@ -4,7 +4,7 @@
 WS_URL="wss://localhost:8443/ws/"
 
 # JSON message to send
-JSON_MESSAGE='{"type": "create-game", "game-mode": "local", "players": ["Esther", "Sofie"]}'
+JSON_MESSAGE='{"type": "create-game", "mode": "local", "players": ["Esther", "Sofie"]}'
 
 # Send the JSON message and ignore SSL certificate errors, then wait for the response
 GAME_ID=$(echo -n "$JSON_MESSAGE" | websocat --insecure "$WS_URL" | jq -r '.["game-id"]')

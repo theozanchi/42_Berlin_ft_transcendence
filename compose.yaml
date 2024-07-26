@@ -79,6 +79,7 @@ services:
       - USR_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
     stop_signal: SIGINT
     stop_grace_period: 2s
 
@@ -98,6 +99,7 @@ services:
       - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
       - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
     networks:
       - backend
     depends_on:
@@ -137,6 +139,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - SERVER_NAME=${SERVER_NAME}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
     depends_on:
       - db
     stop_signal: SIGINT
