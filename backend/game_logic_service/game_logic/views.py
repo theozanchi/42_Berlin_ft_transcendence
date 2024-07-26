@@ -17,8 +17,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .serializers import GameStateSerializer
-
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
@@ -28,11 +26,10 @@ WINNER_SCORE = 2
 
 GAME_MANAGER_REST_URL = "http://game_manager:8000"
 
-
 @permission_classes([AllowAny])
 @api_view(["POST"])
 def game_update(request):
-    logging.debug("Game update request received")
+    logging.info("Game update request received")
     try:
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get("game_id")
