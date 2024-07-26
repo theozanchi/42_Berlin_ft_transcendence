@@ -42,17 +42,21 @@ class GameTable extends HTMLElement {
 	}
 
 	static get observedAttributes() {
-		return ['rounds'];
+		return ['user_id'];
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
-		if (name === 'rounds') {
+		if (name === 'user_id') {
 			this._data = JSON.parse(newValue);
 			this.render();
 		}
 	}
 
 	render() {
+
+
+		
+
 		if (!this._data) {
 			// _data is not defined, so there's nothing to render
 			// console.error('nothing to render tournament');

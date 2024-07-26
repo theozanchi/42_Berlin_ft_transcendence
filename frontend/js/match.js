@@ -6,8 +6,6 @@ class match extends HTMLElement {
         this.player2Name = '';
         this.player1Score = '-';
         this.player2Score = '-';
-		this.player1Avatar = '';
-		this.player1Avatar = '';
 
 	}
 
@@ -24,10 +22,10 @@ class match extends HTMLElement {
 			this.player1Score = newValue;
 		} else if (name === 'player2score' && newValue != '-1') {
 			this.player2Score = newValue;
-		} else if (name === 'player1avatar') {
-			this.player1Avatar = newValue;
-		} else if (name === 'player2avatar') {
-			this.player2Avatar = newValue;
+		} else if (name === 'player1') {
+			this.player1Name = newValue;
+		} else if (name === 'player2') {
+			this.player2Name = newValue;
 		}
 		this.render();
 	}
