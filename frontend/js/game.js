@@ -252,7 +252,7 @@ export async function init() {
     statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
 
     // Set the text content based on player_id
-    if (player_id === 'spectator') {
+    if (player_id === 'spectator' && remote) {
         statusText.textContent = 'You are watching';
     } else {
         statusText.textContent = 'You are playing';

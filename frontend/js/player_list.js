@@ -87,16 +87,16 @@ class PlayerList extends HTMLElement {
 
 	getPlayerData() {
 		const players = this.shadow.querySelectorAll('player-component');
-
+	
 		let playerData = {};
-
-		players.forEach(player => {
-			let name = player.name;
-			let avatar = player.avatar
-			playerData[`players${index}`] = { name : name, avatar : avatar};
-		});
-
-		return playerNames;
+	
+		players.forEach((player, index) => {
+					let name = player.name;
+					let avatar = player.avatar;
+					playerData[`player${index}`] = { name : name, avatar : avatar};
+				});
+	
+		return (playerData);
 	}
 
 	getPlayerNames() {

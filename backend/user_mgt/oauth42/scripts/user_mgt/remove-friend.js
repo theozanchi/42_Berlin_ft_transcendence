@@ -10,7 +10,8 @@ function removeFriend(user_id) {
     fetch(`/api/user_mgt/remove_friend/`, {
         method: 'POST', headers: {
             'friend': user_id,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
         },
     })
         .then(response => {

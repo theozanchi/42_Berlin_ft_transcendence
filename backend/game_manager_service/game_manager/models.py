@@ -94,11 +94,12 @@ class Game(models.Model):
 
     def create_players_for_game(self, data):
         players = data.get("players", [])
-        for player in players:
+        for player_key, player in players.items():
             Player.objects.create(
                 game=self,
-                alias=player.get("alias"),
+                alias=player.get("name"),
                 channel_name=player.get("channel_name"),
+                picture_url=player.get("avatar"),
             )
 
     def add_existing_players_to_game(self, user):

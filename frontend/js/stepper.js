@@ -81,9 +81,8 @@ async function handleMessage(data) {
 			break;
 		
 		case 'create-game':
-			console.log
+			console.log('Game created:', data);
 			game_id = data.game_id;
-			console.log('Game ID:', game_id);
 			if (data.mode === 'local') {
 				urlRoute(`/game?id=${game_id}`);
 				sendJson(JSON.stringify({ type: 'start-game' }));
@@ -111,9 +110,7 @@ async function handleMessage(data) {
 			if (data.content.gameOver === true) {
 				console.log('Round Over. Winner is: ', data.content.winner);
 				player_id = null;
-				//unloadLocalGame();
 				// Start next round
-				displayScore(data.content);
 
 				gameStarted = false;
 				//createStartButton();
@@ -163,13 +160,16 @@ function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
+	let playerData = playerList.getPlayerData();
+	console.log(playerData);
 	
 	// Create data object with type key
 	let data = {type: 'create-game'}
 	data['game-mode'] = 'local';
 	
 	// Add players to JSON
-	data.players = playerNames;
+	//data.players = playerNames;
+	data.players = playerData; // THIS SENDS AVATARS TO BACKEND
 
 	openSocket()
     .then(() => {

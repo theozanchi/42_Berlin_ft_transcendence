@@ -14,9 +14,10 @@ from django.contrib.sessions.models import Session
 from django.core.files.base import ContentFile
 from django.db.models import F, Sum
 from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from PIL import Image
 
 from .middleware import is_user_online
@@ -26,7 +27,6 @@ from .models import Participation, Round, Tournament, UserProfile
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
 def save_avatar_from_url(user_profile, url):
     try:
         response = requests.get(url)
@@ -44,13 +44,10 @@ def save_avatar_from_url(user_profile, url):
         else:
             raise ValueError("The URL does not contain an image.")
     except requests.RequestException as e:
-        # Handle network-related errors
         logging.debug(f"Error fetching image from URL: {e}")
     except ValueError as e:
-        # Handle content type error
         logging.debug(f"Error with image content: {e}")
     except Exception as e:
-        # Handle any other unexpected errors
         logging.debug(f"Unexpected error occurred: {e}")
 
 
@@ -60,7 +57,6 @@ def home(request):
     return render(request, "oauth42/home.html")
 
 
-@csrf_exempt
 def logout_user(request):
     if request.method == "POST":
         user_id = request.POST.get("user_id")
@@ -70,16 +66,21 @@ def logout_user(request):
         if user.is_authenticated and user.id == user_id:
             logout(request)
             request.session.flush()
-            return JsonResponse({"status": "success", "message": "User logged out."})
+            return JsonResponse(
+                {"status": "success", "message": "User logged out."}, status=200
+            )
         else:
             return JsonResponse(
                 {
                     "status": "error",
                     "message": "No user logged in who could get logged out.",
-                }
+                },
+                status=200,
             )
 
-    return JsonResponse({"status": "error", "message": "Method not allowed"})
+    return JsonResponse(
+        {"status": "error", "message": "Method not allowed (logout)"}, status=200
+    )
 
 
 def delete_cookie(request):
@@ -101,7 +102,6 @@ def is_valid_image(image):
         return False
 
 
-@csrf_exempt
 def upload_avatar(request, user_id):
     if request.method == "POST":
         try:
@@ -158,7 +158,6 @@ def delete_avatar(request, user_id):
         return {"status": "info", "message": "No avatar to delete."}
 
 
-@csrf_exempt
 def update_avatar(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
@@ -242,7 +241,6 @@ def sanitize_input(username=None, password=None, image=None):
         }, 200
 
 
-@csrf_exempt
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -313,7 +311,6 @@ def rankings(request):
 
 
 @login_required
-@csrf_exempt
 def update(request):
     user = request.user
     if request.method == "POST":
@@ -485,7 +482,7 @@ def profile(request, user_id):
             }
         )
         for friend in user.player.friends.all()
-    ]   
+    ]
 
     player_data = {
         "user_id": user.id,
@@ -527,7 +524,6 @@ def who_am_i(request):
     )
 
 
-@csrf_exempt
 def regular_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -554,6 +550,13 @@ def regular_login(request):
         return JsonResponse({"status": "success", "message": "Wrong method"})
 
 
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    token = get_token(request)
+    logger.info("New CSRF token set: %s", token)
+    return JsonResponse({"csrfToken": token})
+
+
 @login_required
 def delete_profile(request):
     user = request.user
@@ -562,7 +565,6 @@ def delete_profile(request):
     return redirect("home")
 
 
-@csrf_exempt
 @login_required
 def add_friend(request):
     if request.method == "POST":
@@ -605,13 +607,11 @@ def add_friend(request):
         return JsonResponse({"status": "error", "message": "Method not valid"})
 
 
-@csrf_exempt
 @login_required
 def add_friend_view(request, user_id):
     return render(request, "add-friend.html", {"user_id": user_id})
 
 
-@csrf_exempt
 @login_required
 def remove_friend(request):
     if request.method == "POST":
@@ -650,7 +650,6 @@ def remove_friend(request):
     return JsonResponse({"status": "error", "message": "Method not valid"})
 
 
-@csrf_exempt
 @login_required
 def remove_friend_view(request, user_id):
     return render(request, "remove-friend.html", {"user_id": user_id})
@@ -678,6 +677,7 @@ def is_online(user_id):
     return False
 
 
+@login_required
 def online_users_view(request):
     if not request.user.is_authenticated:
         return JsonResponse(
@@ -723,7 +723,9 @@ def get_registered_users():
     return registered_user_profiles
 
 
+@login_required
 def registered_users_view(request):
+    logger.debug("Registered users view")
     if not request.user.is_authenticated:
         return JsonResponse(
             {

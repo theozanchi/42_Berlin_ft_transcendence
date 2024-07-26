@@ -86,10 +86,10 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
             # Update players with alias and channel name
             players = content.get("players", [])
-            updated_players = [
-                {"alias": player, "channel_name": self.channel_name}
-                for player in players
-            ]
+            updated_players = {
+                key: {**player, "channel_name": self.channel_name}
+                for key, player in players.items()
+            }
             content["players"] = updated_players
 
             player_ids = content.get("user_ids", [])
@@ -122,11 +122,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             content["channel_name"] = self.channel_name
 
             # Update players with alias and channel name
-            players = content.get("players", [])
-            updated_players = [
-                {"alias": player, "channel_name": self.channel_name}
-                for player in players
-            ]
+            players = content.get("players", {})
+            updated_players = {
+                key: {**player, "channel_name": self.channel_name}
+                for key, player in players.items()
+            }
             content["players"] = updated_players
 
             response = requests.post(
