@@ -188,7 +188,6 @@ const LogOutObserver = new MutationObserver(() => {
 			// Use an IIFE to handle the async operation
 			(async () => {
 				const userData = await getLoggedInState();
-				console.log('HELLO AGAIN');
 
 				if (userData && userData.user_id) { // Ensure userData and user_id are valid
 					logoutData.append('user_id', userData.user_id);

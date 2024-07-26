@@ -21,15 +21,15 @@ export async function setProfileImage(user_id) {
             const data = await response.json();
             if (data.player_data && data.player_data.avatar) {
 				console.log(data);
-                imageUrl = baseUrl + '/media/' + data.player_data.avatar;
+				imageUrl = baseUrl + '/media/' + data.player_data.avatar;
 				console.log(imageUrl);
-            }
-        } else {
-            throw new Error('Non-JSON response received');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
+			}
+		} else {
+			throw new Error('Non-JSON response received');
+		}
+	} catch (error) {
+		console.error('Error:', error);
+	}
     return imageUrl;
 }
 
