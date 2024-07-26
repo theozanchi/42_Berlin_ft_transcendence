@@ -14,11 +14,11 @@ class PlayerSerializer(serializers.ModelSerializer):
         fields = ['name', 'avatar', 'user_id', 'channel_name']
 
 class RoundSerializer(serializers.ModelSerializer):
-    player1 = PlayerSerializer(source="player1")
+    player1 = PlayerSerializer()
 
-    player2 = PlayerSerializer(source="player2")
+    player2 = PlayerSerializer()
 
-    winner = PlayerSerializer(source="winner", read_only=True)
+    winner = PlayerSerializer()
 
     class Meta:
         model = Round

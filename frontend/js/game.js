@@ -238,7 +238,7 @@ export async function init() {
 
     
     // Set the text content based on player_id
-    if (remote) {
+    if (remote == true) {
         // Create the text element
         const statusText = document.createElement('div');
         statusText.style.position = 'absolute';
@@ -253,7 +253,7 @@ export async function init() {
         statusText.style.fontWeight = 'bold';
         statusText.style.color = 'black';
         statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
-        
+
         if (player_id === 'spectator') {
             statusText.textContent = 'You are watching';
         } else {

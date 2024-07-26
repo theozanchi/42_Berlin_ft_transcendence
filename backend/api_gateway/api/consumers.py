@@ -186,7 +186,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 }
             )
             if round_info is not None:
-                # Send player id to pther players
+                # Send player id to other players
                 await self.channel_layer.group_send(
                     self.game_id, {"type": "get_player_id", "content": round_info}
                 )
