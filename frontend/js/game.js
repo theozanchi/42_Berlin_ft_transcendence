@@ -236,23 +236,24 @@ export async function init() {
 
     console.log('Initializing game... ROUND NUMBER: ', round_number);
 
-    // Create the text element
-    const statusText = document.createElement('div');
-    statusText.style.position = 'absolute';
-    statusText.style.top = '30px';
-    statusText.style.left = '50%';
-    statusText.style.transform = 'translateX(-50%)';
-    statusText.style.padding = '10px 20px';
-    statusText.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    statusText.style.borderRadius = '10px';
-    statusText.style.fontFamily = 'Arial, sans-serif';
-    statusText.style.fontSize = '18px';
-    statusText.style.fontWeight = 'bold';
-    statusText.style.color = 'black';
-    statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
-
+    
     // Set the text content based on player_id
     if (remote) {
+        // Create the text element
+        const statusText = document.createElement('div');
+        statusText.style.position = 'absolute';
+        statusText.style.top = '30px';
+        statusText.style.left = '50%';
+        statusText.style.transform = 'translateX(-50%)';
+        statusText.style.padding = '10px 20px';
+        statusText.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+        statusText.style.borderRadius = '10px';
+        statusText.style.fontFamily = 'Arial, sans-serif';
+        statusText.style.fontSize = '18px';
+        statusText.style.fontWeight = 'bold';
+        statusText.style.color = 'black';
+        statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
+        
         if (player_id === 'spectator') {
             statusText.textContent = 'You are watching';
         } else {
