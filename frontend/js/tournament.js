@@ -22,7 +22,7 @@ export function updateTournament(data) {
 }
 
 export function updatePlayingGameInfo(data) {
-	// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
+	console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
 
 	let player1name = document.getElementById('gameLivePlayer1Name');
 	let player2name = document.getElementById('gameLivePlayer2Name');
@@ -33,6 +33,7 @@ export function updatePlayingGameInfo(data) {
 	player2name.innerHTML = data.player2.name;
 	player1avatar.src = data.player1.avatar;
 	player2avatar.src = data.player2.avatar;
+
 }
 
 class GameTable extends HTMLElement {
