@@ -121,14 +121,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         try:
             content["channel_name"] = self.channel_name
 
-            # Update players with alias and channel name
-            players = content.get("players", {})
-            updated_players = {
-                key: {**player, "channel_name": self.channel_name}
-                for key, player in players.items()
-            }
-            content["players"] = updated_players
-
             response = requests.post(
                 GAME_MANAGER_REST_URL + "/join-game/",
                 json=content,

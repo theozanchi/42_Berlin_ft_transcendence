@@ -102,9 +102,8 @@ class Game(models.Model):
                 picture_url=player.get("avatar"),
             )
 
-    def add_existing_players_to_game(self, user):
-        player_to_add = Player.objects.get(user=user)
-        logging.debug("Adding player %s to game %s", player_to_add, self)
+    def add_existing_players_to_game(self, user, channel_name):
+        player_to_add = Player.objects.get(user=user, channel_name=channel_name)
         player_to_add.game = self  # Add a player to the game
         player_to_add.save()
 
