@@ -153,7 +153,6 @@ export async function sendJson(json) {
 function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
-	let playerNames = playerList.getPlayerNames();
 	let playerData = playerList.getPlayerData();
 	console.log(playerData);
 	
@@ -162,7 +161,7 @@ function generateLocalGame() {
 	data['game-mode'] = 'local';
 	
 	// Add players to JSON
-	//data.players = playerNames;
+	// data.players = playerNames;
 	data.players = playerData; // THIS SENDS AVATARS TO BACKEND
 
 	openSocket()

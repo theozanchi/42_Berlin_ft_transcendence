@@ -1,10 +1,16 @@
-import {getLoggedInState} from './login_signup.js';
+import {getLoggedInState, pongerAvatars} from './login_signup.js';
 import { urlRoute } from './url-router.js';
 
 
 export async function setProfileImage(user_id) {
     const baseUrl = new URL(document.location).origin;
-    let imageUrl = new URL('assets/avatar_blossom.png', baseUrl).toString();
+	let ranIndex = Math.floor(Math.random() * pongerAvatars.length);
+	console.log (ranIndex);
+	if (user_id)
+		ranIndex = +user_id % (pongerAvatars.length -1);
+    let randomImageFilename = pongerAvatars[ranIndex];
+	console.log (randomImageFilename);
+    let imageUrl = new URL(randomImageFilename, baseUrl).toString();
 
 	try {
 		const response = await fetch(`/api/user_mgt/profile/${user_id}`);
@@ -21,6 +27,7 @@ export async function setProfileImage(user_id) {
 	} catch (error) {
 		console.error('Error:', error);
 	}
+
     return imageUrl;
 }
 
@@ -186,7 +193,6 @@ const ProfileEditObserver = new MutationObserver(() => {
 		.then(response => response.json())
 		.then(data => {
 			// ProfileEditObserver.disconnect();
-			console.log(data.nickname)
 			userEditNickname.value = data.nickname;
 			// Use the data here
 			// console.log("USER DATA");
