@@ -10,7 +10,7 @@ document.addEventListener("click", (e) => {
 	if(!target.matches("nav a", "nav button")) {
 		return;
 	}
-	
+
 	e.preventDefault();
 	urlRoute();
 })
@@ -88,7 +88,11 @@ const urlRoutes = {
 		title: "Users",
 		description: "",
 	},
-	
+	"/oresult": {
+		template: "/oresult.html",
+		title: "Result",
+		description: "",
+	}
 }
 
 export const urlRoute = (eventOrUrl) => {
@@ -152,11 +156,11 @@ const urlLocationHandler = async () => {
 	let location = window.location.pathname;
 	console.log(`I AM HERE ${location}`)
 	// CLOSING SOCKET WHEN ROUTING
-	
+
 	if (["/game", "/host-remote", "/join-remote"].includes(location))
 		inGame = true;
 
-	if (location.length === 0) 
+	if (location.length === 0)
 		location = "/";
 	else
 		location = await redirectOnLogin(location);

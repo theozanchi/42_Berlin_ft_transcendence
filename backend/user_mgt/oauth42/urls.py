@@ -2,11 +2,8 @@
 
 from django.urls import path
 
-from .oauth import oauth_callback, oauth_login
-from .views import (add_friend, add_friend_view, delete_cookie, delete_profile,
-                    get_csrf_token, home, logout_user, online_users_view, profile, rankings, register,
-                    regular_login, remove_friend, remove_friend_view, update,
-                    who_am_i, registered_users_view)
+from .oauth import oauth_callback, oauth_login, get_oauth_result
+from .views import *
 
 urlpatterns = [
     path("api/user_mgt", home, name="home"),
@@ -36,4 +33,5 @@ urlpatterns = [
     path("api/user_mgt/me", who_am_i, name="me"),
     path("api/user_mgt/user_list", registered_users_view, name="user_list"),
     path("api/user_mgt/get-csrf-token/", get_csrf_token, name="get_csrf_token"),
+    path("api/user_mgt/oresult/", get_oauth_result, name="get_oauth_result"),
 ]
