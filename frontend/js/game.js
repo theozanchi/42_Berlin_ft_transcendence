@@ -237,7 +237,7 @@ export async function init() {
     console.log('Initializing game... ROUND NUMBER: ', round_number);
 
     
-    // Set the text content based on player_id
+    // Set the text content based on player_i
     if (remote == true) {
         // Create the text element
         const statusText = document.createElement('div');
@@ -259,10 +259,10 @@ export async function init() {
         } else {
             statusText.textContent = 'You are playing';
         }
+        // Append the text element to the canvas parent
+        canvasParent.appendChild(statusText);
     }
 
-    // Append the text element to the canvas parent
-    canvasParent.appendChild(statusText);
 
     // Create the scene
     scene = new THREE.Scene();
