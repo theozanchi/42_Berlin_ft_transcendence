@@ -16,7 +16,7 @@ async def test_websocket():
         # Step 1: Send create game message
         create_game_message = {
             "type": "create-game",
-            "game-mode": "local",
+            "mode": "local",
             "players": ["Player1", "Player2"]
         }
         await websocket.send(json.dumps(create_game_message))

@@ -22,6 +22,7 @@ export var newsocket;
 let openPromise;
 let messagePromise;
 let game_id;
+let is_host = false;
 
 // For game area
 export var gameStarted = false;
@@ -83,6 +84,7 @@ async function handleMessage(data) {
 		case 'create-game':
 			console.log('Game created:', data);
 			game_id = data.game_id;
+			is_host = true;
 			if (data.mode === 'local') {
 				urlRoute(`/game?id=${game_id}`);
 				sendJson(JSON.stringify({ type: 'start-game' }));
@@ -96,7 +98,7 @@ async function handleMessage(data) {
 			if (data.mode === 'remote') {
 				remote = true;
 				player_id = data.player_id;
-				console.log('Player ID:', player);
+				console.log('Player ID:', player_id);
 			}
 			gameStarted = true;
 			round_number = data.round_number;
@@ -127,6 +129,7 @@ async function handleMessage(data) {
 			break;
 
 		case 'round':
+			console.log('Round:', data);
 			switch (data.action) {
 				case 'new':
 					initTournament(data);
@@ -165,7 +168,7 @@ function generateLocalGame() {
 	
 	// Create data object with type key
 	let data = {type: 'create-game'}
-	data['game-mode'] = 'local';
+	data['mode'] = 'local';
 	
 	// Add players to JSON
 	//data.players = playerNames;
@@ -201,7 +204,7 @@ async function joinRemoteGame() {
 
 	const userId = await getCurrentUser();
 	
-	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', 'user_id': userId};
+	let data = {type: 'join-game', 'game_id': gameId, 'mode': 'remote', 'user_id': userId};
 
 	openSocket()
 	.then(() => {
@@ -218,7 +221,7 @@ async function joinRemoteGame() {
 async function hostRemoteGame() {	
 	// Create data object with type key
 	const userId = await getCurrentUser();
-	let data = {type: 'create-game', 'game-mode': 'remote', 'user_id': userId};
+	let data = {type: 'create-game', 'mode': 'remote', 'user_id': userId};
 
 	openSocket()
     .then(() => {
@@ -276,7 +279,11 @@ async function hostRemoteGame() {
 				myElement.addEventListener('click', (event) => {
 					// urlRoute('/game');
 					event.preventDefault();
-					sendJson(JSON.stringify({ type: 'start-game' }));
+					if (is_host) {
+						sendJson(JSON.stringify({ type: 'start-game' }));
+					} else {
+						alert('Only the host can start the game.');
+					}
 				});
 			};
 

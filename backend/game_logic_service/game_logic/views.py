@@ -32,50 +32,51 @@ GAME_MANAGER_REST_URL = "http://game_manager:8000"
 @permission_classes([AllowAny])
 @api_view(["POST"])
 def game_update(request):
+    logging.debug("Game update request received")
     try:
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get("game_id")
 
-        #if not(new_game_state.get('ballIsHeld')) : print("ballisheld: ", new_game_state.get('ballIsHeld'))
-        #serializer = GameStateSerializer(data=new_game_state)
-        #if not serializer.is_valid():
-        #    return JsonResponse(serializer.errors, status=400)
- 
         if game_id is None:
             return JsonResponse({"error": "Missing game-ID"}, status=400)
         
-        cached_game_state = cache.get(game_id)
-        # Check if cached game is the same round as the new game state
-        if cached_game_state is not None and new_game_state.get(
-            "round_number"
-        ) == cached_game_state.get("round_number"):
-            if cached_game_state.get("gameOver") == True:
-                return JsonResponse({"error": "Game over"}, safe=False, status=200)
-            game_state = cached_game_state
-        else:
-            game_state = create_new_game_state(
-                game_id, new_game_state.get("round_number")
-            )
+        with game_update_lock:
+            cached_game_state = cache.get(game_id)
+            current_time = time.time()
+
+            # Check if cached game is the same round as the new game state
+            if cached_game_state is not None and new_game_state.get(
+                "round_number"
+            ) == cached_game_state.get("round_number"):
+                if cached_game_state.get("gameOver") == True:
+                    return JsonResponse({"error": "Game over"}, safe=False, status=200)
+                game_state = cached_game_state
+            else:
+                game_state = create_new_game_state(
+                    game_id, new_game_state.get("round_number")
+                )
+                cache.set(game_id, game_state, timeout=30)
+                logging.info(
+                    f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}\n'
+                )
+
+            if new_game_state:
+                game_state.update(new_game_state)
+
+            # Perform game logic
+            update_game_state(game_state)
+
+            last_update_time = current_time
+
             cache.set(game_id, game_state, timeout=30)
-            logging.info(
-                f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}\n'
-            )
 
-        if new_game_state:
-            game_state.update(new_game_state)
+            game_state["type"] = "update"
 
-        # Perform game logic
-        update_game_state(game_state)
-
-        cache.set(game_id, game_state, timeout=30)
-
-        game_state["type"] = "update"
-
-        if (
-            game_state["player1Score"] >= WINNER_SCORE
-            or game_state["player2Score"] >= WINNER_SCORE
-        ):
-            game_state = handle_game_over(game_state, game_id, request.headers)
+            if (
+                game_state["player1Score"] >= WINNER_SCORE
+                or game_state["player2Score"] >= WINNER_SCORE
+            ):
+                game_state = handle_game_over(game_state, game_id, request.headers)
 
         return JsonResponse(game_state, safe=False, status=200)
 

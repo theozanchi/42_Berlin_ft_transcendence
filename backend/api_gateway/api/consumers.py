@@ -42,13 +42,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.game_id,
                 {
-                    'type': 'broadcast',
-                    'content': 
-                    {
-                        'type': 'game',
-                        'content': response.json()
-                    }
-                }
+                    "type": "broadcast",
+                    "content": {"type": "game", "content": response.json()},
+                },
             )
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
         await self.close(close_code)
@@ -71,26 +67,26 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({"error": 'Invalid "type" or missing "type" in json'})
 
     def get_headers(self):
-        return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.scope['headers']}
-    
-    async def broadcast(self, event):
-        content = event.get('content')
-        logging.debug('broadcasting: ' + str(content))
-        await self.send_json(content)
+        return {k.decode("utf-8"): v.decode("utf-8") for k, v in self.scope["headers"]}
 
+    async def broadcast(self, event):
+        content = event.get("content")
+        logging.debug("broadcasting: " + str(content))
+        await self.send_json(content)
 
     # TO DO: if local game, start it immediately
     async def create_game(self, content):
         try:
             content["channel_name"] = self.channel_name
-
+            logging.debug("Creating game: " + str(content))
             # Update players with alias and channel name
-            players = content.get("players", [])
-            updated_players = [
-                {"alias": player, "channel_name": self.channel_name}
-                for player in players
-            ]
-            content["players"] = updated_players
+            if content["mode"] == "local":
+                players = content.get("players", [])
+                updated_players = {
+                    key: {**player, "channel_name": self.channel_name}
+                    for key, player in players.items()
+                }
+                content["players"] = updated_players
 
             player_ids = content.get("user_ids", [])
             updated_ids = [
@@ -121,14 +117,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         try:
             content["channel_name"] = self.channel_name
 
-            # Update players with alias and channel name
-            players = content.get("players", [])
-            updated_players = [
-                {"alias": player, "channel_name": self.channel_name}
-                for player in players
-            ]
-            content["players"] = updated_players
-
             response = requests.post(
                 GAME_MANAGER_REST_URL + "/join-game/",
                 json=content,
@@ -145,13 +133,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.game_id,
                 {
-                    'type': 'broadcast',
-                    'content':
-                    {
-                        'type': 'new-player',
-                        'content': response.json()
-                    }
-                }
+                    "type": "broadcast",
+                    "content": {"type": "new-player", "content": response.json()},
+                },
             )
 
         except requests.RequestException as e:
@@ -183,17 +167,16 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.game_id,
                 {
-                    'type': 'broadcast',
-                    'content':
-                    {
-                        'type': 'round',
-                        'action': 'new',
-                        'content': response.json()
-                    }
-                }
+                    "type": "broadcast",
+                    "content": {
+                        "type": "round",
+                        "action": "new",
+                        "content": response.json(),
+                    },
+                },
             )
             if round_info is not None:
-                # Send player id to pther players
+                # Send player id to other players
                 await self.channel_layer.group_send(
                     self.game_id, {"type": "get_player_id", "content": round_info}
                 )
@@ -206,15 +189,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         data = content.get("content")
         self.round_number = data.get("round_number")
         if self.mode == "remote":
-            player1_channel = data.get("player1_channel_name")
-            player2_channel = data.get("player2_channel_name")
+            player1_channel = data.get("player1", {}).get("channel_name")
+            player2_channel = data.get("player2", {}).get("channel_name")
+            self.player_id = (
+                "player1"
+                if player1_channel == self.channel_name
+                else "player2" if player2_channel == self.channel_name 
+                else "spectator"
+            )
 
-            if player1_channel == self.channel_name:
-                self.player_id = "player1"
-            elif player2_channel == self.channel_name:
-                self.player_id = "player2"
-            else:
-                self.player_id = "spectator"
         else:
             self.player_id = None
         await self.send_json(
@@ -231,7 +214,11 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             return
 
         self.last_sent_state = content
-        if self.mode == 'remote' and self.player_id != "player1" and self.player_id != "player2":
+        if (
+            self.mode == "remote"
+            and self.player_id != "player1"
+            and self.player_id != "player2"
+        ):
             await self.send_json({"error": "Not your turn"})
         try:
             async with self.lock:
@@ -246,7 +233,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 await self.channel_layer.group_send(
                     self.game_id, {"type": "update", "content": response.json()}
                 )
-                # await self.send_json({'type': 'update', 'content': content})
 
         except Exception as e:
             await self.send_json({"error": str(e)})
@@ -255,4 +241,3 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def update(self, content):
         async with self.lock:
             await self.send_json(content)
-
