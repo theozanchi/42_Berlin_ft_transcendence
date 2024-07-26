@@ -83,14 +83,15 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def create_game(self, content):
         try:
             content["channel_name"] = self.channel_name
-
+            logging.debug("Creating game: " + str(content))
             # Update players with alias and channel name
-            players = content.get("players", [])
-            updated_players = [
-                {"alias": player, "channel_name": self.channel_name}
-                for player in players
-            ]
-            content["players"] = updated_players
+            if content["mode"] == "local":
+                players = content.get("players", [])
+                updated_players = {
+                    key: {**player, "channel_name": self.channel_name}
+                    for key, player in players.items()
+                }
+                content["players"] = updated_players
 
             player_ids = content.get("user_ids", [])
             updated_ids = [
@@ -120,14 +121,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def join_game(self, content):
         try:
             content["channel_name"] = self.channel_name
-
-            # Update players with alias and channel name
-            players = content.get("players", [])
-            updated_players = [
-                {"alias": player, "channel_name": self.channel_name}
-                for player in players
-            ]
-            content["players"] = updated_players
 
             response = requests.post(
                 GAME_MANAGER_REST_URL + "/join-game/",

@@ -79,9 +79,8 @@ function handleMessage(data) {
 			break;
 		
 		case 'create-game':
-			console.log
+			console.log('Game created:', data);
 			game_id = data.game_id;
-			console.log('Game ID:', game_id);
 			if (data.mode === 'local') {
 				urlRoute(`/game?id=${game_id}`);
 				sendJson(JSON.stringify({ type: 'start-game' }));
@@ -109,9 +108,7 @@ function handleMessage(data) {
 			if (data.content.gameOver === true) {
 				console.log('Round Over. Winner is: ', data.content.winner);
 				player_id = null;
-				//unloadLocalGame();
 				// Start next round
-				displayScore(data.content);
 
 				gameStarted = false;
 				//createStartButton();
@@ -157,13 +154,16 @@ function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
 	let playerNames = playerList.getPlayerNames();
+	let playerData = playerList.getPlayerData();
+	console.log(playerData);
 	
 	// Create data object with type key
 	let data = {type: 'create-game'}
-	data['game-mode'] = 'local';
+	data['mode'] = 'local';
 	
 	// Add players to JSON
-	data.players = playerNames;
+	//data.players = playerNames;
+	data.players = playerData; // THIS SENDS AVATARS TO BACKEND
 
 	openSocket()
     .then(() => {
@@ -173,29 +173,6 @@ function generateLocalGame() {
     .catch(error => {
         console.error('Failed to open WebSocket connection:', error);
     });
-}
-
-function loadLocalGame() {
-/* 	if (!gameStarted) {
-		console.error('Game not started yet!');
-		return;
-	}
-
-	// Get the game area element
-    const gameArea = document.getElementById('game-column');
-
-    // Create and append the script
-    let script = document.createElement('script');
-    script.type = 'module';
-    script.src = './js/game.js';
-    gameArea.appendChild(script);
-
-    // Create and append the canvas
-    let canvas = document.createElement('canvas');
-    canvas.id = 'bg';
-    gameArea.appendChild(canvas); */
-	//init();
-	return;
 }
 
 async function getCurrentUser() {
@@ -218,7 +195,7 @@ async function joinRemoteGame() {
 
 	const userId = await getCurrentUser();
 	
-	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', 'user_id': userId};
+	let data = {type: 'join-game', 'game_id': gameId, 'mode': 'remote', 'user_id': userId};
 
 	openSocket()
 	.then(() => {
@@ -235,7 +212,7 @@ async function joinRemoteGame() {
 async function hostRemoteGame() {	
 	// Create data object with type key
 	const userId = await getCurrentUser();
-	let data = {type: 'create-game', 'game-mode': 'remote', 'user_id': userId};
+	let data = {type: 'create-game', 'mode': 'remote', 'user_id': userId};
 
 	openSocket()
     .then(() => {

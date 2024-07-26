@@ -252,10 +252,12 @@ export async function init() {
     statusText.style.zIndex = '1000'; // Ensure it is on top of the canvas
 
     // Set the text content based on player_id
-    if (player_id === 'spectator') {
-        statusText.textContent = 'You are watching';
-    } else {
-        statusText.textContent = 'You are playing';
+    if (remote) {
+        if (player_id === 'spectator') {
+            statusText.textContent = 'You are watching';
+        } else {
+            statusText.textContent = 'You are playing';
+        }
     }
 
     // Append the text element to the canvas parent

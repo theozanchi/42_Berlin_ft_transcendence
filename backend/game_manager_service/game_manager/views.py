@@ -31,14 +31,14 @@ def create_game(request):
         if game.mode == 'remote':
             user_id = request.data.get('user_id')
             user = User.objects.get(pk=user_id)
-            game.add_existing_players_to_game(user)
+            game.add_existing_players_to_game(user, request.data.get('channel_name'))
         else:
             game.create_players_for_game(request.data)
         game.save()
 
-        logging.debug("creating new game: %s", game)
 
         serializer = GameSerializer(game)
+        logging.debug("creating new game: %s", serializer.data)
         return Response(serializer.data, status=200)
 
     except KeyError as e:
@@ -57,14 +57,13 @@ def join_game(request):
         
         user_id = request.data.get('user_id')
         user = User.objects.get(pk=user_id)
-        logging.debug("User: %s", user.username)
 
         if Player.objects.filter(game=game, user=user).exists():
             return Response({'error': 'Player already in game.'}, status=403)
         if not user.is_authenticated:
             return Response({'error': 'User not authenticated.'}, status=403)
         else:
-            game.add_existing_players_to_game(user)
+            game.add_existing_players_to_game(user, request.data.get('channel_name'))
 
         game.save()
 
