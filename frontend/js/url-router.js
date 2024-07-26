@@ -123,7 +123,7 @@ async function redirectOnLogin(locationOld){
 		if (location === "/profile" && !urlQuery.has('user')) {
 			location = "/login";
 			window.history.replaceState({}, "", location);
-		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile") {
+		} else if (location === "/setup-remote" || location === "/join-remote" || location === "/edit-profile" || location === "/game-history") {
 			location = "/login";
 			window.history.replaceState({}, "", location);
 		}
