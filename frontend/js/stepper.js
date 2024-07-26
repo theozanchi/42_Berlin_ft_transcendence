@@ -159,7 +159,7 @@ function generateLocalGame() {
 	
 	// Create data object with type key
 	let data = {type: 'create-game'}
-	data['game-mode'] = 'local';
+	data['mode'] = 'local';
 	
 	// Add players to JSON
 	//data.players = playerNames;
@@ -195,7 +195,7 @@ async function joinRemoteGame() {
 
 	const userId = await getCurrentUser();
 	
-	let data = {type: 'join-game', 'game_id': gameId, 'game-mode': 'remote', 'user_id': userId};
+	let data = {type: 'join-game', 'game_id': gameId, 'mode': 'remote', 'user_id': userId};
 
 	openSocket()
 	.then(() => {
@@ -212,7 +212,7 @@ async function joinRemoteGame() {
 async function hostRemoteGame() {	
 	// Create data object with type key
 	const userId = await getCurrentUser();
-	let data = {type: 'create-game', 'game-mode': 'remote', 'user_id': userId};
+	let data = {type: 'create-game', 'mode': 'remote', 'user_id': userId};
 
 	openSocket()
     .then(() => {

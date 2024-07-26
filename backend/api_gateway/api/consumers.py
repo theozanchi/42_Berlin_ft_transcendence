@@ -83,7 +83,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
     async def create_game(self, content):
         try:
             content["channel_name"] = self.channel_name
-
+            logging.debug("Creating game: " + str(content))
             # Update players with alias and channel name
             if content["mode"] == "local":
                 players = content.get("players", [])
