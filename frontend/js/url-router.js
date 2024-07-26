@@ -83,6 +83,11 @@ const urlRoutes = {
 		title: "Users",
 		description: "",
 	},
+	"/game-history": {
+		template: "/profile-history.html",
+		title: "Users",
+		description: "",
+	},
 	
 }
 
