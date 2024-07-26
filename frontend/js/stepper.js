@@ -4,7 +4,7 @@
 	// VIEW TO EDIT SETTINGS
 	// PROCCEED/START BUTTON
 
-import { init, animate, resetGame, updateGameState, displayScore } from './game.js';
+import { init, updateGameState, displayScore } from './game.js';
 
 import { initTournament, updateTournament } from './tournament.js';
 
@@ -13,6 +13,8 @@ import { urlRoute } from './url-router.js';
 import { updatePlayingGameInfo } from './tournament.js';
 
 import { setGameID } from './lobby.js';
+
+import { replacePlayerList } from './player_list.js';
 
 // import { startGameButton } from './lobby.js';
 
@@ -66,7 +68,7 @@ export function openSocket() {
 	}
 }
 
-function handleMessage(data) {
+async function handleMessage(data) {
 	switch (data.type) {	
 		case 'broadcast':
 			console.log('Broadcast:', data);
@@ -86,7 +88,7 @@ function handleMessage(data) {
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			} else {
 				urlRoute(`/host-remote?id=${game_id}`);
-				// setGameID();
+				await replacePlayerList(data.users);
 			}
 			break;
 		
@@ -136,6 +138,10 @@ function handleMessage(data) {
 			let startedRound = data.content.find(round => round.status === 'started');
 			if (startedRound)
 				updatePlayingGameInfo(startedRound);
+			break;
+
+		case 'new-player':
+			await replacePlayerList(data.content.users);
 			break;
 	}
 }

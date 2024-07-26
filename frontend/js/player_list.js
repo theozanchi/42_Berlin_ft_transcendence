@@ -3,6 +3,8 @@
 	// LIST OF PLAYER-COMPONENT
 	// ADD PLAYER BUTTON (OPTIONAL)
 
+import { setProfileImage } from "./profile.js";
+
 import { pongerAvatars, PongerChars } from "./login_signup.js";
 
 class PlayerList extends HTMLElement {
@@ -106,20 +108,6 @@ class PlayerList extends HTMLElement {
 		return playerNames;
 	}
 
-	addRemotePlayer(playerData) {
-		let playerList = this.shadow.getElementById('player-list');
-		let newPlayer = document.createElement('player-component');
-		let separator = document.createElement('hr');
-		separator.style.margin = '6px';
-
-		newPlayer.setAttribute('name', playerData.name);
-		newPlayer.setAttribute('avatar', playerData.avatar);
-		newPlayer.setAttribute('disabled', '');
-
-		playerList.appendChild(separator);
-		playerList.appendChild(newPlayer);
-	}
-
 	render() {
 		this.gameMode = this.getAttribute('mode');
 		console.log(`rendering list`)
@@ -158,3 +146,29 @@ class PlayerList extends HTMLElement {
 }
 
 customElements.define('player-list', PlayerList);
+
+export async function replacePlayerList(usersArray) {
+	let playerList = document.getElementById('list-of-players');
+	if (playerList) {
+		while (playerList.firstChild) {
+			playerList.removeChild(playerList.firstChild);
+		}
+
+		for (const playerData of usersArray) {
+			let newPlayer = document.createElement('player-component');
+			let separator = document.createElement('hr');
+			separator.style.margin = '6px';
+
+			const avatar = await setProfileImage(playerData.user_id);
+
+			newPlayer.setAttribute('name', playerData.username);
+			newPlayer.setAttribute('avatar', avatar);
+
+			// Append the new player component to the last player-component's parent
+			playerList.appendChild(separator);
+			playerList.appendChild(newPlayer);
+		}
+	} else {
+		console.error('No list-of-players found');
+	}
+}
