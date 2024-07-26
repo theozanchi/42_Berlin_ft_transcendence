@@ -101,6 +101,7 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
+	console.log(`pushing this: ${url}`)
 	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }

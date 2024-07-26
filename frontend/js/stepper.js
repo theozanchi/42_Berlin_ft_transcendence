@@ -221,7 +221,6 @@ async function hostRemoteGame() {
 
 	openSocket()
     .then(() => {
-		urlRoute("/host-remote");
         var json = JSON.stringify(data);
 		console.log('Sending JSON:', data);
         sendJson(json);
@@ -273,7 +272,7 @@ async function hostRemoteGame() {
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
-					// urlRoute('/game');
+					urlRoute('/game');
 					event.preventDefault();
 					sendJson(JSON.stringify({ type: 'start-game' }));
 				});
