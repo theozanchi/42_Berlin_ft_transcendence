@@ -3,7 +3,7 @@ import {getLoggedInState} from './login_signup.js';
 import {loadUserList} from './all-users.js';
 import {loadProfileData, updateProfileData} from './profile.js'
 import { newsocket, getCurrentUser, openSocket, sendJson } from './stepper.js';
-import { resetGame } from "./game.js"
+import { resetGame, gifBackground, winnerText } from "./game.js"
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
@@ -160,12 +160,16 @@ const urlLocationHandler = async () => {
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
 
-	if (inGame && location !== '/game') {
+	if (gifBackground && winnerText) {
+		gifBackground.remove();
+		winnerText.remove();
+	}
+	if (inGame && location !== '/game' && (newsocket && newsocket.readyState === WebSocket.OPEN)) {
 		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
 		if (userConfirmation){
 			if (newsocket && newsocket.readyState === WebSocket.OPEN)
+				resetGame();
 				newsocket.close();
-			resetGame();
 			inGame = false;
 		} else {
 			inGame = false;
