@@ -11,7 +11,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .exceptions import InsufficientPlayersError
-from .serialize import GameSerializer, RoundSerializer
+from .serialize import GameSerializer, RoundSerializer, PlayerSerializer
 from django.core.exceptions import ValidationError
 import logging
 from .exceptions import InsufficientPlayersError
@@ -168,14 +168,17 @@ def round(request):
             rounds = Round.objects.filter(game=game).order_by('round_number')
 
             serializer = RoundSerializer(rounds, many=True)
-            logging.debug("Round to play: %s", serializer.data)
-            return JsonResponse(serializer.data, safe=False, status=200)
+            return JsonResponse(
+                {"type": "round", 
+                 "content": serializer.data}, 
+                 safe=False, status=200)
         else:
             if game.winner:
+                serializer = PlayerSerializer(game.winner)
                 return JsonResponse(
-                    {"message": "tournament-over", "winner": game.winner.alias},
-                    status=200,
-                )
+                    {"type": "tournament-over", 
+                     "content": serializer.data},
+                   safe=False, status=200)
             return JsonResponse({"message": "No rounds to play."}, status=403)
 
     except InsufficientPlayersError as e:

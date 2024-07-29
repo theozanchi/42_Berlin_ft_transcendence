@@ -22,6 +22,18 @@ function getCSRFToken() {
 	return localStorage.getItem('csrftoken');
 }
 
+function handleOAuthResponse(data) {
+	console.log('Response:', data);
+	if (data.status === 'success') {
+		console.log('Success:', data.message);
+		urlRoute('/');
+	} else {
+		alert('42 login failed.');
+		console.error('Error:', data.message);
+		alert(data.message);
+	}
+}
+
 export { fetchCSRFToken, getCSRFToken };
 
 //FUNCTION THAT RETURNS THE LOGGED IN STATE OF CLIENT
@@ -47,7 +59,29 @@ const LogInObserver = new MutationObserver(() => {
 	const loginPassword = document.getElementById('loginPassword');
 	const loginButton = document.getElementById('loginUserButton');
 	const loginForm = document.getElementById('loginForm');
+	const login42SSOButton = document.getElementById('login42SSOButton');
+	const login42oresult = window.location.pathname == '/oresult';
 	const formData = new FormData();
+
+	if (login42SSOButton) {
+		login42SSOButton.addEventListener('click', async function (e) {
+			console.log("LOGIN42SSO BUTTON CLICKED");
+			e.preventDefault();
+			window.location.href = "https://localhost:8443/api/user_mgt/oauth/login/";
+
+		});
+	};
+
+	if (login42oresult) {
+		console.log("LOGIN42SSO RESULT");
+		fetch("/api/user_mgt/oresult")
+			.then(response => response.json())
+			.then(data => {
+				handleOAuthResponse(data);
+				history.replaceState(null, null, '/');
+			})
+			.catch(error => console.error("Error:", error));
+	}
 
 	if (loginUser && loginPassword && loginButton) {
 		function validateForm() {
@@ -153,14 +187,17 @@ const signupObserver = new MutationObserver(() => {
 				console.log (`IMAGE: ${imageFile}`);
 				formData.append('image', imageFile);
 			}
-
+			getCSRFToken();
+			console.log("CSRF TOKEN in register: ", getCSRFToken());
 			fetch('/api/user_mgt/register/', {
 				method: 'POST',
 				body: formData,
+				credentials: 'include',
 				headers: {
 					'X-CSRFToken': getCSRFToken(),
-				}
+				},
 			})
+
 				.then(response => {
 					// Check if the response is ok and content type is JSON
 					if (response.ok && response.headers.get('Content-Type').includes('application/json')) {

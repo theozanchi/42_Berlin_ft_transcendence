@@ -15,12 +15,10 @@ Including another URLconf
 """
 
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from game_logic import routing, urls
+from game_logic import urls
 
 urlpatterns = [
     path("", include(urls)),
-    path("ws/", include(routing.websocket_urlpatterns)),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]

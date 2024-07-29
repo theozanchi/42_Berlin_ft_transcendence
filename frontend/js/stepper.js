@@ -4,7 +4,7 @@
 	// VIEW TO EDIT SETTINGS
 	// PROCCEED/START BUTTON
 
-import { init, updateGameState, displayScore } from './game.js';
+import { init, updateGameState, displayWinner } from './game.js';
 
 import { initTournament, updateTournament } from './tournament.js';
 
@@ -73,18 +73,9 @@ async function handleMessage(data) {
 	switch (data.type) {	
 		case 'broadcast':
 			console.log('Broadcast:', data);
-
-			if (data.content.message === 'tournament-over') {
-				console.log('Game Over. Winner is: ' + data.content.winner);
-				newsocket.close();
-				displayScore(data.content.winner);
-				alert('Game Over. Winner is: ' + data.content.winner);
-				urlRoute('/')
-			}
 			break;
 		
 		case 'create-game':
-			console.log('Game created:', data);
 			game_id = data.game_id;
 			is_host = true;
 			if (data.mode === 'local') {
@@ -105,7 +96,6 @@ async function handleMessage(data) {
 			}
 			gameStarted = true;
 			round_number = data.round_number;
-			console.log('Game started! round number:', round_number);
 			init();
 			break;
 		
@@ -113,17 +103,12 @@ async function handleMessage(data) {
 			if (gameStarted === false)
 				return;
 			if (data.content.gameOver === true) {
-				console.log('Round Over. Winner is: ', data.content.winner);
 				player_id = null;
-				// Start next round
-
 				gameStarted = false;
-				//createStartButton();
 				if (gameStarted) {
 					console.log('Game already started!');
 					return;
 				}
-				console.log('SENDING Starting game...');
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			}
 			else {
@@ -132,7 +117,6 @@ async function handleMessage(data) {
 			break;
 
 		case 'round':
-			console.log('Round:', data);
 			switch (data.action) {
 				case 'new':
 					urlRoute('/game')
@@ -154,6 +138,17 @@ async function handleMessage(data) {
 				startRemoteButton.removeAttribute('disabled');
 			}
 			break;
+		
+		case 'player-left':
+			//console.log('Player left:', data);
+			await replacePlayerList(data.content.users);
+			break;
+
+		case 'tournament-over': {
+			newsocket.close();
+			console.log('Tournament over:', data);
+			displayWinner(data.content);
+		}
 	}
 }
 

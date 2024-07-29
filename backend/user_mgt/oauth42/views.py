@@ -1,10 +1,8 @@
-# oauth42/views.py
-
 import re
+import bleach
 
 import requests
 import logging
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -15,8 +13,9 @@ from django.core.files.base import ContentFile
 from django.db.models import F, Sum
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.html import escape
 from django.views.decorators.csrf import ensure_csrf_cookie
 from PIL import Image
 
@@ -51,12 +50,6 @@ def save_avatar_from_url(user_profile, url):
         logging.debug(f"Unexpected error occurred: {e}")
 
 
-def home(request):
-    if request.user.is_authenticated:
-        return render(request, "oauth42/home.html", {"user": request.user})
-    return render(request, "oauth42/home.html")
-
-
 def logout_user(request):
     if request.method == "POST":
         user_id = request.POST.get("user_id")
@@ -83,15 +76,6 @@ def logout_user(request):
     )
 
 
-def delete_cookie(request):
-    if request.method == "POST":
-        logout(request)
-        request.session.flush()
-        response = redirect("/")
-        response.delete_cookie(settings.SESSION_COOKIE_NAME)
-        return response
-
-
 def is_valid_image(image):
 
     try:
@@ -103,30 +87,27 @@ def is_valid_image(image):
 
 
 def upload_avatar(request, user_id):
-    if request.method == "POST":
-        try:
-            user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "User not found"})
-        user_profile, created = UserProfile.objects.get_or_create(user=user)
-        avatar = request.FILES.get("image")
-        is_valid = is_valid_image(avatar)
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "User no found"})
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+    avatar = request.FILES.get("image")
+    is_valid = is_valid_image(avatar)
 
-        if avatar and is_valid:
-            user_profile.avatar = avatar
-            user_profile.save()
-            return {
-                "status": "success",
-                "message": "Avatar uploaded successfully",
-                "avatar": user_profile.avatar,
-            }
-        else:
-            return {
-                "status": "error",
-                "message": "No valid uploaded avatar image found",
-            }
+    if avatar and is_valid:
+        user_profile.avatar = avatar
+        user_profile.save()
+        return {
+            "status": "success",
+            "message": "Avatar uploaded successfully",
+            "avatar": user_profile.avatar,
+        }
     else:
-        return {"status": "error", "message": "Method not allowed"}
+        return {
+            "status": "error",
+            "message": "No valid uploaded avatar image found",
+        }
 
 
 def delete_avatar(request, user_id):
@@ -198,26 +179,35 @@ def update_avatar(request, user_id):
         return {"status": "error", "message": "Method not allowed"}
 
 
-def sanitize_input(username=None, password=None, image=None):
+def sanitize_input(username=None, password=None, image=None, input_check=True):
 
     errors = []
 
     if username is not None:
-        username = username.strip()
-        username = re.sub(r"[^\w\s-]", "", username)
-        if len(username) > 50:
+        sanitized_username = bleach.clean(username.strip())
+        sanitized_username = re.sub(r"[^\w\s-]", "", sanitized_username)
+        sanitized_username = escape(sanitized_username)
+        if sanitized_username != username:
+            errors.append(f"The potentially malicious username is rejected. Use only letters, numbers and dashes. '{username}' vs. '{sanitized_username}'")
+        if sanitized_username.lower() == "admin":
+            errors.append(f"Username cannot be '{sanitized_username}' ")
+        if input_check and len(sanitized_username) > 50:
             errors.append("Username cannot be longer than 50 characters")
 
     if password is not None:
-        password = password.strip()
-        if len(password) < 8:
+        sanitized_password = bleach.clean(password.strip())
+        sanitized_password = re.sub(r"[^\w\s-]", "", sanitized_password)
+        sanitized_password = escape(sanitized_password)
+        if sanitized_password != password:
+            errors.append(f"The potentially malicious password is rejected. Use only letters, numbers and dashes. '{password}' vs. '{sanitized_password}'")
+        if input_check and len(sanitized_password) < 8:
             errors.append("Password must be at least 8 characters long")
-        if not any(c.isdigit() for c in password) or not any(
-            c.isalpha() for c in password
+        if (
+            input_check
+            and not any(c.isdigit() for c in sanitized_password)
+            or not any(c.isalpha() for c in sanitized_password)
         ):
-            errors.append(
-                "Password must contain at least one letter and one number and be at least 8 characters long"
-            )
+            errors.append("Password must contain at least one letter and one number.")
 
     if image is not None:
         allowed_types = ["image/jpeg", "image/png"]
@@ -235,9 +225,8 @@ def sanitize_input(username=None, password=None, image=None):
     else:
         return {
             "status": "success",
-            "username": username,
-            "password": password,
-            "image": image,
+            "username": sanitized_username,
+            "password": sanitized_password,
         }, 200
 
 
@@ -248,12 +237,20 @@ def register(request):
         image = request.FILES.get("image")
 
         sanitized_data, status_code = sanitize_input(username, password, image)
+        logger.info(f"Sanitized data status_code: {status_code}")
         if status_code != 200:
+            # sanitized_data.pop("image", None)
             return JsonResponse({"status": "error", "message": sanitized_data})
+        logger.info(f"Sanitized data: {sanitized_data}")
 
         username = sanitized_data["username"]
         password = sanitized_data["password"]
-        image = sanitized_data["image"]
+
+        if username == password:
+            return JsonResponse(
+                {"status": "error", "message": "Username and password cannot be the same."},
+                status=200,
+            )
 
         if User.objects.filter(username=username).exists():
             return JsonResponse(
@@ -276,16 +273,15 @@ def register(request):
         )
         response_data = {
             "status": "success",
-            "message": "User created successfully.",
+            "message": f"User '{user.username}' created successfully.",
             "user_id": user.id,
             "username": user.username,
             "provided_password": bool(password),
             "provided_avatar": bool(image),
         }
-
         if image:
             avatar_status = upload_avatar(request, user.id)
-            response_data.update(avatar_status)
+            # response_data.update(avatar_status)
 
         login(request, user)
         return JsonResponse(response_data, status=200)
@@ -506,6 +502,14 @@ def profile(request, user_id):
 
 
 def who_am_i(request):
+    if request.user.id == 1:
+        logout(request)
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User is not logged in.",
+            }
+        )
     if not request.user.is_authenticated:
         return JsonResponse({"status": "error", "message": "User is not logged in."})
     if request.user.is_authenticated:
@@ -530,7 +534,7 @@ def regular_login(request):
         password = request.POST.get("password")
 
         sanitized_data, status_code = sanitize_input(
-            username=username, password=password
+            username=username, password=password, input_check=False
         )
         if status_code != 200:
             return JsonResponse({"status": "error", "message": sanitized_data})
@@ -553,7 +557,7 @@ def regular_login(request):
 @ensure_csrf_cookie
 def get_csrf_token(request):
     token = get_token(request)
-    logger.info("New CSRF token set: %s", token)
+
     return JsonResponse({"csrfToken": token})
 
 
@@ -608,11 +612,6 @@ def add_friend(request):
 
 
 @login_required
-def add_friend_view(request, user_id):
-    return render(request, "add-friend.html", {"user_id": user_id})
-
-
-@login_required
 def remove_friend(request):
     if request.method == "POST":
         user_id = request.headers.get("friend")
@@ -648,11 +647,6 @@ def remove_friend(request):
             {"status": "info", "message": "This user was not your friend."}
         )
     return JsonResponse({"status": "error", "message": "Method not valid"})
-
-
-@login_required
-def remove_friend_view(request, user_id):
-    return render(request, "remove-friend.html", {"user_id": user_id})
 
 
 def get_online_users():
