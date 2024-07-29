@@ -57,10 +57,15 @@ MEDIA_ROOT = "/usr/share/media"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_DOMAIN = ".42berlin.de"
+
+CSRF_USE_SESSIONS = False
+
+CSRF_COOKIE_SECURE = True # Lax
 CSRF_COOKIE_DOMAIN = ".42berlin.de"
 CSRF_TRUSTED_ORIGINS = [
     'localhost:8443',
@@ -70,7 +75,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_DOMAIN = ".42berlin.de"
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
@@ -80,9 +85,7 @@ CORS_ALLOWED_ORIGINS = [
     # '*.42berlin.de:8443',
     ]
 
-CSRF_USE_SESSIONS = True
 
-CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

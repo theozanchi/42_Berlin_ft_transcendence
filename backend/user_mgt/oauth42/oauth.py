@@ -13,17 +13,18 @@ from .models import User, UserProfile
 
 logger = logging.getLogger(__name__)
 
+
 def get_redirect_uri(request: HttpRequest) -> str:
-    redirect_uri = request.build_absolute_uri('/api/user_mgt/oauth/callback/').replace('443', os.getenv('SPORT'))
-    #redirect_uri = "https://c3a7c3.42berlin.de/api/user_mgt/oauth/callback/"
+    # redirect_uri = request.build_absolute_uri('/api/user_mgt/oauth/callback/').replace('443', os.getenv('SPORT'))
+    redirect_uri = f"{request.scheme}://{os.getenv('SERVER_NAME')}:{os.getenv('SPORT')}/api/user_mgt/oauth/callback/"
+    logger.info(f"get_redirect_uri(): {redirect_uri}")
+    # redirect_uri = "https://c3a7c3.42berlin.de/api/user_mgt/oauth/callback/"
     return redirect_uri
+
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
-# REDIRECT_URI = "https://localhost:8443/api/user_mgt/oauth/callback/"
 OAUTH_BASE_URL = "https://api.intra.42.fr"
-# REDIRECT_URI = "https://c3a7c3.42berlin.de:8443/api/user_mgt/oauth/callback/"
-
 
 
 def oauth_login(request) -> HttpResponse:
@@ -32,6 +33,7 @@ def oauth_login(request) -> HttpResponse:
     state = get_random_string(32)
     request.session["oauth_state"] = state
     authorization_url = f"{OAUTH_BASE_URL}/oauth/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&state={state}&prompt=login"
+    logger.info(f"Authorization URL: {authorization_url}")
     return redirect(authorization_url)
 
 
