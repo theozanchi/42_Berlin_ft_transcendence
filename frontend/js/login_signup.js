@@ -11,6 +11,7 @@ function fetchCSRFToken() {
 		.then(data => {
 			console.log(data.csrfToken);
 			localStorage.setItem('csrftoken', data.csrfToken);
+			document.cookie = `csrftoken=${data.csrfToken}; path=/; SameSite=Lax`;
 		})
 		.catch(error => console.error(error));
 }

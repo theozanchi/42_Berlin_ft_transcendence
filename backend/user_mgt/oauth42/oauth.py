@@ -15,12 +15,15 @@ logger = logging.getLogger(__name__)
 
 def get_redirect_uri(request: HttpRequest) -> str:
     redirect_uri = request.build_absolute_uri('/api/user_mgt/oauth/callback/').replace('443', os.getenv('SPORT'))
+    #redirect_uri = "https://c3a7c3.42berlin.de/api/user_mgt/oauth/callback/"
     return redirect_uri
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 # REDIRECT_URI = "https://localhost:8443/api/user_mgt/oauth/callback/"
 OAUTH_BASE_URL = "https://api.intra.42.fr"
+# REDIRECT_URI = "https://c3a7c3.42berlin.de:8443/api/user_mgt/oauth/callback/"
+
 
 
 def oauth_login(request) -> HttpResponse:

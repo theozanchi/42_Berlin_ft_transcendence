@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # ALLOWED_HOSTS = ['user_mgt', 'localhost', '127.0.0.1']
 # ALLOWED_HOSTS = ['*']
@@ -63,19 +63,21 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = ".42berlin.de"
 CSRF_TRUSTED_ORIGINS = [
-    'https://localhost:8443',
-    'https://*.42berlin.de:8443',
-    'https://c3a8c3.42berlin.de:8443'
+    'localhost:8443',
+    'c3a8c3.42berlin.de:8443',
+    'c3a7c3.42berlin.de:8443',
+    # '*.42berlin.de:8443',
 ]
 
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_DOMAIN = ".42berlin.de"
-CSRF_COOKIE_DOMAIN = '.42berlin.de'
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://*.42berlin.de:8443",
-    "https://c3a8c3.42berlin.de:8443"
+    'localhost:8443',
+    'c3a8c3.42berlin.de:8443',
+    'c3a7c3.42berlin.de:8443',
+    # '*.42berlin.de:8443',
     ]
 
 CSRF_USE_SESSIONS = True
