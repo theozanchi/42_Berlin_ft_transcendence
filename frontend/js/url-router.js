@@ -157,8 +157,8 @@ const urlLocationHandler = async () => {
 	if (inGame && location !== '/game') {
 		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
 		if (userConfirmation){
-			// if (newsocket && newsocket.readyState === WebSocket.OPEN)
-			// 	newsocket.close();
+			if (newsocket && newsocket.readyState === WebSocket.OPEN)
+				newsocket.close();
 			resetGame();
 			inGame = false;
 		} else {
@@ -167,7 +167,6 @@ const urlLocationHandler = async () => {
 		}
 	}
 
-	console.log(`I AM HERE ${location}`)
 	// CLOSING SOCKET WHEN ROUTING
 
 	if (["/game", "/host-remote", "/join-remote"].includes(location))
@@ -220,7 +219,7 @@ window.onbeforeunload = function(event) {
 };
 
 window.onpopstate = function(event) {
-	// handleGameExit(event);
+	handleGameExit(event);
 	urlLocationHandler();
 };
 

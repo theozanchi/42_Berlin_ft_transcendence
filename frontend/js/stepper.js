@@ -90,6 +90,7 @@ async function handleMessage(data) {
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			} else {
 				urlRoute(`/host-remote?id=${game_id}`);
+
 				await replacePlayerList(data.users);
 			}
 			break;
@@ -144,6 +145,10 @@ async function handleMessage(data) {
 
 		case 'new-player':
 			await replacePlayerList(data.content.users);
+			 if (is_host && data.content.users.length > 1){
+				let startRemoteButton = document.getElementById('StartRemoteGameButton');
+				startRemoteButton.removeAttribute('disabled');
+			}
 			break;
 	}
 }
