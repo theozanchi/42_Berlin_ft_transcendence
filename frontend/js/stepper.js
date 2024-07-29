@@ -140,6 +140,9 @@ async function handleMessage(data) {
 		
 		case 'player-left':
 			//console.log('Player left:', data);
+			if (data.action == "stop-round")
+				setGameStarted(false);
+				
 			await replacePlayerList(data.content.users);
 			break;
 
