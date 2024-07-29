@@ -168,13 +168,17 @@ def round(request):
             rounds = Round.objects.filter(game=game).order_by('round_number')
 
             serializer = RoundSerializer(rounds, many=True)
-            return JsonResponse({"type": "round", "content": serializer.data}, safe=False, status=200)
+            return JsonResponse(
+                {"type": "round", 
+                 "content": serializer.data}, 
+                 safe=False, status=200)
         else:
             if game.winner:
+                serializer = PlayerSerializer(game.winner)
                 return JsonResponse(
-                    {"type": "tournament-over", "winner": PlayerSerializer(game.winner).data},
-                    status=200,
-                )
+                    {"type": "tournament-over", 
+                     "content": serializer.data},
+                   safe=False, status=200)
             return JsonResponse({"message": "No rounds to play."}, status=403)
 
     except InsufficientPlayersError as e:
