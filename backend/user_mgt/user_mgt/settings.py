@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # ALLOWED_HOSTS = ['user_mgt', 'localhost', '127.0.0.1']
 # ALLOWED_HOSTS = ['*']
@@ -54,8 +54,8 @@ AUTHENTICATION_BACKENDS = [
 MEDIA_URL = "/media/"
 MEDIA_ROOT = "/usr/share/media"
 
-LOGIN_REDIRECT_URL = "/api/user_mgt"
-LOGOUT_REDIRECT_URL = "/api/user_mgt"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
@@ -73,6 +73,7 @@ CORS_ALLOWED_ORIGINS = ["https://localhost:8443"]
 
 CSRF_USE_SESSIONS = True
 
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

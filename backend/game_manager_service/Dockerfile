@@ -25,6 +25,4 @@ COPY . /code/
 COPY entrypoint.sh /code/entrypoint.sh
 RUN chmod +x /code/entrypoint.sh
 
-ENV DJANGO_SECRET_KEY python -c 'import secrets; print(secrets.token_urlsafe(50))'
-
 ENTRYPOINT ["/bin/sh", "/code/entrypoint.sh"]

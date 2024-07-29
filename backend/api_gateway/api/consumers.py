@@ -107,7 +107,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 await self.channel_layer.group_add(self.game_id, self.channel_name)
             data = response.json()
             data["type"] = "create-game"
-
             await self.send_json(data)
 
         except requests.RequestException as e:
