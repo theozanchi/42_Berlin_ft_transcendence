@@ -1,4 +1,5 @@
 import re
+import bleach
 
 import requests
 import logging
@@ -14,6 +15,7 @@ from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.html import escape
 from django.views.decorators.csrf import ensure_csrf_cookie
 from PIL import Image
 
@@ -177,26 +179,35 @@ def update_avatar(request, user_id):
         return {"status": "error", "message": "Method not allowed"}
 
 
-def sanitize_input(username=None, password=None, image=None):
+def sanitize_input(username=None, password=None, image=None, input_check=True):
 
     errors = []
 
     if username is not None:
-        username = username.strip()
-        username = re.sub(r"[^\w\s-]", "", username)
-        if len(username) > 50:
+        sanitized_username = bleach.clean(username.strip())
+        sanitized_username = re.sub(r"[^\w\s-]", "", sanitized_username)
+        sanitized_username = escape(sanitized_username)
+        if sanitized_username != username:
+            errors.append(f"The potentially malicious username is rejected. Use only letters, numbers and dashes. '{username}' vs. '{sanitized_username}'")
+        if sanitized_username.lower() == "admin":
+            errors.append(f"Username cannot be '{sanitized_username}' ")
+        if input_check and len(sanitized_username) > 50:
             errors.append("Username cannot be longer than 50 characters")
 
     if password is not None:
-        password = password.strip()
-        if len(password) < 8:
+        sanitized_password = bleach.clean(password.strip())
+        sanitized_password = re.sub(r"[^\w\s-]", "", sanitized_password)
+        sanitized_password = escape(sanitized_password)
+        if sanitized_password != password:
+            errors.append(f"The potentially malicious password is rejected. Use only letters, numbers and dashes. '{password}' vs. '{sanitized_password}'")
+        if input_check and len(sanitized_password) < 8:
             errors.append("Password must be at least 8 characters long")
-        if not any(c.isdigit() for c in password) or not any(
-            c.isalpha() for c in password
+        if (
+            input_check
+            and not any(c.isdigit() for c in sanitized_password)
+            or not any(c.isalpha() for c in sanitized_password)
         ):
-            errors.append(
-                "Password must contain at least one letter and one number and be at least 8 characters long"
-            )
+            errors.append("Password must contain at least one letter and one number.")
 
     if image is not None:
         allowed_types = ["image/jpeg", "image/png"]
@@ -214,8 +225,8 @@ def sanitize_input(username=None, password=None, image=None):
     else:
         return {
             "status": "success",
-            "username": username,
-            "password": password,
+            "username": sanitized_username,
+            "password": sanitized_password,
         }, 200
 
 
@@ -228,11 +239,18 @@ def register(request):
         sanitized_data, status_code = sanitize_input(username, password, image)
         logger.info(f"Sanitized data status_code: {status_code}")
         if status_code != 200:
-            sanitized_data.pop("image", None)
+            # sanitized_data.pop("image", None)
             return JsonResponse({"status": "error", "message": sanitized_data})
         logger.info(f"Sanitized data: {sanitized_data}")
+
         username = sanitized_data["username"]
         password = sanitized_data["password"]
+
+        if username == password:
+            return JsonResponse(
+                {"status": "error", "message": "Username and password cannot be the same."},
+                status=200,
+            )
 
         if User.objects.filter(username=username).exists():
             return JsonResponse(
@@ -255,7 +273,7 @@ def register(request):
         )
         response_data = {
             "status": "success",
-            "message": "User created successfully.",
+            "message": f"User '{user.username}' created successfully.",
             "user_id": user.id,
             "username": user.username,
             "provided_password": bool(password),
@@ -516,7 +534,7 @@ def regular_login(request):
         password = request.POST.get("password")
 
         sanitized_data, status_code = sanitize_input(
-            username=username, password=password
+            username=username, password=password, input_check=False
         )
         if status_code != 200:
             return JsonResponse({"status": "error", "message": sanitized_data})
