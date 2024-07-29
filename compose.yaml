@@ -80,6 +80,8 @@ services:
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - SERVER_NAME=${SERVER_NAME}
+      - SPORT=${SPORT}
     stop_signal: SIGINT
     stop_grace_period: 2s
 
