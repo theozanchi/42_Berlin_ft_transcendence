@@ -124,11 +124,6 @@ def update_round_status(request):
         round_played.save()
 
         serializer = RoundSerializer(round_played)
-
-        if round_played.round_number == game.rounds.count():
-            game.calculate_scores()
-            game.save()
-
         return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
@@ -173,6 +168,8 @@ def round(request):
                  "content": serializer.data}, 
                  safe=False, status=200)
         else:
+            game.calculate_scores()
+            game.save()
             if game.winner:
                 serializer = PlayerSerializer(game.winner)
                 return JsonResponse(

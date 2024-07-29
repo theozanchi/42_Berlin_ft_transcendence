@@ -25,7 +25,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.lock = asyncio.Lock()
         await self.accept()
 
-    #  TO DO : the whole routine of somebody leaving should only occur if tournament is not over, if not we just let clients disconnect
     async def disconnect(self, close_code):
         if self.game_id:
             content = {
@@ -38,11 +37,17 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 headers=self.get_headers(),
             )
             response.raise_for_status()
+            if self.player_id != None:
+                action = "stop-round"
+            else:
+                action = "continue-round"
             await self.channel_layer.group_send(
                 self.game_id,
                 {
                     "type": "broadcast",
-                    "content": {"type": "player-left", "content": response.json()},
+                    "content": {"type": "player-left", 
+                    "action": action,
+                    "content": response.json()},
                 },
             )
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
