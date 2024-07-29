@@ -9,6 +9,7 @@ echo "PORT=8080" > .env
 echo "SPORT=8443" >> .env
 echo "NODE_ENV=development" >> .env
 echo "SERVER_NAME=$(echo $SESSION_MANAGER | awk -F'/' '{print $2}' | sed 's/:@$//')" >> .env
+# echo "SERVER_NAME=localhost" >> .env
 echo "CERTS_DIR=/tmp/certs" >> .env
 echo "POSTGRES_NAME=postgres" >> .env
 echo "POSTGRES_USER=postgres" >> .env
