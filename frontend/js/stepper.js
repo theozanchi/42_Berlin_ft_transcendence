@@ -139,13 +139,12 @@ async function handleMessage(data) {
 			break;
 		
 		case 'player-left':
-			//console.log('Player left:', data);
+			console.log('Player left:', data);
+			await replacePlayerList(data.content.users);
 			if (data.action == "stop-round") {
-				setGameStarted(false);
+				await setGameStarted(false);
 				await sendJson(JSON.stringify({ type: 'start-game' }));
 			}
-				
-			await replacePlayerList(data.content.users);
 			break;
 
 		case 'tournament-over': {
