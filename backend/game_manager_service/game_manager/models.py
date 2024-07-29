@@ -121,12 +121,11 @@ class Game(models.Model):
         if self.players.count() < 2:
             raise InsufficientPlayersError()
 
-        # Generate all possible matchups for league play
         players_list = list(self.players.all())
-        rounds = []
-        round_number = 1
+        round_number_list = list(range(1, len(list(combinations(players_list, 2))) + 1))
+        random.shuffle(round_number_list)
 
-        for player1, player2 in combinations(players_list, 2):
+        for round_number, (player1, player2) in zip(round_number_list, combinations(players_list, 2)):
             round = Round(
                 game=self,
                 player1=player1,
@@ -134,14 +133,6 @@ class Game(models.Model):
                 round_number=round_number,
                 winner=None,
             )
-            rounds.append(round)
-            round_number += 1
-
-        # Shuffle the rounds
-        random.shuffle(rounds)
-
-        # Save the shuffled rounds
-        for round in rounds:
             round.save()
 
     def calculate_scores(self):
