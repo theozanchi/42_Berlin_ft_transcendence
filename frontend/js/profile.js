@@ -26,7 +26,6 @@ export async function setProfileImage(user_id) {
         if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
             const data = await response.json();
             if (data.player_data && data.player_data.avatar) {
-				console.log(data);
 				imageUrl = baseUrl + '/media/' + data.player_data.avatar;
 				return imageUrl;
 			}

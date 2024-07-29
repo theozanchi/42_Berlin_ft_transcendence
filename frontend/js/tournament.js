@@ -1,7 +1,9 @@
+import { setProfileImage } from "./profile.js";
+
 export function initTournament(data) {
-	// The expected data.content is an array of rounds
+	// The expected data.content is an array of rounds('d-none');
 	if (!data.content || !Array.isArray(data.content)) {
-		console.error('Invalid tournament update data format');
+		// console.error('Invalid tournament update data format');
 		return;
 	}
 
@@ -9,49 +11,38 @@ export function initTournament(data) {
 	data.content.sort((a, b) => a.round_number - b.round_number);
 
 	// Update the tournament data
-	const gameTable = document.querySelector('game-table-component');
-	if (gameTable) {
-		gameTable.setAttribute('rounds', JSON.stringify(data));
+	const gameTableComponent = document.querySelector('game-table-component');
+	if (gameTableComponent) {
+		gameTableComponent.setAttribute('rounds', JSON.stringify(data));
 	} else {
 		console.error('game-table-component not found');
 	}
 }
 
 export function updateTournament(data) {
-	// The expected data.content is an array of rounds
-	// if (!data.content || !Array.isArray(data.content)) {
-	// 	console.error('Invalid tournament update data format');
-	// 	return;
-	// }
-
-	// //sort JSON
-	// data.content.sort((a, b) => a.round_number - b.round_number);
-
-	// // Update the tournament data
-	// const gameTable = document.querySelector('game-table-component');
-	// if (gameTable) {
-	// 	gameTable.setAttribute('rounds', JSON.stringify(data));
-	// } else {
-	// 	console.error('game-table-component not found');
-	// }
 }
 
-export function updatePlayingGameInfo(data) {
-	console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
+export async function updatePlayingGameInfo(data) {
 
 	let player1name = document.getElementById('gameLivePlayer1Name');
 	let player2name = document.getElementById('gameLivePlayer2Name');
 	let player1avatar = document.getElementById('gameLivePlayer1Avatar');
 	let player2avatar = document.getElementById('gameLivePlayer2Avatar');
 
-	if (player1name & player2name & player1avatar & player2avatar) {
+	// if (player1name & player2name & player1avatar & player2avatar) {
 		player1name.innerHTML = data.player1.name;
 		player2name.innerHTML = data.player2.name;
-		player1avatar.src = data.player1.avatar;
-		player2avatar.src = data.player2.avatar;
-	} else {
-		console.error('game live information  not found');
-	}
+		if (data.player1.avatar && data.player1.avatar != 'null')
+			player1avatar.src = data.player1.user_id;
+		else
+			player1avatar.src = await setProfileImage(data.player1.user_id);
+		if (data.player2.avatar && data.player1.avatar != 'null')
+			player2avatar.src = data.player2.user_id;
+		else
+			player2avatar.src = await setProfileImage(data.player2.user_id);
+	// } else {
+		// console.error('game live information  not found');
+	// }
 
 }
 
@@ -59,6 +50,10 @@ class GameTable extends HTMLElement {
 	constructor() {
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
+	}
+
+	connectedCallback() {
+		this.render();
 	}
 
 	static get observedAttributes() {
@@ -90,15 +85,15 @@ class GameTable extends HTMLElement {
 								<div>`;
 		
 		this._data.content.forEach(round => {
-			// console.log(`MY ROUND: ${round}`);
-			// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
 									status="${round.status}"
 									player1Score="${round.player1_score}" 
 									player2Score="${round.player2_score}" 
 									player1="${round.player1.name}" 
-									player2="${round.player2.name}" 
+									player2="${round.player2.name}"
+									player1Id="${round.player1.user_id}" 
+									player2Id="${round.player2.user_id}"
 									player1Avatar="${round.player1.avatar}" 
 									player2Avatar="${round.player2.avatar}">
 								</match-component>`;
@@ -111,6 +106,8 @@ class GameTable extends HTMLElement {
 									player2Score="${round.player2_score}" 
 									player1="${round.player1.name}" 
 									player2="${round.player2.name}" 
+									player1Id="${round.player1.user_id}" 
+									player2Id="${round.player2.user_id}"
 									player1Avatar="${round.player1.avatar}" 
 									player2Avatar="${round.player2.avatar}">
 			// 					</match-component>`;

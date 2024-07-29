@@ -109,7 +109,8 @@ async function handleMessage(data) {
 					console.log('Game already started!');
 					return;
 				}
-				sendJson(JSON.stringify({ type: 'start-game' }));
+				if (is_host)
+					sendJson(JSON.stringify({ type: 'start-game' }));
 			}
 			else {
 				updateGameState(data);
@@ -119,8 +120,14 @@ async function handleMessage(data) {
 		case 'round':
 			switch (data.action) {
 				case 'new':
-					urlRoute('/game')
 					initTournament(data);
+					let startedRound = data.content.find(round => round.status === 'started');
+						updatePlayingGameInfo(startedRound);
+					const gameLobby = document.getElementById('game-lobby');
+					const gameTable = document.getElementById('game-table');
+					gameLobby.classList.add('d-none');
+					gameTable.classList.remove('d-none');
+					window.history.replaceState({}, "", "/game");
 					break;
 				case 'update':
 					updateTournament(data);
@@ -133,7 +140,8 @@ async function handleMessage(data) {
 
 		case 'new-player':
 			await replacePlayerList(data.content.users);
-			 if (is_host && data.content.users.length > 1){
+			// initTournament(data);
+			if (is_host && data.content.users.length > 1){
 				let startRemoteButton = document.getElementById('StartRemoteGameButton');
 				startRemoteButton.removeAttribute('disabled');
 			}
@@ -259,21 +267,20 @@ async function hostRemoteGame() {
 
 			myElement = document.getElementById('joinRemoteGameButton');
 			if (myElement) {
-				myElement.addEventListener('click', (event) => {
-				event.preventDefault();
-				
-				joinRemoteGame();
-			});
+					myElement.addEventListener('click', (event) => {
+					event.preventDefault();
+					
+					joinRemoteGame();
+				});
 			};
 
 			myElement = document.getElementById('hostRemoteGameButton');
 			if (myElement) {
-				myElement.addEventListener('click', (event) => {
-				event.preventDefault();
-				hostRemoteGame();
-			});
+					myElement.addEventListener('click', (event) => {
+					event.preventDefault();
+					hostRemoteGame();
+				});
 			};
-
 
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {

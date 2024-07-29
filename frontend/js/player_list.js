@@ -110,7 +110,6 @@ class PlayerList extends HTMLElement {
 
 	render() {
 		this.gameMode = this.getAttribute('mode');
-		console.log(`rendering list`)
 		
 		if (this.gameMode === 'remote') {
 			this.shadow.innerHTML = `
