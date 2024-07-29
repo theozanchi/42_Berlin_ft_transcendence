@@ -8,7 +8,6 @@ from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import redirect
 from django.utils.crypto import get_random_string
-from django.conf import settings
 
 from .models import User, UserProfile
 
@@ -33,25 +32,43 @@ def oauth_login(request) -> HttpResponse:
     return redirect(authorization_url)
 
 
+def get_oauth_result(request) -> HttpResponse:
+    result = request.session.pop("oauth_result", {})
+    logger.info(f"OAuth result: {result}")
+    return JsonResponse(
+        result
+        if result
+        else {"status": "error", "message": "42 login failed. No OAuth result found."}
+    )
+
+
 def oauth_callback(request) -> HttpResponse:
+    logger.info("Starting OAuth callback")
     if not validate_state(request):
         return error_response("State mismatch. Possible CSRF attack detected.")
 
     code = request.GET.get("code")
     access_token = exchange_code_for_token(request, code)
     if not access_token:
-        return error_response("Failed to obtain access token.")
+        return error_response("Failed to obtain access token..")
 
     user_info = fetch_user_info(access_token)
     if not user_info:
         return error_response("Failed to fetch user info.")
 
     user = update_or_create_user(user_info, access_token)
-    if not user:
-        return error_response("User information incomplete.")
-
-    login(request, user)
-    return success_response(user.id)
+    if user:
+        login(request, user)
+        request.session["oauth_result"] = {
+            "status": "success",
+            "message": "42 Login successful",
+        }
+    else:
+        request.session["oauth_result"] = {
+            "status": "error",
+            "message": "42 Login failed",
+        }
+    return redirect("/oresult")
 
 
 def validate_state(request) -> bool:
@@ -150,9 +167,5 @@ def save_avatar_from_url(user_profile: UserProfile, url: str) -> None:
 
 
 def error_response(message: str) -> JsonResponse:
-    logger.error(message)
-    return JsonResponse({"status": "error", "message": message})
-
-
-def success_response(user_id: int) -> JsonResponse:
-    return JsonResponse({"status": "success", "message": "User successfuly logged into 42", "user_id": user_id})
+    logger.error(f"Error: {message}. 42 login failed.")
+    return redirect("/oresult")
