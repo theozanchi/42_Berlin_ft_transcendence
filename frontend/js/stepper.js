@@ -102,6 +102,7 @@ async function handleMessage(data) {
 		case 'update':
 			if (gameStarted === false)
 				return;
+			updateGameState(data);
 			if (data.content.gameOver === true) {
 				player_id = null;
 				gameStarted = false;
@@ -110,9 +111,6 @@ async function handleMessage(data) {
 					return;
 				}
 				sendJson(JSON.stringify({ type: 'start-game' }));
-			}
-			else {
-				updateGameState(data);
 			}
 			break;
 

@@ -88,10 +88,12 @@ const statusText = document.createElement('div');
 
 
 export function updateGameState(data) {
-    //if (!data) return;
-    // Update player positions
-    //console.log("ballpos", data.ball.x, data.ball.y, data.ball.z)
-    //console.log("received data", data.player1.x, data.player1.y, data.player1.z)
+    player1Score = data.content.player1Score;
+    player2Score = data.content.player2Score;
+
+    if (data.content.gameOver == true)
+        return updateScore();
+
     if (currentPlayer === player2) {
         // Update player1 position
         player.position.set(data.content.player1.x, data.content.player1.y, data.content.player1.z);
@@ -107,8 +109,6 @@ export function updateGameState(data) {
     ballSpeed.set(data.content.ballSpeed.x, data.content.ballSpeed.y, data.content.ballSpeed.z);
     // Update game data.content variables
     playerTurn = data.content.playerTurn;
-    player1Score = data.content.player1Score;
-    player2Score = data.content.player2Score;
     ballIsHeld = data.content.ballIsHeld;
     if (remote){
         if (currentPlayer === player) {
@@ -1306,8 +1306,44 @@ export function animate() {
 }
 
 export function displayWinner(winner) {
-   console.log('DISPLAYING WINNER...');
-   console.log(winner);
+    // Remove the status text element
+    statusText.remove();
+
+    // Fetch a GIF and set it as the background for the canvas
+    var gifUrl = 'assets/background.gif'; // Example GIF URL
+    var canvasParent = canvas.parentNode;
+
+    // Create and style the background div
+    var gifBackground = document.createElement('div');
+    gifBackground.style.position = 'absolute';
+    gifBackground.style.top = canvas.offsetTop + 'px';
+    gifBackground.style.left = canvas.offsetLeft + 'px';
+    gifBackground.style.width = canvas.offsetWidth + 'px';
+    gifBackground.style.height = canvas.offsetHeight + 'px';
+    gifBackground.style.backgroundImage = `url(${gifUrl})`;
+    gifBackground.style.backgroundSize = 'cover';
+    gifBackground.style.backgroundPosition = 'center';
+    gifBackground.style.zIndex = '500'; // Ensure it is behind the winner text
+    canvasParent.appendChild(gifBackground);
+
+    // Create and style the winner text element
+    var winnerText = document.createElement('div');
+    winnerText.style.position = 'absolute';
+    winnerText.style.top = (canvas.offsetTop + canvas.offsetHeight / 2 - 35) + 'px'; // Centered vertically in the canvas
+    winnerText.style.left = (canvas.offsetLeft + canvas.offsetWidth / 2) + 'px'; // Centered horizontally in the canvas
+    winnerText.style.transform = 'translate(-50%, -50%)'; // Adjust to center
+    winnerText.style.padding = '10px 20px';
+    winnerText.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+    winnerText.style.borderRadius = '10px';
+    winnerText.style.fontFamily = 'Arial, sans-serif';
+    winnerText.style.fontSize = '50px';
+    winnerText.style.fontWeight = 'bold';
+    winnerText.style.color = 'black';
+    winnerText.style.zIndex = '1000'; // Ensure it is on top of the canvas
+    winnerText.textContent = "Winner is " + winner.name;
+    canvasParent.appendChild(winnerText);
+
+    console.log(winner);
 }
 
 function clearScene(object) {
