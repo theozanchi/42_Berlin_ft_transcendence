@@ -29,9 +29,6 @@ GAME_MANAGER_REST_URL = "http://game_manager:8000"
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def game_update(request):
-    logging.info("Game update request received")
-    logging.debug(f"Request body: {request.body}")
-    logging.info(f"Request headers: {request.headers}")
     try:
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get("game_id")
