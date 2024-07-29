@@ -173,7 +173,7 @@ def round(request):
         else:
             if game.winner:
                 return JsonResponse(
-                    {"message": "tournament-over", "winner": game.winner.alias},
+                    {"type": "tournament-over", "winner": game.winner.alias},
                     status=200,
                 )
             return JsonResponse({"message": "No rounds to play."}, status=403)

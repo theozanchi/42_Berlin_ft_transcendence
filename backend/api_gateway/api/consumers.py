@@ -32,7 +32,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 "game-id": self.game_id,
                 "channel_name": self.channel_name,
             }
-            logging.debug("Player left: " + str(content))
             response = requests.post(
                 GAME_MANAGER_REST_URL + "/player-left/",
                 json=content,
@@ -43,7 +42,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 self.game_id,
                 {
                     "type": "broadcast",
-                    "content": {"type": "game", "content": response.json()},
+                    "content": {"type": "player-left", "content": response.json()},
                 },
             )
             await self.channel_layer.group_discard(self.game_id, self.channel_name)
@@ -71,7 +70,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
 
     async def broadcast(self, event):
         content = event.get("content")
-        logging.debug("broadcasting: " + str(content))
         await self.send_json(content)
 
     # TO DO: if local game, start it immediately
