@@ -185,7 +185,7 @@ function generateLocalGame() {
     });
 }
 
-async function getCurrentUser() {
+export async function getCurrentUser() {
     try {
         const response = await fetch('/api/user_mgt/me');
         if (!response.ok) {

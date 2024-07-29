@@ -2,7 +2,7 @@ const	baseUrl = document.location.href;
 import {getLoggedInState} from './login_signup.js';
 import {loadUserList} from './all-users.js';
 import {loadProfileData, updateProfileData} from './profile.js'
-import { newsocket } from './stepper.js';
+import { newsocket, getCurrentUser, openSocket, sendJson } from './stepper.js';
 import { resetGame } from "./game.js"
 
 document.addEventListener("click", (e) => {
@@ -147,6 +147,8 @@ var inGame = false;
 
 const urlLocationHandler = async () => {
 	let location = window.location.pathname;
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
 
 	if (inGame && location !== '/game') {
 		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
@@ -196,6 +198,14 @@ const urlLocationHandler = async () => {
 		updateProfileData();
 	if (location === '/users')
 		loadUserList();
+	if (location === '/join-remote' && !newsocket && urlParams.has('id')) {
+		const gameId = urlParams.get('id');
+		const userId = await getCurrentUser();
+		let data = {type: 'join-game', 'game_id': gameId, 'mode': 'remote', 'user_id': userId};
+		openSocket() .then(() => {
+			sendJson(JSON.stringify(data));
+    	})
+	}
 };
 
 export function handleGameExit(event) {
