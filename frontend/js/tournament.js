@@ -1,24 +1,39 @@
 export function initTournament(data) {
 	// The expected data.content is an array of rounds
 	if (!data.content || !Array.isArray(data.content)) {
-        console.error('Invalid tournament update data format');
-        return;
-    }
+		console.error('Invalid tournament update data format');
+		return;
+	}
 
 	//sort JSON
 	data.content.sort((a, b) => a.round_number - b.round_number);
 
-    // Update the tournament data
-    const gameTable = document.querySelector('game-table-component');
-    if (gameTable) {
-        gameTable.setAttribute('rounds', JSON.stringify(data));
-    } else {
-        console.error('game-table-component not found');
-    }
+	// Update the tournament data
+	const gameTable = document.querySelector('game-table-component');
+	if (gameTable) {
+		gameTable.setAttribute('rounds', JSON.stringify(data));
+	} else {
+		console.error('game-table-component not found');
+	}
 }
 
 export function updateTournament(data) {
+	// The expected data.content is an array of rounds
+	if (!data.content || !Array.isArray(data.content)) {
+		console.error('Invalid tournament update data format');
+		return;
+	}
 
+	//sort JSON
+	data.content.sort((a, b) => a.round_number - b.round_number);
+
+	// Update the tournament data
+	const gameTable = document.querySelector('game-table-component');
+	if (gameTable) {
+		gameTable.setAttribute('rounds', JSON.stringify(data));
+	} else {
+		console.error('game-table-component not found');
+	}
 }
 
 export function updatePlayingGameInfo(data) {
@@ -29,10 +44,14 @@ export function updatePlayingGameInfo(data) {
 	let player1avatar = document.getElementById('gameLivePlayer1Avatar');
 	let player2avatar = document.getElementById('gameLivePlayer2Avatar');
 
-	player1name.innerHTML = data.player1.name;
-	player2name.innerHTML = data.player2.name;
-	player1avatar.src = data.player1.avatar;
-	player2avatar.src = data.player2.avatar;
+	if (player1name & player2name & player1avatar & player2avatar) {
+		player1name.innerHTML = data.player1.name;
+		player2name.innerHTML = data.player2.name;
+		player1avatar.src = data.player1.avatar;
+		player2avatar.src = data.player2.avatar;
+	} else {
+		console.error('game live information  not found');
+	}
 
 }
 

@@ -86,7 +86,7 @@ const urlRoutes = {
 	
 }
 
-export const urlRoute = (eventOrUrl) => {
+export const urlRoute = (eventOrUrl, ) => {
 	let url;
 	let location = window.location.pathname;
 	if (typeof eventOrUrl === 'string') {
@@ -96,6 +96,8 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
+	if (location === url)
+		return ;
 	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }

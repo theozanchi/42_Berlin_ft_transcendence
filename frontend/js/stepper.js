@@ -78,6 +78,8 @@ async function handleMessage(data) {
 				console.log('Game Over. Winner is: ' + data.content.winner);
 				newsocket.close();
 				displayScore(data.content.winner);
+				alert('Game Over. Winner is: ' + data.content.winner);
+				urlRoute('/')
 			}
 			break;
 		
