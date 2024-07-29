@@ -484,6 +484,14 @@ def profile(request, user_id):
 
 
 def who_am_i(request):
+    if request.user.id == 1:
+        logout(request)
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User is not logged in.",
+            }
+        )
     if not request.user.is_authenticated:
         return JsonResponse({"status": "error", "message": "User is not logged in."})
     if request.user.is_authenticated:
