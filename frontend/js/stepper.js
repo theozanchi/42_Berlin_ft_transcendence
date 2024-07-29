@@ -140,8 +140,10 @@ async function handleMessage(data) {
 		
 		case 'player-left':
 			//console.log('Player left:', data);
-			if (data.action == "stop-round")
+			if (data.action == "stop-round") {
 				setGameStarted(false);
+				await sendJson(JSON.stringify({ type: 'start-game' }));
+			}
 				
 			await replacePlayerList(data.content.users);
 			break;
