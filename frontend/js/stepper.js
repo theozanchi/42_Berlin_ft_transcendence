@@ -130,7 +130,6 @@ async function handleMessage(data) {
 			break;
 
 		case 'round':
-			console.log('Round:', data);
 			switch (data.action) {
 				case 'new':
 					initTournament(data);
