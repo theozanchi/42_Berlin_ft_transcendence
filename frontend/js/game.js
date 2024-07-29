@@ -85,7 +85,8 @@ let isGameStateUpdating = false;
 const sendInterval = 1000 / 60;
 
 const statusText = document.createElement('div');
-
+export const gifBackground = document.createElement('div');
+export const winnerText = document.createElement('div');
 
 export function updateGameState(data) {
     player1Score = data.content.player1Score;
@@ -1314,7 +1315,6 @@ export function displayWinner(winner) {
     var canvasParent = canvas.parentNode;
 
     // Create and style the background div
-    var gifBackground = document.createElement('div');
     gifBackground.style.position = 'absolute';
     gifBackground.style.top = canvas.offsetTop + 'px';
     gifBackground.style.left = canvas.offsetLeft + 'px';
@@ -1327,7 +1327,6 @@ export function displayWinner(winner) {
     canvasParent.appendChild(gifBackground);
 
     // Create and style the winner text element
-    var winnerText = document.createElement('div');
     winnerText.style.position = 'absolute';
     winnerText.style.top = (canvas.offsetTop + canvas.offsetHeight / 2 - 35) + 'px'; // Centered vertically in the canvas
     winnerText.style.left = (canvas.offsetLeft + canvas.offsetWidth / 2) + 'px'; // Centered horizontally in the canvas
@@ -1432,6 +1431,9 @@ export function resetGame() {
     ballIsHeld = true;
     wallHits = 0;
     aimingAngle = 0;
+
+    gifBackground.remove();
+    winnerText.remove();
 
     // Remove event listeners
     document.removeEventListener('keydown', onKeyDown);
