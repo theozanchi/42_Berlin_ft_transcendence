@@ -74,8 +74,8 @@ async function handleMessage(data) {
 		case 'broadcast':
 			console.log('Broadcast:', data);
 
-			if (data.content.message === 'tournament-over') {
-				console.log('Game Over. Winner is: ' + data.content.winner);
+			if (data.content.type === 'tournament-over') {
+				console.log('Tournament Over. Winner is: ' + data.winner);
 				newsocket.close();
 				displayScore(data.content.winner);
 			}
@@ -90,6 +90,7 @@ async function handleMessage(data) {
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			} else {
 				urlRoute(`/host-remote?id=${game_id}`);
+
 				await replacePlayerList(data.users);
 			}
 			break;
@@ -129,7 +130,6 @@ async function handleMessage(data) {
 			break;
 
 		case 'round':
-			console.log('Round:', data);
 			switch (data.action) {
 				case 'new':
 					initTournament(data);
@@ -145,7 +145,22 @@ async function handleMessage(data) {
 
 		case 'new-player':
 			await replacePlayerList(data.content.users);
+			 if (is_host && data.content.users.length > 1){
+				let startRemoteButton = document.getElementById('StartRemoteGameButton');
+				startRemoteButton.removeAttribute('disabled');
+			}
 			break;
+		
+		case 'player-left':
+			console.log('Player left:', data);
+			await replacePlayerList(data.content.users);
+			break;
+
+		case 'tournament-over': {
+			console.log('Game Over. Winner is: ' + data.content.winner);
+			newsocket.close();
+			displayScore(data.content.winner);
+		}
 	}
 }
 

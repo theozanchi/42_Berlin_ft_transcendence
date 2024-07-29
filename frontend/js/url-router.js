@@ -28,33 +28,28 @@ const urlRoutes = {
 	},
 	"/setup-local": {
 		template: "/setup-local.html",
-		title: "Setup",
+		title: "Setup Local",
 		description: "",
 	},
 	"/setup-remote": {
 		template: "/setup-remote.html",
-		title: "Lobby",
+		title: "Setup Remote Game",
 		description: "",
 	},
 	"/host-remote": {
 		template: "/setup-lobby.html",
-		title: "Setup",
+		title: "Lobby",
 		description: "",
 	},
 	"/join-remote": {
 		template: "/setup-lobby.html",
-		title: "Setup",
+		title: "Lobby",
 		description: "",
 	},
 
 	"/game": {
 		template: "/game.html",
-		title: "Signup",
-		description: "",
-	},
-	"/game-table": {
-		template: "/game-table.html",
-		title: "Game Table",
+		title: "Game",
 		description: "",
 	},
 
@@ -105,7 +100,6 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
-	console.log(`pushing this: ${url}`)
 	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }
@@ -157,8 +151,8 @@ const urlLocationHandler = async () => {
 	if (inGame && location !== '/game') {
 		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
 		if (userConfirmation){
-			// if (newsocket && newsocket.readyState === WebSocket.OPEN)
-			// 	newsocket.close();
+			if (newsocket && newsocket.readyState === WebSocket.OPEN)
+				newsocket.close();
 			resetGame();
 			inGame = false;
 		} else {
@@ -167,7 +161,6 @@ const urlLocationHandler = async () => {
 		}
 	}
 
-	console.log(`I AM HERE ${location}`)
 	// CLOSING SOCKET WHEN ROUTING
 
 	if (["/game", "/host-remote", "/join-remote"].includes(location))
@@ -220,7 +213,7 @@ window.onbeforeunload = function(event) {
 };
 
 window.onpopstate = function(event) {
-	// handleGameExit(event);
+	handleGameExit(event);
 	urlLocationHandler();
 };
 

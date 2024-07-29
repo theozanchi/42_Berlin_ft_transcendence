@@ -1,6 +1,5 @@
 #!/bin/sh
 
-apt install redis-tools
 # Collect static files
 python manage.py collectstatic --noinput
 
