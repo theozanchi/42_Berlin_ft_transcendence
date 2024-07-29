@@ -79,9 +79,6 @@ async function handleMessage(data) {
 				newsocket.close();
 				displayScore(data.content.winner);
 			}
-			if (data.content.type === 'player-left') {
-				console.log('Player left:', data.content.content);
-			}
 			break;
 		
 		case 'create-game':
@@ -153,6 +150,17 @@ async function handleMessage(data) {
 				startRemoteButton.removeAttribute('disabled');
 			}
 			break;
+		
+		case 'player-left':
+			console.log('Player left:', data);
+			await replacePlayerList(data.content.users);
+			break;
+
+		case 'tournament-over': {
+			console.log('Game Over. Winner is: ' + data.content.winner);
+			newsocket.close();
+			displayScore(data.content.winner);
+		}
 	}
 }
 
