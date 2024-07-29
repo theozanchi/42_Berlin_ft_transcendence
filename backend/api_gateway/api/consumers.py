@@ -155,12 +155,6 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             response.raise_for_status()
             data = response.json()
 
-            round_info = None
-            for round_data in data.get("content", []):
-                if round_data["status"] == "started":
-                    round_info = round_data
-                    break
-
             # Send round info to all players
             await self.channel_layer.group_send(
                 self.game_id,
@@ -173,11 +167,14 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                     },
                 },
             )
-            if round_info is not None:
-                # Send player id to other players
-                await self.channel_layer.group_send(
-                    self.game_id, {"type": "get_player_id", "content": round_info}
-                )
+
+            if data.get("type") == "round":
+                for round_data in data.get("content"):
+                    if round_data["status"] == "started":
+                    # Send player id to other players
+                        await self.channel_layer.group_send(
+                            self.game_id, {"type": "get_player_id", "content": round_data}
+                        )
 
         except requests.RequestException as e:
             await self.send_json({"error": str(e)})
