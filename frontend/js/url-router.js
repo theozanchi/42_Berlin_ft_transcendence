@@ -28,33 +28,28 @@ const urlRoutes = {
 	},
 	"/setup-local": {
 		template: "/setup-local.html",
-		title: "Setup",
+		title: "Setup Local",
 		description: "",
 	},
 	"/setup-remote": {
 		template: "/setup-remote.html",
-		title: "Lobby",
+		title: "Setup Remote Game",
 		description: "",
 	},
 	"/host-remote": {
 		template: "/setup-lobby.html",
-		title: "Setup",
+		title: "Lobby",
 		description: "",
 	},
 	"/join-remote": {
 		template: "/setup-lobby.html",
-		title: "Setup",
+		title: "Lobby",
 		description: "",
 	},
 
 	"/game": {
 		template: "/game.html",
-		title: "Signup",
-		description: "",
-	},
-	"/game-table": {
-		template: "/game-table.html",
-		title: "Game Table",
+		title: "Game",
 		description: "",
 	},
 
@@ -105,7 +100,6 @@ export const urlRoute = (eventOrUrl) => {
 		eventOrUrl.preventDefault();
 		url = eventOrUrl.target.href;
 	}
-	console.log(`pushing this: ${url}`)
 	window.history.pushState({}, "", url);
 	urlLocationHandler();
 }

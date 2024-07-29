@@ -74,8 +74,8 @@ async function handleMessage(data) {
 		case 'broadcast':
 			console.log('Broadcast:', data);
 
-			if (data.content.message === 'tournament-over') {
-				console.log('Game Over. Winner is: ' + data.content.winner);
+			if (data.content.type === 'tournament-over') {
+				console.log('Tournament Over. Winner is: ' + data.winner);
 				newsocket.close();
 				displayScore(data.content.winner);
 			}
@@ -150,6 +150,17 @@ async function handleMessage(data) {
 				startRemoteButton.removeAttribute('disabled');
 			}
 			break;
+		
+		case 'player-left':
+			console.log('Player left:', data);
+			await replacePlayerList(data.content.users);
+			break;
+
+		case 'tournament-over': {
+			console.log('Game Over. Winner is: ' + data.content.winner);
+			newsocket.close();
+			displayScore(data.content.winner);
+		}
 	}
 }
 
