@@ -75,7 +75,7 @@ async function handleMessage(data) {
 			console.log('Broadcast:', data);
 
 			if (data.content.type === 'tournament-over') {
-				console.log('Game Over. Winner is: ' + data.content.winner);
+				console.log('Tournament Over. Winner is: ' + data.winner);
 				newsocket.close();
 				displayScore(data.content.winner);
 			}

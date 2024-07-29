@@ -153,9 +153,10 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 headers=self.get_headers(),
             )
             response.raise_for_status()
+            data = response.json()
 
             round_info = None
-            for round_data in response.json():
+            for round_data in data.get("content", []):
                 if round_data["status"] == "started":
                     round_info = round_data
                     break
@@ -166,9 +167,9 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 {
                     "type": "broadcast",
                     "content": {
-                        "type": "round",
+                        "type": data.get("type"),
                         "action": "new",
-                        "content": response.json(),
+                        "content": data.get("content"),
                     },
                 },
             )
