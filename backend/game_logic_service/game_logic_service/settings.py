@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Ensure correct prefix when Django redirects URLs
-FORCE_SCRIPT_NAME = "/game_logic"
+#FORCE_SCRIPT_NAME = "/game_logic"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -34,10 +34,13 @@ import os
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+}
 
 # Application definition
 
@@ -48,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "rest_framework",
     "game_logic",
     "channels",
@@ -65,8 +69,12 @@ MIDDLEWARE = [
 ]
 
 # Set up CSRF trusted origins if needed (e.g., for CORS requests)
-CSRF_TRUSTED_ORIGINS = ["https://" + os.getenv("SERVER_NAME")]
-
+CSRF_TRUSTED_ORIGINS = ["https://localhost:8443"]
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_DOMAIN = "localhost"
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 ROOT_URLCONF = "game_logic_service.urls"
 
 TEMPLATES = [

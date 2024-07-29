@@ -22,14 +22,16 @@ logging.basicConfig(
 )
 
 game_update_lock = Lock()
-WINNER_SCORE = 2
+WINNER_SCORE = 5
 
 GAME_MANAGER_REST_URL = "http://game_manager:8000"
 
-@permission_classes([AllowAny])
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def game_update(request):
     logging.info("Game update request received")
+    logging.debug(f"Request body: {request.body}")
+    logging.info(f"Request headers: {request.headers}")
     try:
         new_game_state = json.loads(request.body)
         game_id = new_game_state.get("game_id")
