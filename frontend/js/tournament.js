@@ -19,21 +19,21 @@ export function initTournament(data) {
 
 export function updateTournament(data) {
 	// The expected data.content is an array of rounds
-	if (!data.content || !Array.isArray(data.content)) {
-		console.error('Invalid tournament update data format');
-		return;
-	}
+	// if (!data.content || !Array.isArray(data.content)) {
+	// 	console.error('Invalid tournament update data format');
+	// 	return;
+	// }
 
-	//sort JSON
-	data.content.sort((a, b) => a.round_number - b.round_number);
+	// //sort JSON
+	// data.content.sort((a, b) => a.round_number - b.round_number);
 
-	// Update the tournament data
-	const gameTable = document.querySelector('game-table-component');
-	if (gameTable) {
-		gameTable.setAttribute('rounds', JSON.stringify(data));
-	} else {
-		console.error('game-table-component not found');
-	}
+	// // Update the tournament data
+	// const gameTable = document.querySelector('game-table-component');
+	// if (gameTable) {
+	// 	gameTable.setAttribute('rounds', JSON.stringify(data));
+	// } else {
+	// 	console.error('game-table-component not found');
+	// }
 }
 
 export function updatePlayingGameInfo(data) {
@@ -92,7 +92,6 @@ class GameTable extends HTMLElement {
 		this._data.content.forEach(round => {
 			// console.log(`MY ROUND: ${round}`);
 			// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
-			// if (!this._data.content.winner) {
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
 									status="${round.status}"

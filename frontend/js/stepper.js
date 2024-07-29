@@ -135,6 +135,7 @@ async function handleMessage(data) {
 			console.log('Round:', data);
 			switch (data.action) {
 				case 'new':
+					urlRoute('/game')
 					initTournament(data);
 					break;
 				case 'update':
@@ -282,7 +283,7 @@ async function hostRemoteGame() {
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
-					urlRoute('/game');
+					// urlRoute('/game');
 					event.preventDefault();
 					if (is_host) {
 						sendJson(JSON.stringify({ type: 'start-game' }));
