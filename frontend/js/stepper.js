@@ -102,6 +102,7 @@ async function handleMessage(data) {
 		case 'update':
 			if (gameStarted === false)
 				return;
+			updateGameState(data);
 			if (data.content.gameOver === true) {
 				player_id = null;
 				gameStarted = false;
@@ -110,9 +111,6 @@ async function handleMessage(data) {
 					return;
 				}
 				sendJson(JSON.stringify({ type: 'start-game' }));
-			}
-			else {
-				updateGameState(data);
 			}
 			break;
 
@@ -139,8 +137,14 @@ async function handleMessage(data) {
 			break;
 		
 		case 'player-left':
-			//console.log('Player left:', data);
-			await replacePlayerList(data.content.users);
+			console.log('Player left:', data);
+			if (data.action == "stop-round") {
+				await setGameStarted(false);
+				console.log("sending start game!!!")
+				await sendJson(JSON.stringify({ type: 'start-game' }));
+			}
+			else
+				await replacePlayerList(data.content.users);
 			break;
 
 		case 'tournament-over': {
@@ -185,7 +189,7 @@ function generateLocalGame() {
     });
 }
 
-async function getCurrentUser() {
+export async function getCurrentUser() {
     try {
         const response = await fetch('/api/user_mgt/me');
         if (!response.ok) {
