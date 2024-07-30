@@ -31,28 +31,18 @@ export async function updatePlayingGameInfo(data) {
 	let player1avatar = document.getElementById('gameLivePlayer1Avatar');
 	let player2avatar = document.getElementById('gameLivePlayer2Avatar');
 
-	// if (player1name & player2name & player1avatar & player2avatar) {
 		player1name.innerHTML = data.player1.name;
 		player2name.innerHTML = data.player2.name;
 
-		// if (data.player1.avatar && data.player1.avatar != 'null')
+		
 		if (data.player1.avatar && pongerAvatars.includes(data.player1.avatar))
 			player1avatar.src = data.player1.avatar;
 		else
 			player1avatar.src = await setProfileImage(data.player1.user_id);
-		
-		// if (data.player2.avatar && data.player1.avatar != 'null')
 		if (data.player2.avatar && pongerAvatars.includes(data.player1.avatar))
 			player2avatar.src = data.player2.avatar;
 		else
 			player2avatar.src = await setProfileImage(data.player2.user_id);
-		
-		// console.log(`TOURNAMENT UPDATE IMAGETRACK: ${player1avatar.src} & ${data.player1.user_id}`);
-		// console.log(`TOURNAMENT UPDATE IMAGETRACK: ${player1avatar.src} & ${data.player2.user_id}`);
-	// } else {
-		// console.error('game live information  not found');
-	// }
-
 }
 
 class GameTable extends HTMLElement {
@@ -119,7 +109,7 @@ class GameTable extends HTMLElement {
 				nextNum++;
 			} else if (round.status === 'completed') {
 				finishedGames += `<match-component 
-			// 						status="${round.status}"
+			 						status="${round.status}"
 									player1Score="${round.player1_score}" 
 									player2Score="${round.player2_score}" 
 									player1="${round.player1.name}" 
@@ -128,7 +118,7 @@ class GameTable extends HTMLElement {
 									player2Id="${round.player2.user_id}"
 									player1Avatar="${player1Avatar}" 
 									player2Avatar="${player2Avatar}">
-			// 					</match-component>`;
+			 					</match-component>`;
 				finishedGames += '<hr class="m-0">';
 				finishedNum++;
 			}

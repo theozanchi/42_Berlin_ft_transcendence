@@ -1,7 +1,7 @@
 class match extends HTMLElement {
 	constructor() {
-		super();
-		this.shadow = this.attachShadow({mode: 'open'});
+	super();
+	this.shadow = this.attachShadow({mode: 'open'});
 	this.player1Name = '';
 	this.player2Name = '';
 	this.player1Score = '-';
@@ -10,7 +10,6 @@ class match extends HTMLElement {
 	this.player2Avatar = '';
 	this.player1Id = '0';
 	this.player2Id = '0';
-
 	}
 
 	static get observedAttributes() {
@@ -27,10 +26,8 @@ class match extends HTMLElement {
 		} else if (name === 'player2score' && newValue != '-1') {
 			this.player2Score = newValue;
 		} else if (name === 'player1avatar' && newValue != 'null') {
-			// console.log(`MATCH UPDATE IMAGETRACK: ${newValue}`);
 			this.player1Avatar = newValue;
 		} else if (name === 'player2avatar' && newValue != 'null') {
-			// console.log(`MATCH UPDATE IMAGETRACK: ${newValue}`);
 			this.player2Avatar = newValue;
 		} else if (name === 'player1id') {
 			this.player1Id = newValue;

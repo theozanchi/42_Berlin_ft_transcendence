@@ -119,6 +119,7 @@ async function handleMessage(data) {
 			switch (data.action) {
 				case 'new':
 					initTournament(data);
+					await new Promise(resolve => setTimeout(resolve, 500));
 					let startedRound = data.content.find(round => round.status === 'started');
 						updatePlayingGameInfo(startedRound);
 					const gameLobby = document.getElementById('game-lobby');
