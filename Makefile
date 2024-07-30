@@ -42,20 +42,21 @@ dir:
 				@mkdir -p $(DIR)
 
 del_certs:
+				@echo "Deleting self-signed SSL certificates..."
 				@rm $(DIR) -r -f
 
 env:
 				@chmod +x ./scripts/env.sh
 				@./scripts/env.sh
 
-up:
+up:				env certs
 				@docker-compose up -d --remove-orphans
 				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)$(URL)$(RESET)"
 
-down:
+down:			del_certs
 				@docker-compose down
 
-restart:		down del_certs certs env up
+restart:		down up
 
 auth:
 				@docker-compose up --build -d nginx authentication
