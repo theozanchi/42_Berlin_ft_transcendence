@@ -11,6 +11,7 @@ from django.db.models import F, Sum, Window
 from django.db.models.functions import Coalesce, DenseRank
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from .exceptions import InsufficientPlayersError
 
@@ -136,6 +137,7 @@ class Game(models.Model):
             round.save()
 
     def calculate_scores(self):
+        game.end_date = timezone.now()
         player_wins_scores = []
 
         for player in self.players.all():
@@ -154,7 +156,7 @@ class Game(models.Model):
             )
             score = player1_score + player2_score
             player_wins_scores.append((player, wins, score))
-            logging.debug("Player %s: wins=%s, score=%s", player, wins, score)
+            player.game = None
 
         # Sort players first by wins in descending order, then by score in descending order
         player_wins_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
