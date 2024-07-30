@@ -21,6 +21,22 @@ export function initTournament(data) {
 }
 
 export function updateTournament(data) {
+	// The expected data.content is an array of rounds('d-none');
+	if (!data.content || !Array.isArray(data.content)) {
+		// console.error('Invalid tournament update data format');
+		return;
+	}
+
+	//sort JSON
+	data.content.sort((a, b) => a.round_number - b.round_number);
+
+	// Update the tournament data
+	const gameTableComponent = document.querySelector('game-table-component');
+	if (gameTableComponent) {
+		gameTableComponent.setAttribute('rounds', JSON.stringify(data));
+	} else {
+		console.error('game-table-component not found');
+	}
 }
 
 export async function updatePlayingGameInfo(data) {
@@ -62,6 +78,7 @@ class GameTable extends HTMLElement {
 	attributeChangedCallback(name, oldValue, newValue) {
 		if (name === 'rounds') {
 			this._data = JSON.parse(newValue);
+			console.log(this._data);
 			this.render();
 		}
 	}
@@ -91,8 +108,6 @@ class GameTable extends HTMLElement {
 				player1Avatar = round.player1.avatar;
 			if (pongerAvatars.includes(round.player2.avatar))
 				player2Avatar = round.player2.avatar;
-			// console.log(`TOURNAMENT RENDER IMAGETRACK: ${player1Avatar} & ${round.player1.user_id}`);
-			// console.log(`TOURNAMENT RENDER IMAGETRACK: ${player2Avatar} & ${round.player2.user_id}`);
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
 									status="${round.status}"

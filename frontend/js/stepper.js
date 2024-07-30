@@ -155,8 +155,10 @@ async function handleMessage(data) {
 				console.log("sending start game!!!")
 				await sendJson(JSON.stringify({ type: 'start-game' }));
 			}
-			else
+			else {
+				updateTournament(data);
 				await replacePlayerList(data.content.users);
+			}
 			break;
 
 		case 'tournament-over': {
