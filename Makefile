@@ -55,7 +55,7 @@ up:
 down:
 				@docker-compose down
 
-restart:		down env up
+restart:		down del_certs certs env up
 
 auth:
 				@docker-compose up --build -d nginx authentication
