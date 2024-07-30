@@ -37,13 +37,10 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 headers=self.get_headers(),
             )
             response.raise_for_status()
-            if start_date:
-                if self.player_id != 'spectator':
-                    action = "stop-round"
-                else:
-                    action = "continue-round"
+            if self.player_id != 'spectator' and self.player_id != None:
+                action = "stop-round"
             else:
-                action = "update-lobby"
+                action = "continue-round"
             await self.channel_layer.group_send(
                 self.game_id,
                 {
