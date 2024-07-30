@@ -100,7 +100,7 @@ class Game(models.Model):
                     game=self,
                     alias=player.get("name"),
                     channel_name=player.get("channel_name"),
-                    picture_url=player.get("avatar"),
+                    avatar=player.get("avatar"),
                 )
         except KeyError as e:
             logging.error("Error creating players: %s", e)

@@ -5,7 +5,7 @@ from .models import Game, Player, Round
 
 class PlayerSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='alias')
-    avatar = serializers.CharField(source='picture_url')
+    avatar = serializers.CharField(source='avatar.name')
     user_id = serializers.IntegerField()
     channel_name = serializers.CharField()
 
@@ -52,12 +52,12 @@ class GameSerializer(serializers.ModelSerializer):
                     "alias": player.alias,
                     "username": player.user.username,
                     "user_id": player.user_id,
-                    "avatar": player.picture_url,
+                    "avatar": player.avatar.name,
                 }
             )
         return players_info
 
     class Meta:
         model = Game
-        fields = ["game_id", "mode", "winner", "rounds", "players", "host", "users"]
+        fields = ["game_id", "mode", "winner", "rounds", "players", "host", "users"]  
 
