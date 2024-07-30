@@ -110,7 +110,8 @@ async function handleMessage(data) {
 					console.log('Game already started!');
 					return;
 				}
-				sendJson(JSON.stringify({ type: 'start-game' }));
+				if (is_host)
+					sendJson(JSON.stringify({ type: 'start-game' }));
 			}
 			break;
 
@@ -118,6 +119,13 @@ async function handleMessage(data) {
 			switch (data.action) {
 				case 'new':
 					initTournament(data);
+					let startedRound = data.content.find(round => round.status === 'started');
+						updatePlayingGameInfo(startedRound);
+					const gameLobby = document.getElementById('game-lobby');
+					const gameTable = document.getElementById('game-table');
+					gameLobby.classList.add('d-none');
+					gameTable.classList.remove('d-none');
+					window.history.replaceState({}, "", "/game");
 					break;
 				case 'update':
 					updateTournament(data);
@@ -130,7 +138,8 @@ async function handleMessage(data) {
 
 		case 'new-player':
 			await replacePlayerList(data.content.users);
-			 if (is_host && data.content.users.length > 1){
+			// initTournament(data);
+			if (is_host && data.content.users.length > 1){
 				let startRemoteButton = document.getElementById('StartRemoteGameButton');
 				startRemoteButton.removeAttribute('disabled');
 			}
@@ -156,7 +165,6 @@ async function handleMessage(data) {
 }
 
 export async function sendJson(json) {
-	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         await newsocket.send(json);
     } else {
@@ -169,7 +177,6 @@ function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
 	let playerData = playerList.getPlayerData();
-	console.log(playerData);
 	
 	// Create data object with type key
 	let data = {type: 'create-game'}
@@ -246,7 +253,6 @@ async function hostRemoteGame() {
 		}
 	
 		connectedCallback() {
-			console.log("rendering stepper form");
 			this.setupEventListeners();
 			setGameID();
 		}
@@ -262,26 +268,25 @@ async function hostRemoteGame() {
 
 			myElement = document.getElementById('joinRemoteGameButton');
 			if (myElement) {
-				myElement.addEventListener('click', (event) => {
-				event.preventDefault();
-				
-				joinRemoteGame();
-			});
+					myElement.addEventListener('click', (event) => {
+					event.preventDefault();
+					
+					joinRemoteGame();
+				});
 			};
 
 			myElement = document.getElementById('hostRemoteGameButton');
 			if (myElement) {
-				myElement.addEventListener('click', (event) => {
-				event.preventDefault();
-				hostRemoteGame();
-			});
+					myElement.addEventListener('click', (event) => {
+					event.preventDefault();
+					hostRemoteGame();
+				});
 			};
-
 
 			myElement = document.getElementById('StartRemoteGameButton');
 			if (myElement) {
 				myElement.addEventListener('click', (event) => {
-					urlRoute('/game');
+					// urlRoute('/game');
 					event.preventDefault();
 					if (is_host) {
 						sendJson(JSON.stringify({ type: 'start-game' }));

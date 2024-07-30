@@ -26,7 +26,6 @@ class ProfileTeaser extends HTMLElement {
 					console.error('There was a problem with the fetch operation:', error);
 					return { status: "error" };
 				});
-			// console.log(userCredentials);
 
 			const avatar = await setProfileImage(loggedIn.user_id);
 			this.innerHTML = `

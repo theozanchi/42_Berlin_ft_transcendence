@@ -6,11 +6,9 @@ import { getCSRFToken } from './login_signup.js';
 export async function setProfileImage(user_id) {
     const baseUrl = new URL(document.location).origin;
 	let ranIndex = Math.floor(Math.random() * pongerAvatars.length);
-	console.log (ranIndex);
 	if (user_id)
 		ranIndex = +user_id % (pongerAvatars.length -1);
     let randomImageFilename = pongerAvatars[ranIndex];
-	console.log (randomImageFilename);
     let imageUrl = new URL(randomImageFilename, baseUrl).toString();
 
     try {
@@ -26,7 +24,6 @@ export async function setProfileImage(user_id) {
         if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
             const data = await response.json();
             if (data.player_data && data.player_data.avatar) {
-				console.log(data);
 				imageUrl = baseUrl + '/media/' + data.player_data.avatar;
 				return imageUrl;
 			}
@@ -229,12 +226,7 @@ const ProfileEditObserver = new MutationObserver(() => {
 		})
 		.then(response => response.json())
 		.then(data => {
-			// ProfileEditObserver.disconnect();
 			userEditNickname.value = data.nickname;
-			// Use the data here
-			// console.log("USER DATA");
-			// console.log(data);
-			// userAvatar.src = data.avatar;
 		})
 		.catch(error => {
 			console.error('Error:', error);
