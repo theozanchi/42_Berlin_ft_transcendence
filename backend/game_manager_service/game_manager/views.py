@@ -152,6 +152,9 @@ def round(request):
             game.create_rounds()
             game.save()
 
+        if Round.objects.filter(game=game, status="started").exists():
+            return JsonResponse({"message": "A round ahs already started."}, status=403)
+
         round_to_play = (
             Round.objects.filter(game=game, status="pending")
             .order_by("round_number")
