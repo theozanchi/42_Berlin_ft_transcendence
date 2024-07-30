@@ -44,7 +44,6 @@ export function updateProfileData() {
 	const updateProfileNickname = document.getElementById('updateProfileNickname');
 	const updateProfilePassword = document.getElementById('updateProfilePassword');
 	const updateProfilePasswordConfirm = document.getElementById('updateProfilePasswordConfirm');
-	const deleteButton = document.getElementById('deleteProfileButton');
 	const updateButton = document.getElementById('updateProfileButton');
 
 	function validateForm() {
@@ -95,11 +94,16 @@ export function updateProfileData() {
 			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
 				return response.json();
 			}
-			throw new Error('Non-JSON response recieved');
+			throw new Error('Non-JSON response received');
 		})
 		.then(data => {
-			urlRoute('/profile');
-			console.log('Success:', data);
+			if (data.status === 'success') {
+				urlRoute('/profile');
+				console.log('Success:', data);
+			} else if (data.status === 'error') {
+				alert(data.message);
+				console.error('Error:', data.message);
+			}
 		})
 		.catch((error) => {
 			console.error('Error:', error);
