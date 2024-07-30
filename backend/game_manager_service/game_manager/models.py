@@ -138,56 +138,26 @@ class Game(models.Model):
 
     def calculate_scores(self):
         self.end_date = timezone.now()
-        player_wins_scores = []
-
-        # Initialize a dictionary to keep track of wins for each player
-        player_wins = {player.id: 0 for player in self.players.all()}
-
-        # Iterate through all rounds of the game
-        for round in self.rounds.all():
-            if round.winner:
-                player_wins[round.winner.id] += 1
 
         for player in self.players.all():
-            player1_score = (
-                player.player1_rounds.aggregate(total_score=Sum("player1_score"))[
-                    "total_score"
-                ]
-                or 0
-            )
-            player2_score = (
-                player.player2_rounds.aggregate(total_score=Sum("player2_score"))[
-                    "total_score"
-                ]
-                or 0
-            )
+            player1_score = sum(Round.objects.filter(game=self, player1=player.id).values_list('player1_score', flat=True))
+            player2_score = sum(Round.objects.filter(game=self, player2=player.id).values_list('player2_score', flat=True))
             score = player1_score + player2_score
-            player_wins_scores.append((player, player_wins[player.id], score))
-            player.game = None
-
-        # Sort players first by wins in descending order, then by score in descending order
-        player_wins_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
-        logging.debug("Player wins scores: %s", player_wins_scores)
-
-        # Assign ranks and create Participation objects
-        current_rank = 1
-        for i, (player, wins, score) in enumerate(player_wins_scores):
-            if i > 0 and (wins, score) == (player_wins_scores[i-1][1], player_wins_scores[i-1][2]):
-                rank = current_rank  # Same rank as the previous player
-            else:
-                rank = i + 1
-                current_rank = rank
-
-            participation = Participation.objects.create(
-                tournament=self, user=player.user, score=score, rank=rank
-            )
+            wins = Round.objects.filter(game=self, winner=player.id).count()
             player.game = None
             player.save()
 
-        # The winner is the player with the most wins
-        if player_wins_scores:
-            self.winner = player_wins_scores[0][0]  # First player in the sorted list
-            self.save()
+            Participation.objects.create(
+                tournament=self, user=player.user, score=score, rank=0
+            )
+
+        participations = Participation.objects.filter(tournament=self)
+        for participation in participations:
+            participation.rank = participations.filter(score__gt=participation.score).count() + 1
+            participation.save()
+       
+        self.winner = participations.order_by('-score').first().user.player
+        self.save()
 
         def __str__(self):
             return self.pk

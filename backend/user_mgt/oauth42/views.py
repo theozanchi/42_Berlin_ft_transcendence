@@ -436,7 +436,7 @@ def profile(request, user_id):
         )
     participations = Participation.objects.filter(user=user)
 
-    total_wins = Tournament.objects.filter(winner=user.id).count()
+    total_wins = Tournament.objects.filter(winner=user_profile).count()    
     total_lost = participations.count() - total_wins
     total_score = get_total_score(user_id)
 
