@@ -125,8 +125,8 @@ async function handleMessage(data) {
 						updatePlayingGameInfo(startedRound);
 					const gameLobby = document.getElementById('game-lobby');
 					const gameTable = document.getElementById('game-table');
-					gameLobby.classList.add('d-none');
-					gameTable.classList.remove('d-none');
+					if(gameLobby) gameLobby.classList.add('d-none');
+					if(gameTable) gameTable.classList.remove('d-none');
 					window.history.replaceState({}, "", "/game");
 					break;
 				case 'update':

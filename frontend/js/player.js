@@ -1,4 +1,5 @@
 import { setProfileImage } from "./profile.js";
+import { urlRoute } from "./url-router.js";
 
 class MyPlayer extends HTMLElement {
 	constructor() {
@@ -18,7 +19,7 @@ class MyPlayer extends HTMLElement {
 			this.addEventListener('click', () => {
 				const userId = this.getAttribute('user_id');
 				if (userId) {
-					window.location.href = `/profile?user=${userId}`;
+					urlRoute(`/profile?user=${userId}`);
 				}
 			});
 		}
@@ -44,14 +45,14 @@ class MyPlayer extends HTMLElement {
 		return ['name', 'avatar'];
 	}
 
-	attributeChangedCallback(name, oldValue, newValue) {
-		if ((name === 'name') && oldValue !== newValue) {
-			this.render();
-		}
-		if (name === 'avatar' && oldValue !== newValue) {
-			this.render();
-		}
-	}
+	// attributeChangedCallback(name, oldValue, newValue) {
+	// 	if ((name === 'name') && oldValue !== newValue) {
+	// 		this.render();
+	// 	}
+	// 	if (name === 'avatar' && oldValue !== newValue) {
+	// 		this.render();
+	// 	}
+	// }
 
 	async render() {
 		const	hasInput = this.hasAttribute('input');
@@ -65,7 +66,6 @@ class MyPlayer extends HTMLElement {
 		const	user_id = this.getAttribute('user_id');
 		let		imageUrl;
 	
-		console.log('PLAYER RENDERED');
 		if (avatar && avatar != 'null')
 			imageUrl = new URL(avatar, baseUrl);
 		else if (user_id)

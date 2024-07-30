@@ -125,6 +125,7 @@ export async function loadProfileData() {
 	const userGamesWon = document.getElementById('userGamesWon');
 	const userGamesLost = document.getElementById('userGamesLost');
 	const userFriendsList = document.getElementById('userFriendsList');
+	const showUserGameHistoryButton = document.getElementById('showUserGameHistory');
 	const urlQuery = new URLSearchParams(window.location.search);
 	const userId = urlQuery.get('user');
 
@@ -133,63 +134,77 @@ export async function loadProfileData() {
 		return;
 	}
 
-	try {
-		const response = await fetch(`/api/user_mgt/profile/${userId}`,
-			{
-				method: 'GET',
-				credentials: 'include',
-				headers: {
-					'X-CSRFToken': getCSRFToken(),
-				},
-			}
-		);
-		if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-			let data = await response.json();
+	showUserGameHistoryButton.addEventListener('click', function(event) {
+		event.preventDefault(); // Prevent the default anchor behavior
 
-			if (data.status === 'error')
-				throw new Error (data.message);
-			else if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
-				data = data.player_data;
-				errorContainer.setAttribute('hidden', '');
-				userDataContainer.removeAttribute('hidden');
-				userActionBar.removeAttribute('hidden');
-				// Set user avatar asynchronously
-				userAvatar.src = await setProfileImage(data.user_id);
-				userNickname.textContent = data.nickname;
-				if (data.rank)
-					userRank.textContent = data.rank.rank;
-				userScore.textContent = data.total_score;
-				if (data.games)
-					userGamesPlayed.value = +data.games.length;
-				userGamesWon.value = +data.total_wins;
-				userGamesLost.value = +data.total_lost;
+		const urlParams = new URLSearchParams(window.location.search);
+		const user = urlParams.get('user'); // Get the "user" query parameter
 
-				if (data.friends) {
-					userFriendsList.removeAttribute('hidden');
-					let noFriendsState = document.getElementById('emptyState');
-					if (noFriendsState && data.friends.length) {
-						noFriendsState.setAttribute('hidden', '');
-					}
-					for (const element of data.friends) {
-						let newPlayer = document.createElement('player-component');
-						let separator = document.createElement('hr');
-						separator.setAttribute('class', 'm-0');
-						newPlayer.setAttribute('name', element.username);
-						newPlayer.setAttribute('user_id', element.user_id);
-						if (element.online)
-							newPlayer.setAttribute('online', '');
-						// Await the setProfileImage call for each friend
-						newPlayer.setAttribute('avatar', await setProfileImage(element.user_id));
-						userFriendsList.appendChild(newPlayer);
-						userFriendsList.appendChild(separator);
+		if (user) {
+			// If the "user" parameter exists, append it to the href of the button
+			const newHref = `/game-history?user=${user}`;
+			urlRoute(newHref);
+		}
+	});
+
+	if (userId) {
+		try {
+			const response = await fetch(`/api/user_mgt/profile/${userId}`,
+				{
+					method: 'GET',
+					credentials: 'include',
+					headers: {
+						'X-CSRFToken': getCSRFToken(),
+					},
+				}
+			);
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				let data = await response.json();
+
+				if (data.status === 'error')
+					throw new Error (data.message);
+				else if (userAvatar && userNickname && userGamesPlayed && userRank && userScore && userGamesWon && userGamesLost && userFriendsList) {
+					data = data.player_data;
+					errorContainer.setAttribute('hidden', '');
+					userDataContainer.removeAttribute('hidden');
+					userActionBar.removeAttribute('hidden');
+					// Set user avatar asynchronously
+					userAvatar.src = await setProfileImage(data.user_id);
+					userNickname.textContent = data.nickname;
+					if (data.rank)
+						userRank.textContent = data.rank.rank;
+					userScore.textContent = data.total_score;
+					userGamesPlayed.value = +data.tournaments;
+					userGamesWon.value = +data.total_wins;
+					userGamesLost.value = +data.total_lost;
+
+					if (data.friends) {
+						userFriendsList.removeAttribute('hidden');
+						let noFriendsState = document.getElementById('emptyState');
+						if (noFriendsState && data.friends.length) {
+							noFriendsState.setAttribute('hidden', '');
+						}
+						for (const element of data.friends) {
+							let newPlayer = document.createElement('player-component');
+							let separator = document.createElement('hr');
+							separator.setAttribute('class', 'm-0');
+							newPlayer.setAttribute('name', element.username);
+							newPlayer.setAttribute('user_id', element.user_id);
+							if (element.online)
+								newPlayer.setAttribute('online', '');
+							// Await the setProfileImage call for each friend
+							newPlayer.setAttribute('avatar', await setProfileImage(element.user_id));
+							userFriendsList.appendChild(newPlayer);
+							userFriendsList.appendChild(separator);
+						}
 					}
 				}
+			} else {
+				throw new Error('Non-JSON response received');
 			}
-		} else {
-			throw new Error('Non-JSON response received');
+		} catch (error) {
+			console.error(`Error fetching profile for user ID ${userId}:`, error);
 		}
-	} catch (error) {
-		console.error(`Error fetching profile for user ID ${userId}:`, error);
 	}
 };
 

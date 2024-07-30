@@ -25,9 +25,9 @@ class match extends HTMLElement {
 			this.player1Score = newValue;
 		} else if (name === 'player2score' && newValue != '-1') {
 			this.player2Score = newValue;
-		} else if (name === 'player1avatar' && newValue != 'null') {
+		} else if (name === 'player1avatar' && newValue && newValue != 'null') {
 			this.player1Avatar = newValue;
-		} else if (name === 'player2avatar' && newValue != 'null') {
+		} else if (name === 'player2avatar' && newValue && newValue != 'null') {
 			this.player2Avatar = newValue;
 		} else if (name === 'player1id') {
 			this.player1Id = newValue;

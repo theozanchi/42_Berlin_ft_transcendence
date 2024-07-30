@@ -1,6 +1,31 @@
 import {getLoggedInState} from './login_signup.js';
 import {setProfileImage} from './profile.js'
 
+async function adjustButtonVisibility() {
+	const loggedInState = await getLoggedInState();
+	const localGameButton = document.getElementById('localGameButton');
+	const remoteGameButton = document.getElementById('remoteGameButton');
+	const rtfmLocal = document.getElementById('rtfmLocal');
+	const rtfmRemote = document.getElementById('rtfmRemote');
+
+	if (loggedInState && loggedInState.status === 'success') {
+	// User is logged in
+	if (localGameButton) localGameButton.style.display = 'none'; // Hide local game button
+	if (remoteGameButton) remoteGameButton.style.display = 'block'; // Show remote game button
+	if (rtfmLocal) rtfmLocal.style.display = 'none'; 
+	if (rtfmRemote) rtfmRemote.style.display = 'block';
+	} else {
+	// User is not logged in or an error occurred
+	if (localGameButton) localGameButton.style.display = 'block'; // Show local game button
+	if (remoteGameButton) remoteGameButton.style.display = 'none'; // Hide remote game button
+	if (rtfmLocal) rtfmLocal.style.display = 'block'; 
+	if (rtfmRemote) rtfmRemote.style.display = 'none';
+	}
+}
+
+// Call the function to adjust the button visibility based on the user's login state
+adjustButtonVisibility();
+
 class ProfileTeaser extends HTMLElement {
 	connectedCallback() {
 		try {
@@ -12,6 +37,7 @@ class ProfileTeaser extends HTMLElement {
 	}
 
 	async render() {
+		await adjustButtonVisibility();
 		const loggedIn = await getLoggedInState();
 
 		if (loggedIn.status === 'success') {
@@ -43,7 +69,7 @@ class ProfileTeaser extends HTMLElement {
 			this.innerHTML = `
 			<div id="teaserLogIn">
 				<hr class="m-0">
-				<h2>You have an Account?</h2>
+				<h2>Login to play Remote</h2>
 				<div class="spacer-12"></div>
 				<nav class="d-grid gap-2 d-md-block">
 					<a href="/login" id="goToLoginButton" class="btn btn-lg btn-outline-primary">Login</a>

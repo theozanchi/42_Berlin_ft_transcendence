@@ -242,7 +242,7 @@ export async function init() {
     // Set the text content based on player_i
     // Create the text element
     statusText.style.position = 'absolute';
-    statusText.style.top = '30px';
+    statusText.style.bottom = '48px';
     statusText.style.left = '50%';
     statusText.style.transform = 'translateX(-50%)';
     statusText.style.padding = '10px 20px';
@@ -1370,6 +1370,9 @@ function clearScene(object) {
 
 export function resetGame() {
     console.log('RESETTING GAME...');
+
+	if (statusText && statusText.parentNode)
+		statusText.parentNode.removeChild(statusText);
 
     clearScene(scene);
 	setGameStarted(false);
