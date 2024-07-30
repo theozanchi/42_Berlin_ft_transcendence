@@ -45,14 +45,14 @@ class MyPlayer extends HTMLElement {
 		return ['name', 'avatar'];
 	}
 
-	attributeChangedCallback(name, oldValue, newValue) {
-		if ((name === 'name') && oldValue !== newValue) {
-			this.render();
-		}
-		if (name === 'avatar' && oldValue !== newValue) {
-			this.render();
-		}
-	}
+	// attributeChangedCallback(name, oldValue, newValue) {
+	// 	if ((name === 'name') && oldValue !== newValue) {
+	// 		this.render();
+	// 	}
+	// 	if (name === 'avatar' && oldValue !== newValue) {
+	// 		this.render();
+	// 	}
+	// }
 
 	async render() {
 		const	hasInput = this.hasAttribute('input');

@@ -1371,6 +1371,9 @@ function clearScene(object) {
 export function resetGame() {
     console.log('RESETTING GAME...');
 
+	if (statusText && statusText.parentNode)
+		statusText.parentNode.removeChild(statusText);
+
     clearScene(scene);
 	setGameStarted(false);
 

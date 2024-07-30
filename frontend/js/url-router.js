@@ -215,7 +215,9 @@ const urlLocationHandler = async () => {
 	document.title = doc.querySelector('title').innerText; // Update title
 
 
-	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+	let fetchedSettingsColumnContent = doc.getElementById('settings-column')
+	if (fetchedSettingsColumnContent)
+		fetchedSettingsColumnContent = fetchedSettingsColumnContent.innerHTML;
 	if (fetchedSettingsColumnContent)
 		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 
