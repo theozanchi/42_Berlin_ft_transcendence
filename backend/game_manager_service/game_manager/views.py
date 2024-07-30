@@ -172,7 +172,6 @@ def round(request):
             rounds = Round.objects.filter(game=game).order_by('round_number')
 
             serializer = RoundSerializer(rounds, many=True)
-            logging.info("Round starting: %s", serializer.data)
             return JsonResponse(
                 {"type": "round", 
                  "content": serializer.data}, 
@@ -204,25 +203,20 @@ def round(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def update_players(request):
-    logging.debug("Player disconnected, request.data: %s", request.data)
     try:
         game = Game.objects.get(pk=request.data.get("game-id"))
         if game.end_date:
             return JsonResponse({"message": "Game already ended."}, status=200)
         if request.data.get("channel_name") == game.host:
-            logging.debug("Host disconnected, selecting next player as host")
             next_player = game.players.exclude(channel_name=game.host).first()
             if next_player:
-                logging.debug("Next player: %s", next_player.channel_name)
                 game.host = next_player.channel_name
             else:
-                logging.debug("No more players in game, setting host to None")
                 game.host = None
         game.update_scores_abandon(request.data.get("channel_name"))
 
         player = game.players.filter(channel_name=request.data.get("channel_name")).first()
         if player:
-            logging.debug("Setting game field to None for player: %s", player.channel_name)
             player.game = None
             player.save()
         game.save()

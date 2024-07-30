@@ -83,6 +83,7 @@ let lastGameState = null;
 let timingStarted = false;
 let isGameStateUpdating = false; 
 const sendInterval = 1000 / 60;
+isInitialized = false;
 
 const statusText = document.createElement('div');
 export const gifBackground = document.createElement('div');
@@ -403,7 +404,7 @@ export async function init() {
     }); */
     
     animate();
-
+    isInitialized = true;
 }
     
     //////////////////////--------EVENT_LISTENERS---------//////////////////////
@@ -525,6 +526,8 @@ function moveLoop() {
 }
 
 function onMouseMove(event) {
+    if (!isInitialized) return;
+
     // Normalize mouse coordinates to range [-1, 1]
     if (document.pointerLockElement === renderer.domElement) {
         // Use movementX and movementY to get mouse movement since the last event
@@ -549,6 +552,8 @@ function onMouseMove(event) {
 
 
 function onKeyDownPlayer1() {
+    if (!isInitialized) return;
+
     if (remote) {
         if (currentPlayer === player) {
             if (keysPressed['w']) {
@@ -596,6 +601,8 @@ function onKeyDownPlayer1() {
 }
 
 function onKeyDownPlayer2() {
+    if (!isInitialized) return;
+
     if (remote) {
         if (currentPlayer === player2) {
             if (keysPressed['s']) {
@@ -641,9 +648,13 @@ function onKeyDownPlayer2() {
     }
 }
 function onKeyDown(event) {
+    if (!isInitialized) return;
+
     keysPressed[event.key] = true;
 }
 function onKeyUp(event) {
+    if (!isInitialized) return;
+
 
 keysPressed[event.key] = false;
 
@@ -1120,6 +1131,7 @@ function checkPlayerPosition() {
 index8;
 
 function movePlayer(player, deltaX, deltaY) {
+    
     const halfSize = cubeSize / 2 - playerSize.z / 2;
 
     // Create a movement vector based on the mouse or key input
@@ -1376,6 +1388,7 @@ export function resetGame() {
 
     clearScene(scene);
 	setGameStarted(false);
+    isInitialized = false;
 
     scene = null;
 
