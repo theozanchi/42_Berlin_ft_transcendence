@@ -20,6 +20,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
         self.game_id = None
         self.host = False
         self.mode = None
+        self.started = False
         self.player_id = None
         self.last_sent_state = None
         self.lock = asyncio.Lock()
@@ -37,10 +38,13 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 headers=self.get_headers(),
             )
             response.raise_for_status()
-            if self.player_id != 'spectator' and self.player_id != None:
-                action = "stop-round"
+            if self.started:
+                if self.player_id != 'spectator':
+                    action = "stop-round"
+                else:
+                    action = "continue-round"
             else:
-                action = "continue-round"
+                action = "update-lobby"
             await self.channel_layer.group_send(
                 self.game_id,
                 {
@@ -186,6 +190,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({"error": str(e)})
 
     async def get_player_id(self, content):
+        self.started = True
         data = content.get("content")
         self.round_number = data.get("round_number")
         if self.mode == "remote":
