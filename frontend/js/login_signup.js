@@ -208,8 +208,9 @@ const signupObserver = new MutationObserver(() => {
 				})
 				.then(data => {
 					if (data.status === 'success') {
-						console.log('Success:', data);
+						console.log('Success Message:', data);
 						urlRoute('/');
+						return ;
 					}
 					throw new Error(data.message);
 				})
@@ -247,6 +248,7 @@ const LogOutObserver = new MutationObserver(() => {
 					})
 						.then(response => response.json())
 						.then(data => {
+							console.log(data);
 							if (data.status === 'success')
 								urlRoute('/');
 							else
