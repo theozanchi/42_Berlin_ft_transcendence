@@ -76,23 +76,20 @@
 						<div id="upcoming-games" class="d-flex flex-column flex-grow-1 overflow-auto h-100">
 							<game-table-component></game-table-component>
 						</div>
-			
+
 						<div class="d-grid gap-2">
+							<hr class="my-0">
 							<div class="spacer-12"></div>
-							<hr>
-							<!-- <nav class="d-grid gap-2 d-md-block"> -->
-								<button id="backButton" class="btn y btn-lg btn-outline-danger">Leave Tournament</button>
-							<!-- </nav> -->
+							<nav class="d-grid gap-2">
+								<a href='/' id="backButton" class="btn y btn-lg btn-outline-danger">Leave Tournament</a>
+							</nav>
 							<div class="spacer-48"></div>
 						</div>
+						
 					</div>
 				</div>
 				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
 					<canvas id="bg"></canvas>
-				</div>
-				<div class="col col-lg-3 ppg-green-light" id="meta-column">
-					<div class="spacer-48"></div>
-					<h2>WebSocket Client</h2>
 				</div>
 			</div>
 		</div>

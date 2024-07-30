@@ -83,7 +83,7 @@ async function handleMessage(data) {
 				sendJson(JSON.stringify({ type: 'start-game' }));
 			} else {
 				urlRoute(`/host-remote?id=${game_id}`);
-
+				await new Promise(resolve => setTimeout(resolve, 500));
 				await replacePlayerList(data.users);
 			}
 			break;
@@ -137,6 +137,7 @@ async function handleMessage(data) {
 			break;
 
 		case 'new-player':
+			await new Promise(resolve => setTimeout(resolve, 500)); 
 			await replacePlayerList(data.content.users);
 			// initTournament(data);
 			if (is_host && data.content.users.length > 1){
