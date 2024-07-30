@@ -165,7 +165,6 @@ async function handleMessage(data) {
 }
 
 export async function sendJson(json) {
-	//console.log("TRYING TO SEND A JSON");
     if (newsocket && newsocket.readyState === WebSocket.OPEN) {
         await newsocket.send(json);
     } else {
@@ -178,7 +177,6 @@ function generateLocalGame() {
 
 	let playerList = document.querySelector('player-list');
 	let playerData = playerList.getPlayerData();
-	console.log(playerData);
 	
 	// Create data object with type key
 	let data = {type: 'create-game'}
@@ -255,7 +253,6 @@ async function hostRemoteGame() {
 		}
 	
 		connectedCallback() {
-			console.log("rendering stepper form");
 			this.setupEventListeners();
 			setGameID();
 		}

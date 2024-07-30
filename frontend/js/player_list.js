@@ -35,8 +35,7 @@ class PlayerList extends HTMLElement {
 		this.count--;
 	}
 
-	connectedCallback() {			
-		// console.log("rendering PlayerList");
+	connectedCallback() {
 		this.render();
 
 		if (this.gameMode === 'local')
