@@ -67,6 +67,8 @@ class PlayerList extends HTMLElement {
 			}
 			playerList.removeChild(newPlayer);
 			this.dec();
+			if (this.count < 7)
+				addPlayerButton.removeAttribute('disabled', '');
 			this.shadow.getElementById('playerCount').textContent = `${this.count} Players`;
 		});
 
@@ -75,6 +77,13 @@ class PlayerList extends HTMLElement {
 
 		// Increase the count of players
 		this.count++;
+
+		// (de-)achtivate add-player button for 7 participants
+		let addPlayerButton = this.shadow.getElementById('addPlayerButton');
+		if (this.count == 7)
+			addPlayerButton.setAttribute('disabled', '');
+		else
+			addPlayerButton.removeAttribute('disabled');
 
 		// Update the player count display
 		this.shadow.getElementById('playerCount').textContent = `${this.count} Players`;
