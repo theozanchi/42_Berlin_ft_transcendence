@@ -4,37 +4,39 @@ import { getCSRFToken } from './login_signup.js';
 
 
 export async function setProfileImage(user_id) {
-    const baseUrl = new URL(document.location).origin;
+	const baseUrl = new URL(document.location).origin;
 	let ranIndex = Math.floor(Math.random() * pongerAvatars.length);
 	if (user_id)
 		ranIndex = +user_id % (pongerAvatars.length -1);
-    let randomImageFilename = pongerAvatars[ranIndex];
-    let imageUrl = new URL(randomImageFilename, baseUrl).toString();
+	let randomImageFilename = pongerAvatars[ranIndex];
+	let imageUrl = new URL(randomImageFilename, baseUrl).toString();
 
-    try {
-        const response = await fetch(`/api/user_mgt/profile/${user_id}`,
-			{
-				method: 'GET',
-				credentials: 'include',
-				headers: {
-					'X-CSRFToken': getCSRFToken(),
-				},
+	if (user_id){
+		try {
+			const response = await fetch(`/api/user_mgt/profile/${user_id}`,
+				{
+					method: 'GET',
+					credentials: 'include',
+					headers: {
+						'X-CSRFToken': getCSRFToken(),
+					},
+				}
+			);
+			if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
+				const data = await response.json();
+				if (data.player_data && data.player_data.avatar) {
+					imageUrl = baseUrl + '/media/' + data.player_data.avatar;
+					return imageUrl;
+				}
+			} else {
+				throw new Error('Non-JSON response received');
 			}
-		);
-        if (response.ok && response.headers.get('Content-Type').includes('application/json')) {
-            const data = await response.json();
-            if (data.player_data && data.player_data.avatar) {
-				imageUrl = baseUrl + '/media/' + data.player_data.avatar;
-				return imageUrl;
-			}
-		} else {
-			throw new Error('Non-JSON response received');
+		} catch (error) {
+			console.error('Error:', error);
 		}
-	} catch (error) {
-		console.error('Error:', error);
 	}
 
-    return imageUrl;
+	return imageUrl;
 }
 
 export function updateProfileData() {
