@@ -133,7 +133,11 @@ def update_or_create_user(
     ):
         return None
 
-    user, _ = User.objects.get_or_create(username=user_info["username"])
+    user_profile = UserProfile.objects.filter(id42=user_info["id42"]).first()
+    if user_profile is not None:
+        return user_profile.user
+    
+    user, _= User.objects.get_or_create(username=user_info["username"])
     user_profile, created = UserProfile.objects.update_or_create(
         user=user,
         defaults={
