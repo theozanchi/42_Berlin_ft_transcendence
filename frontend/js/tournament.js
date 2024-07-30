@@ -88,8 +88,8 @@ class GameTable extends HTMLElement {
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
 									status="${round.status}"
-									player1Score="${round.player1_score}" 
-									player2Score="${round.player2_score}" 
+									player1Score="-" 
+									player2Score="-" 
 									player1="${round.player1.name}" 
 									player2="${round.player2.name}"
 									player1Id="${round.player1.user_id}" 
