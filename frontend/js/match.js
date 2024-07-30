@@ -27,8 +27,10 @@ class match extends HTMLElement {
 		} else if (name === 'player2score' && newValue != '-1') {
 			this.player2Score = newValue;
 		} else if (name === 'player1avatar' && newValue != 'null') {
+			// console.log(`MATCH UPDATE IMAGETRACK: ${newValue}`);
 			this.player1Avatar = newValue;
 		} else if (name === 'player2avatar' && newValue != 'null') {
+			// console.log(`MATCH UPDATE IMAGETRACK: ${newValue}`);
 			this.player2Avatar = newValue;
 		} else if (name === 'player1id') {
 			this.player1Id = newValue;
@@ -52,6 +54,9 @@ class match extends HTMLElement {
 		const dateFormatted = isHistory
 			? `<small class="text-center mx-2">${date.getDate()}.${date.getMonth()}.${date.getFullYear()}</small>`
 			: ""
+
+		// console.log(`MATCH RENDER IMAGETRACK: ${this.player1Avatar} ${this.player1Id}"`);
+		// console.log(`MATCH RENDER IMAGETRACK: ${this.player2Avatar} ${this.player2Id}"`);
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">

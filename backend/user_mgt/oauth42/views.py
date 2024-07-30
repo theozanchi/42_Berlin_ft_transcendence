@@ -713,6 +713,7 @@ def get_registered_users():
             "won_rounds",
         )
         .order_by("username")
+        .distinct("user_id")
     )
     return registered_user_profiles
 

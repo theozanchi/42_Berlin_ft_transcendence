@@ -1,4 +1,5 @@
 import { setProfileImage } from "./profile.js";
+import { pongerAvatars } from "./login_signup.js";
 
 export function initTournament(data) {
 	// The expected data.content is an array of rounds('d-none');
@@ -24,6 +25,7 @@ export function updateTournament(data) {
 
 export async function updatePlayingGameInfo(data) {
 
+	const baseUrl = new URL(document.location).origin;
 	let player1name = document.getElementById('gameLivePlayer1Name');
 	let player2name = document.getElementById('gameLivePlayer2Name');
 	let player1avatar = document.getElementById('gameLivePlayer1Avatar');
@@ -32,14 +34,21 @@ export async function updatePlayingGameInfo(data) {
 	// if (player1name & player2name & player1avatar & player2avatar) {
 		player1name.innerHTML = data.player1.name;
 		player2name.innerHTML = data.player2.name;
-		if (data.player1.avatar && data.player1.avatar != 'null')
-			player1avatar.src = data.player1.user_id;
+
+		// if (data.player1.avatar && data.player1.avatar != 'null')
+		if (data.player1.avatar && pongerAvatars.includes(data.player1.avatar))
+			player1avatar.src = data.player1.avatar;
 		else
 			player1avatar.src = await setProfileImage(data.player1.user_id);
-		if (data.player2.avatar && data.player1.avatar != 'null')
-			player2avatar.src = data.player2.user_id;
+		
+		// if (data.player2.avatar && data.player1.avatar != 'null')
+		if (data.player2.avatar && pongerAvatars.includes(data.player1.avatar))
+			player2avatar.src = data.player2.avatar;
 		else
 			player2avatar.src = await setProfileImage(data.player2.user_id);
+		
+		// console.log(`TOURNAMENT UPDATE IMAGETRACK: ${player1avatar.src} & ${data.player1.user_id}`);
+		// console.log(`TOURNAMENT UPDATE IMAGETRACK: ${player1avatar.src} & ${data.player2.user_id}`);
 	// } else {
 		// console.error('game live information  not found');
 	// }
@@ -67,12 +76,15 @@ class GameTable extends HTMLElement {
 		}
 	}
 
-	render() {
+	async render() {
 		if (!this._data) {
 			// _data is not defined, so there's nothing to render
 			// console.error('nothing to render tournament');
 			return;
 		}
+
+		let player1Avatar = '';
+		let player2Avatar = '';
 
 		let nextNum = 0;
 		let finishedNum = 0;
@@ -85,6 +97,12 @@ class GameTable extends HTMLElement {
 								<div>`;
 		
 		this._data.content.forEach(round => {
+			if (pongerAvatars.includes(round.player1.avatar))
+				player1Avatar = round.player1.avatar;
+			if (pongerAvatars.includes(round.player2.avatar))
+				player2Avatar = round.player2.avatar;
+			// console.log(`TOURNAMENT RENDER IMAGETRACK: ${player1Avatar} & ${round.player1.user_id}`);
+			// console.log(`TOURNAMENT RENDER IMAGETRACK: ${player2Avatar} & ${round.player2.user_id}`);
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
 									status="${round.status}"
@@ -94,8 +112,8 @@ class GameTable extends HTMLElement {
 									player2="${round.player2.name}"
 									player1Id="${round.player1.user_id}" 
 									player2Id="${round.player2.user_id}"
-									player1Avatar="${round.player1.avatar}" 
-									player2Avatar="${round.player2.avatar}">
+									player1Avatar="${player1Avatar}" 
+									player2Avatar="${player2Avatar}">
 								</match-component>`;
 				nextGames += '<hr class="m-0">';
 				nextNum++;
@@ -108,8 +126,8 @@ class GameTable extends HTMLElement {
 									player2="${round.player2.name}" 
 									player1Id="${round.player1.user_id}" 
 									player2Id="${round.player2.user_id}"
-									player1Avatar="${round.player1.avatar}" 
-									player2Avatar="${round.player2.avatar}">
+									player1Avatar="${player1Avatar}" 
+									player2Avatar="${player2Avatar}">
 			// 					</match-component>`;
 				finishedGames += '<hr class="m-0">';
 				finishedNum++;
