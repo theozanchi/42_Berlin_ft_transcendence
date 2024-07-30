@@ -2,7 +2,7 @@ const	baseUrl = document.location.href;
 import {getLoggedInState} from './login_signup.js';
 import {loadUserList} from './all-users.js';
 import {loadProfileData, updateProfileData} from './profile.js'
-import { newsocket } from './stepper.js';
+import { newsocket, getCurrentUser, openSocket, sendJson } from './stepper.js';
 import { resetGame, gifBackground, winnerText } from "./game.js"
 
 document.addEventListener("click", (e) => {
@@ -113,18 +113,28 @@ async function redirectOnLogin(locationOld){
 	const userId = userStatus.user_id;
 
 	if (userStatus.status === "success"){
-		if (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user'))) {
-			const newUrl = `/profile?user=${userId}`;
-			window.history.replaceState({}, "", newUrl);
-			location = '/profile'; 
-		} else if (location === '/game' && !newsocket) {
-			location = '/';
-			inGame = false;
-			window.history.replaceState({}, "", location);
+		const storedUrl = localStorage.getItem('redirectAfterLogin');
+		if (storedUrl) {
+			location = storedUrl;
+			localStorage.removeItem('redirectAfterLogin');
+			urlRoute(location);
+		} else {
+			if (location === "/login" || location === "/signup" || (location === "/profile" && !urlQuery.has('user'))) {
+				const newUrl = `/profile?user=${userId}`;
+				window.history.replaceState({}, "", newUrl);
+				location = '/profile'; 
+			} else if (location === '/game' && !newsocket) {
+				location = '/';
+				inGame = false;
+				window.history.replaceState({}, "", location);
+			}
 		}
 
 	}
 	else if (userStatus.status !== "success") {
+		const fullUrl = window.location.pathname + window.location.search;
+		localStorage.setItem('redirectAfterLogin', fullUrl);
+
 		if (location === "/profile" && !urlQuery.has('user')) {
 			location = "/login";
 			window.history.replaceState({}, "", location);
@@ -147,6 +157,8 @@ var inGame = false;
 
 const urlLocationHandler = async () => {
 	let location = window.location.pathname;
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
 
 	if (gifBackground && winnerText) {
 		gifBackground.remove();
@@ -200,6 +212,14 @@ const urlLocationHandler = async () => {
 		updateProfileData();
 	if (location === '/users')
 		loadUserList();
+	if (location === '/join-remote' && !newsocket && urlParams.has('id')) {
+		const gameId = urlParams.get('id');
+		const userId = await getCurrentUser();
+		let data = {type: 'join-game', 'game_id': gameId, 'mode': 'remote', 'user_id': userId};
+		openSocket() .then(() => {
+			sendJson(JSON.stringify(data));
+		})
+	}
 };
 
 export function handleGameExit(event) {

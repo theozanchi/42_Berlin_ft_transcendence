@@ -57,7 +57,7 @@ MIDDLEWARE = [
 ]
 
 # Set up CSRF trusted origins if needed (e.g., for CORS requests)
-CSRF_TRUSTED_ORIGINS = ["https://" + os.getenv("SERVER_NAME")]
+CSRF_TRUSTED_ORIGINS = ["https://c3a8c3.42berlin.de:8443"]
 
 ROOT_URLCONF = "api_gateway.urls"
 
