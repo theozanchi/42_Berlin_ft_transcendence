@@ -170,8 +170,7 @@ export async function loadProfileData() {
 					if (data.rank)
 						userRank.textContent = data.rank.rank;
 					userScore.textContent = data.total_score;
-					if (data.games)
-						userGamesPlayed.value = +data.tournaments;
+					userGamesPlayed.value = +data.tournaments;
 					userGamesWon.value = +data.total_wins;
 					userGamesLost.value = +data.total_lost;
 
