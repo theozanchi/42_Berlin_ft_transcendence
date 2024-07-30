@@ -280,11 +280,11 @@ class Round(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
-    player1_score = models.IntegerField(
-        default=-1, validators=[MinValueValidator(-1), MaxValueValidator(5)]
+    player1_score = models.PositiveIntegerField(
+        default=0, validators=[MinValueValidator(0), MaxValueValidator(5)]
     )
-    player2_score = models.IntegerField(
-        default=-1, validators=[MinValueValidator(-1), MaxValueValidator(5)]
+    player2_score = models.PositiveIntegerField(
+        default=0, validators=[MinValueValidator(0), MaxValueValidator(5)]
     )
 
     def clean(self):
