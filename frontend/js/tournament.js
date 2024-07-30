@@ -1,45 +1,58 @@
+import { setProfileImage } from "./profile.js";
+import { pongerAvatars } from "./login_signup.js";
+
 export function initTournament(data) {
-	// The expected data.content is an array of rounds
+	// The expected data.content is an array of rounds('d-none');
 	if (!data.content || !Array.isArray(data.content)) {
-        console.error('Invalid tournament update data format');
-        return;
-    }
+		// console.error('Invalid tournament update data format');
+		return;
+	}
 
 	//sort JSON
 	data.content.sort((a, b) => a.round_number - b.round_number);
 
-    // Update the tournament data
-    const gameTable = document.querySelector('game-table-component');
-    if (gameTable) {
-        gameTable.setAttribute('rounds', JSON.stringify(data));
-    } else {
-        console.error('game-table-component not found');
-    }
+	// Update the tournament data
+	const gameTableComponent = document.querySelector('game-table-component');
+	if (gameTableComponent) {
+		gameTableComponent.setAttribute('rounds', JSON.stringify(data));
+	} else {
+		console.error('game-table-component not found');
+	}
 }
 
 export function updateTournament(data) {
-
 }
 
-export function updatePlayingGameInfo(data) {
-	console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(data, null, 2)}`);
+export async function updatePlayingGameInfo(data) {
 
+	const baseUrl = new URL(document.location).origin;
 	let player1name = document.getElementById('gameLivePlayer1Name');
 	let player2name = document.getElementById('gameLivePlayer2Name');
 	let player1avatar = document.getElementById('gameLivePlayer1Avatar');
 	let player2avatar = document.getElementById('gameLivePlayer2Avatar');
 
-	player1name.innerHTML = data.player1.name;
-	player2name.innerHTML = data.player2.name;
-	player1avatar.src = data.player1.avatar;
-	player2avatar.src = data.player2.avatar;
+		player1name.innerHTML = data.player1.name;
+		player2name.innerHTML = data.player2.name;
 
+		
+		if (data.player1.avatar && pongerAvatars.includes(data.player1.avatar))
+			player1avatar.src = data.player1.avatar;
+		else
+			player1avatar.src = await setProfileImage(data.player1.user_id);
+		if (data.player2.avatar && pongerAvatars.includes(data.player1.avatar))
+			player2avatar.src = data.player2.avatar;
+		else
+			player2avatar.src = await setProfileImage(data.player2.user_id);
 }
 
 class GameTable extends HTMLElement {
 	constructor() {
 		super();
 		this.shadow = this.attachShadow({mode: 'open'});
+	}
+
+	connectedCallback() {
+		this.render();
 	}
 
 	static get observedAttributes() {
@@ -53,12 +66,15 @@ class GameTable extends HTMLElement {
 		}
 	}
 
-	render() {
+	async render() {
 		if (!this._data) {
 			// _data is not defined, so there's nothing to render
 			// console.error('nothing to render tournament');
 			return;
 		}
+
+		let player1Avatar = '';
+		let player2Avatar = '';
 
 		let nextNum = 0;
 		let finishedNum = 0;
@@ -71,31 +87,38 @@ class GameTable extends HTMLElement {
 								<div>`;
 		
 		this._data.content.forEach(round => {
-			// console.log(`MY ROUND: ${round}`);
-			// console.log(`I GOT SOME DATA TO PLAY WITH: ${JSON.stringify(round, null, 2)}`);
-			// if (!this._data.content.winner) {
+			if (pongerAvatars.includes(round.player1.avatar))
+				player1Avatar = round.player1.avatar;
+			if (pongerAvatars.includes(round.player2.avatar))
+				player2Avatar = round.player2.avatar;
+			// console.log(`TOURNAMENT RENDER IMAGETRACK: ${player1Avatar} & ${round.player1.user_id}`);
+			// console.log(`TOURNAMENT RENDER IMAGETRACK: ${player2Avatar} & ${round.player2.user_id}`);
 			if (round.status === 'pending') {
 				nextGames += `<match-component 
 									status="${round.status}"
 									player1Score="-" 
 									player2Score="-" 
 									player1="${round.player1.name}" 
-									player2="${round.player2.name}" 
-									player1Avatar="${round.player1.avatar}" 
-									player2Avatar="${round.player2.avatar}">
+									player2="${round.player2.name}"
+									player1Id="${round.player1.user_id}" 
+									player2Id="${round.player2.user_id}"
+									player1Avatar="${player1Avatar}" 
+									player2Avatar="${player2Avatar}">
 								</match-component>`;
 				nextGames += '<hr class="m-0">';
 				nextNum++;
 			} else if (round.status === 'completed') {
 				finishedGames += `<match-component 
-			// 						status="${round.status}"
+			 						status="${round.status}"
 									player1Score="${round.player1_score}" 
 									player2Score="${round.player2_score}" 
 									player1="${round.player1.name}" 
 									player2="${round.player2.name}" 
-									player1Avatar="${round.player1.avatar}" 
-									player2Avatar="${round.player2.avatar}">
-			// 					</match-component>`;
+									player1Id="${round.player1.user_id}" 
+									player2Id="${round.player2.user_id}"
+									player1Avatar="${player1Avatar}" 
+									player2Avatar="${player2Avatar}">
+			 					</match-component>`;
 				finishedGames += '<hr class="m-0">';
 				finishedNum++;
 			}

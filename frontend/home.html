@@ -12,44 +12,30 @@
 
   	</head>
 	<body>
-		<!-- <div  class="container-fluid">
-			<div class="min-vh-100 row row-cols-1 row-cols-lg-3 d-flex"> -->
-				<div class="d-flex flex-column justify-content-between" id="settings-column">
-					
-					<div class="d-flex flex-column h-100">
-					
-						<div class="spacer-48"></div>
-						<stepper-component></stepper-component>
-
-						<div class="d-flex flex-column h-100 overflow-auto">
-								<div class="spacer-48"></div>
-								<h1>WELCOME</h1>
-								<p>to our ponger puff girl. There are a lot of things to do in this app.
-								Do you want to play locally or remotely with friends?</p>
-								<div class="spacer-24"></div>
-								<h2>Play Pong</h2>
-								<!-- <nav class="d-flex align-items-stretch gap-2 d-md-block"> -->
-								<nav class="d-grid gap-2 d-md-block">
-									<a href="/setup-local" id="localGameButton" class="btn btn-primary btn-lg">Local</a>
-									<a href="/setup-remote" id="remoteGameButton" class="btn btn-secondary btn-lg">Remote</a>
-								</nav>
-						</div>
-						<profile-teaser></profile-teaser>
-					</div>
-				</div>
+		<div class="d-flex flex-column justify-content-between" id="settings-column">
 			
-				<div class="col col-lg-6 ppg-pink-light" id= "game-column">
+			<div class="d-flex flex-column h-100">
+			
+				<div class="spacer-48"></div>
+				<stepper-component></stepper-component>
+
+				<div class="d-flex flex-column h-100 overflow-auto">
+						<div class="spacer-48"></div>
+						<h1>WELCOME</h1>
+						<p>to our ponger puff girl. There are a lot of things to do in this app.
+						Do you want to play locally or remotely with friends?</p>
+						<div class="spacer-24"></div>
+						<h2>Play Pong</h2>
+						<nav class="d-grid gap-2 d-md-block">
+							<a href="/setup-local" id="localGameButton" class="btn btn-primary btn-lg">Local</a>
+							<a href="/setup-remote" id="remoteGameButton" class="btn btn-secondary btn-lg">Remote</a>
+						</nav>
 				</div>
+				<profile-teaser></profile-teaser>
 			</div>
 		</div>
-	</body>
-	<canvas id="bg"></canvas>
-    <!-- custom JS -->
-	<script src="js/url-router.js"></script>
-	<script src="js/websocket_connect.js"></script>
-	<script type="module" src="js/stepper.js"></script>
-	<script src="js/stepper_titlebar.js"></script>
-	<script src="js/player_list.js"></script>
-	<script src="js/player.js"></script>
 	
+		<div class="col col-lg-6 ppg-pink-light" id= "game-column">
+		</div>
+	</body>
 </html>

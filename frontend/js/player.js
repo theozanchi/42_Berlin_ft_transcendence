@@ -10,7 +10,6 @@ class MyPlayer extends HTMLElement {
 		this.render();
 		if (this.hasAttribute('remove-button')){
 			this.shadow.getElementById('removeButton').addEventListener('click', () => {
-				// console.log("REMOVE CLICKED");
 				this.dispatchEvent(new CustomEvent('removePlayer'));
 			});
 		}
@@ -25,36 +24,36 @@ class MyPlayer extends HTMLElement {
 		}
 	}
 
-    get name() {
-        return this.getAttribute('name');
-    }
+	get name() {
+		return this.getAttribute('name');
+	}
 
-    set name(newValue) {
-        this.setAttribute('name', newValue);
-        // this.render();
-    }
+	set name(newValue) {
+		this.setAttribute('name', newValue);
+	}
 
 	get avatar() {
 		return this.getAttribute('avatar');
 	}
 		
 	set avatar(newValue) {
-		this.setAttribute('name', avatar);
-		// this.render();
+		this.setAttribute('avatar', newValue);
 	}
 
-    static get observedAttributes() {
-        return ['name'];
-    }
+	static get observedAttributes() {
+		return ['name', 'avatar'];
+	}
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'name' && oldValue !== newValue) {
-			// console.log(`RERENDERING: ${name} ${oldValue}  ${newValue}`);
-            // this.render();
-        }
-    }
+	attributeChangedCallback(name, oldValue, newValue) {
+		if ((name === 'name') && oldValue !== newValue) {
+			this.render();
+		}
+		if (name === 'avatar' && oldValue !== newValue) {
+			this.render();
+		}
+	}
 
-	render() {
+	async render() {
 		const	hasInput = this.hasAttribute('input');
 		const	hasRemoveButton = this.hasAttribute('remove-button');
 		const	isOnline = this.hasAttribute('online');
@@ -63,14 +62,16 @@ class MyPlayer extends HTMLElement {
 		const	baseUrl = document.location.href;
 		const	name = this.getAttribute('name');
 		const	avatar = this.getAttribute('avatar');
+		const	user_id = this.getAttribute('user_id');
 		let		imageUrl;
 
-		if (this.getAttribute('avatar'))
-			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
-		else
-			imageUrl = setProfileImage();
-	
-		console.log(`imageUrl final: ${imageUrl}`);
+		// console.log(`PLAYER IMAGETRACK: ${avatar} & ${user_id}`);
+
+		// if (avatar && avatar != 'null')
+		if (avatar && avatar != 'null')
+			imageUrl = new URL(avatar, baseUrl);
+		else if (user_id)
+			imageUrl = await setProfileImage(user_id);
 
 		const nameAligned = (tableColumn === "right")
 			? `<p class="col align-middle fs-5 m-0 text-end text-truncate">${name}</p>`
@@ -85,7 +86,6 @@ class MyPlayer extends HTMLElement {
 			: '';
 	
 		const imgElement = `<div class="masked-avatar"><img src="${imageUrl}" class="col-auto player-component"></div>`;
-		console.log( imgElement );
 
 		const onlineBadge = isOnline
 			? `<span class="badge rounded-pill text-bg-success">online</span>`

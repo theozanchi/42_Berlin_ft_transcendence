@@ -3,7 +3,6 @@ import { getCSRFToken } from './login_signup.js';
 
 async function usersAreFriends(userIdA, userIdB) {
 	const userData = await getLoggedInState(userIdA);
-	console.log(`COMPARING: ${userIdA} ${userIdB}`);
 	if (!userData || userData.status !== 'success') {
 		console.error(`Cannot validate friendship: User ID ${userIdA} unknown.`);
 		return false;
@@ -111,7 +110,6 @@ class ProfileAction extends HTMLElement {
 		const loggedIn = await getLoggedInState();
 
 		if (loggedIn.status === 'success' && loggedIn.user_id === this.RequestedUserId) {
-			console.log(`OKAY`);
 			fetch(`/api/user_mgt/profile/${loggedIn.user_id}`)
 				.then(response => {
 					if (!response.ok) {
@@ -148,7 +146,6 @@ class ProfileAction extends HTMLElement {
 			const UnfriendButton = document.getElementById('userUnfriendButton')
 
 			const Friendship = await usersAreFriends(loggedIn.user_id, this.RequestedUserId);
-			console.log(`STATE OF FRIENDSHIP: ${Friendship}`);
 			if (Friendship)
 				BefriendButton.style.display = 'none';
 			else
