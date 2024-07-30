@@ -161,6 +161,7 @@ async function handleMessage(data) {
 
 		case 'tournament-over': {
 			newsocket.close();
+			setGameStarted(false);
 			console.log('Tournament over:', data);
 			displayWinner(data.content);
 		}
