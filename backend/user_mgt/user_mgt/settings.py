@@ -51,37 +51,6 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = "/usr/share/media"
-
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
-
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = ".42berlin.de"
-CSRF_TRUSTED_ORIGINS = [
-    'https://localhost:8443',
-    'https://*.42berlin.de:8443',
-    'https://c3a8c3.42berlin.de:8443'
-]
-
-CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_DOMAIN = ".42berlin.de"
-CSRF_COOKIE_DOMAIN = '.42berlin.de'
-
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "https://*.42berlin.de:8443",
-    "https://c3a8c3.42berlin.de:8443"
-    ]
-
-CSRF_USE_SESSIONS = True
-
-CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -92,6 +61,26 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "oauth42.middleware.LastActivityMiddleware",
 ]
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = "/usr/share/media"
+
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+CSRF_TRUSTED_ORIGINS = ["c3a8c3.42berlin.de:8443"]
+
+SESSION_COOKIE_DOMAIN = "c3a8c3.42berlin.de"
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = ["https://c3a8c3.42berlin.de:8443"]
+
+CSRF_USE_SESSIONS = True
+
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 ROOT_URLCONF = "user_mgt.urls"
 

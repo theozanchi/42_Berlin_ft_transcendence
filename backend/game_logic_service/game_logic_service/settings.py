@@ -69,9 +69,7 @@ MIDDLEWARE = [
 ]
 
 # Set up CSRF trusted origins if needed (e.g., for CORS requests)
-CSRF_TRUSTED_ORIGINS = ["https://localhost:8443"]
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = "localhost"
+CSRF_TRUSTED_ORIGINS = ["https://c3a8c3.42berlin.de:8443"]
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'

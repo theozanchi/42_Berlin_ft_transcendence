@@ -39,7 +39,6 @@ certs:			dir
 
 
 dir:
-				echo $(DIR)
 				@mkdir -p $(DIR)
 
 del_certs:
