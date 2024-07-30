@@ -37,7 +37,7 @@ class APIConsumer(AsyncJsonWebsocketConsumer):
                 headers=self.get_headers(),
             )
             response.raise_for_status()
-            if self.player_id != None:
+            if self.player_id != 'spectator':
                 action = "stop-round"
             else:
                 action = "continue-round"
