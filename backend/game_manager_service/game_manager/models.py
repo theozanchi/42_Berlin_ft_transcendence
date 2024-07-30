@@ -100,7 +100,7 @@ class Game(models.Model):
                     game=self,
                     alias=player.get("name"),
                     channel_name=player.get("channel_name"),
-                    picture_url=player.get("avatar"),
+                    avatar=player.get("avatar"),
                 )
         except KeyError as e:
             logging.error("Error creating players: %s", e)
@@ -280,11 +280,11 @@ class Round(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
-    player1_score = models.IntegerField(
-        default=-1, validators=[MinValueValidator(-1), MaxValueValidator(5)]
+    player1_score = models.PositiveIntegerField(
+        default=0
     )
-    player2_score = models.IntegerField(
-        default=-1, validators=[MinValueValidator(-1), MaxValueValidator(5)]
+    player2_score = models.PositiveIntegerField(
+        default=0
     )
 
     def clean(self):

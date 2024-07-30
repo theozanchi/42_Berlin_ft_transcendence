@@ -11,6 +11,7 @@ function fetchCSRFToken() {
 		.then(data => {
 			console.log(data.csrfToken);
 			localStorage.setItem('csrftoken', data.csrfToken);
+			document.cookie = `csrftoken=${data.csrfToken}; path=/; SameSite=Lax`;
 		})
 		.catch(error => console.error(error));
 }
@@ -67,7 +68,7 @@ const LogInObserver = new MutationObserver(() => {
 		login42SSOButton.addEventListener('click', async function (e) {
 			console.log("LOGIN42SSO BUTTON CLICKED");
 			e.preventDefault();
-			window.location.href = "https://localhost:8443/api/user_mgt/oauth/login/";
+			window.location.href = "/api/user_mgt/oauth/login/";
 
 		});
 	};

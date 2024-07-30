@@ -1,6 +1,7 @@
 
 # Certificates
-DIR				:=	/tmp/certs/live/localhost
+SERVER_NAME		:=	$(shell echo $$SESSION_MANAGER | awk -F'/' '{print $$2}' | sed 's/:@$$//')
+DIR				:=	/tmp/certs/live/$(SERVER_NAME)
 DAYS			:=	365
 KEY_NAME		:=	privkey.pem
 CERT_NAME		:=	fullchain.pem
@@ -18,7 +19,7 @@ DB_HOST=$(POSTGRES_HOST)
 DB_PORT=$(POSTGRES_PORT)
 DB_USER=$(POSTGRES_USER)
 DB_NAME=$(POSTGRES_NAME)
-URL := https://localhost:8443
+URL := https://$(SERVER_NAME):8443
 GAME_MANAGER_CONTAINER :=game_manager
 
 # Targets
@@ -49,12 +50,12 @@ env:
 
 up:
 				@docker-compose up -d --remove-orphans
-				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)https://localhost:8443$(RESET)"
+				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)$(URL)$(RESET)"
 
 down:
 				@docker-compose down
 
-restart:		down up
+restart:		down env up
 
 auth:
 				@docker-compose up --build -d nginx authentication
