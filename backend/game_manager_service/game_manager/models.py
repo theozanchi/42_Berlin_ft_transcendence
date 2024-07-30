@@ -281,10 +281,10 @@ class Round(models.Model):
         on_delete=models.SET_NULL,
     )
     player1_score = models.PositiveIntegerField(
-        default=0, validators=[MinValueValidator(0), MaxValueValidator(5)]
+        default=0
     )
     player2_score = models.PositiveIntegerField(
-        default=0, validators=[MinValueValidator(0), MaxValueValidator(5)]
+        default=0
     )
 
     def clean(self):
