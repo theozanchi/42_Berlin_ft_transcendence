@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # ALLOWED_HOSTS = ['user_mgt', 'localhost', '127.0.0.1']
 # ALLOWED_HOSTS = ['*']
@@ -51,30 +51,6 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = "/usr/share/media"
-
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
-
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = "localhost"
-CSRF_TRUSTED_ORIGINS = ["localhost:8443"]
-
-CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_DOMAIN = "localhost"
-CSRF_COOKIE_DOMAIN = "localhost"
-
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = ["https://localhost:8443"]
-
-CSRF_USE_SESSIONS = True
-
-CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -85,6 +61,32 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "oauth42.middleware.LastActivityMiddleware",
 ]
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = "/usr/share/media"
+
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+CSRF_TRUSTED_ORIGINS = [
+    os.getenv('SERVER_NAME') + ":" + os.getenv('SPORT'),
+    "localhost:8443"
+    ]
+
+SESSION_COOKIE_DOMAIN = "c3a8c3.42berlin.de"
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://" + os.getenv('SERVER_NAME') + ":" + os.getenv('SPORT'),
+    "https://localhost:8443"
+    ]
+
+CSRF_USE_SESSIONS = True
+
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 ROOT_URLCONF = "user_mgt.urls"
 

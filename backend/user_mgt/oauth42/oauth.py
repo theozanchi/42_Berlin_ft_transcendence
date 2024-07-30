@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any
 import requests
 from django.contrib.auth import login
 from django.core.files.base import ContentFile
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import redirect
 from django.utils.crypto import get_random_string
 
@@ -14,17 +14,26 @@ from .models import User, UserProfile
 logger = logging.getLogger(__name__)
 
 
+def get_redirect_uri(request: HttpRequest) -> str:
+    # redirect_uri = request.build_absolute_uri('/api/user_mgt/oauth/callback/').replace('443', os.getenv('SPORT'))
+    redirect_uri = f"{request.scheme}://{os.getenv('SERVER_NAME')}:{os.getenv('SPORT')}/api/user_mgt/oauth/callback/"
+    logger.info(f"get_redirect_uri(): {redirect_uri}")
+    # redirect_uri = "https://c3a7c3.42berlin.de/api/user_mgt/oauth/callback/"
+    return redirect_uri
+
+
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
-REDIRECT_URI = "https://localhost:8443/api/user_mgt/oauth/callback/"
 OAUTH_BASE_URL = "https://api.intra.42.fr"
 
 
 def oauth_login(request) -> HttpResponse:
-    logger.info("Starting OAuth login")
+    REDIRECT_URI = get_redirect_uri(request)
+    logger.info(f"Redirect URI: {REDIRECT_URI}")
     state = get_random_string(32)
     request.session["oauth_state"] = state
     authorization_url = f"{OAUTH_BASE_URL}/oauth/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&state={state}&prompt=login"
+    logger.info(f"Authorization URL: {authorization_url}")
     return redirect(authorization_url)
 
 
@@ -44,7 +53,7 @@ def oauth_callback(request) -> HttpResponse:
         return error_response("State mismatch. Possible CSRF attack detected.")
 
     code = request.GET.get("code")
-    access_token = exchange_code_for_token(code)
+    access_token = exchange_code_for_token(request, code)
     if not access_token:
         return error_response("Failed to obtain access token..")
 
@@ -73,7 +82,8 @@ def validate_state(request) -> bool:
     return state_request == state_session
 
 
-def exchange_code_for_token(code: str) -> Optional[str]:
+def exchange_code_for_token(request: HttpRequest, code: str) -> Optional[str]:
+    REDIRECT_URI = get_redirect_uri(request)
     token_url = f"{OAUTH_BASE_URL}/oauth/token"
     token_data = {
         "grant_type": "authorization_code",
