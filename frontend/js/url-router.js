@@ -133,6 +133,10 @@ async function redirectOnLogin(locationOld){
 				location = '/';
 				inGame = false;
 				window.history.replaceState({}, "", location);
+			} else if (location === '/setup-local') {
+				location = '/';
+				inGame = false;
+				window.history.replaceState({}, "", location);
 			}
 		}
 
