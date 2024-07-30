@@ -230,7 +230,6 @@ const urlLocationHandler = async () => {
 };
 
 export function handleGameExit(event) {
-	let location = window.location.pathname;
 	if (inGame && (newsocket && newsocket.readyState === WebSocket.OPEN)) {
 			const confirmationMessage = 'All game data will be lost if you reload this page. Continue REally?';
 			event.returnValue = confirmationMessage;
