@@ -83,7 +83,7 @@ let lastGameState = null;
 let timingStarted = false;
 let isGameStateUpdating = false; 
 const sendInterval = 1000 / 60;
-isInitialized = false;
+let isInitialized = false;
 
 const statusText = document.createElement('div');
 export const gifBackground = document.createElement('div');
