@@ -137,7 +137,7 @@ class Game(models.Model):
             round.save()
 
     def calculate_scores(self):
-        game.end_date = timezone.now()
+        self.end_date = timezone.now()
         player_wins_scores = []
 
         for player in self.players.all():
