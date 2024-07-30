@@ -5,6 +5,10 @@ import {loadProfileData, updateProfileData} from './profile.js'
 import { newsocket, getCurrentUser, openSocket, sendJson } from './stepper.js';
 import { resetGame, gifBackground, winnerText } from "./game.js"
 
+
+var inGame = false;
+let isProgrammaticNavigation = false;
+
 document.addEventListener("click", (e) => {
 	const {target} = e;
 	if(!target.matches("nav a", "nav button")) {
@@ -90,7 +94,7 @@ const urlRoutes = {
 	}
 }
 
-export const urlRoute = (eventOrUrl, ) => {
+export const urlRoute = (eventOrUrl) => {
 	let url;
 	let location = window.location.pathname;
 	if (typeof eventOrUrl === 'string') {
@@ -155,33 +159,34 @@ async function redirectOnLogin(locationOld){
 	return (location);
 }
 
-var inGame = false;
-
 const urlLocationHandler = async () => {
 	let location = window.location.pathname;
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
 
+	if (isProgrammaticNavigation) {
+		isProgrammaticNavigation = false;
+		return; 
+	}
+
 	if (gifBackground && winnerText) {
 		gifBackground.remove();
 		winnerText.remove();
 	}
-	if (inGame && location !== '/game' && (newsocket && newsocket.readyState === WebSocket.OPEN)) {
+	if (inGame && !["/game", "/host-remote", "/join-remote"].includes(location) && (newsocket && newsocket.readyState === WebSocket.OPEN)) {
 		let userConfirmation = confirm('All game data will be lost, when you leave this page. Continue?');
 		if (userConfirmation){
-			if (newsocket && newsocket.readyState === WebSocket.OPEN)
-				resetGame();
 				newsocket.close();
+			resetGame();
 			inGame = false;
 		} else {
-			inGame = false;
+			isProgrammaticNavigation = true; 
 			window.history.forward();
+			return ;
 		}
 	}
 
-	// CLOSING SOCKET WHEN ROUTING
-
-	if (["/game", "/host-remote", "/join-remote"].includes(location))
+	if (!inGame && ["/game", "/host-remote", "/join-remote"].includes(location))
 		inGame = true;
 
 	if (location.length === 0)
@@ -199,10 +204,6 @@ const urlLocationHandler = async () => {
 
 	document.title = doc.querySelector('title').innerText; // Update title
 
-	// Update game and settings column content as before
-	// let fetchedGameColumnContent = doc.getElementById('game-column').innerHTML;
-	// if (fetchedGameColumnContent)
-	// 	document.getElementById("game-column").innerHTML = fetchedGameColumnContent;
 
 	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
 	if (fetchedSettingsColumnContent)
@@ -226,20 +227,16 @@ const urlLocationHandler = async () => {
 
 export function handleGameExit(event) {
 	let location = window.location.pathname;
-	if (["/game", "/host-remote", "/join-remote"].includes(location)) {
-		if (newsocket && newsocket.readyState === WebSocket.OPEN) {
-			const confirmationMessage = 'All game data will be lost if you reload this page. Continue?';
+	if (inGame && (newsocket && newsocket.readyState === WebSocket.OPEN)) {
+			const confirmationMessage = 'All game data will be lost if you reload this page. Continue REally?';
 			event.returnValue = confirmationMessage;
+			return confirmationMessage;
 		}
-	}
 }
 
-window.onbeforeunload = function(event) {
-	return handleGameExit(event)
-};
+window.onbeforeunload = handleGameExit;
 
 window.onpopstate = function(event) {
-	handleGameExit(event);
 	urlLocationHandler();
 };
 

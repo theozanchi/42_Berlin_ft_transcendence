@@ -64,10 +64,8 @@ class MyPlayer extends HTMLElement {
 		const	avatar = this.getAttribute('avatar');
 		const	user_id = this.getAttribute('user_id');
 		let		imageUrl;
-
-		// console.log(`PLAYER IMAGETRACK: ${avatar} & ${user_id}`);
-
-		// if (avatar && avatar != 'null')
+	
+		console.log('PLAYER RENDERED');
 		if (avatar && avatar != 'null')
 			imageUrl = new URL(avatar, baseUrl);
 		else if (user_id)
