@@ -183,6 +183,7 @@ def sanitize_input(username=None, password=None, image=None, input_check=True):
 
     errors = []
 
+    sanitized_username = ""
     if username is not None:
         sanitized_username = bleach.clean(username.strip())
         sanitized_username = re.sub(r"[^\w\s-]", "", sanitized_username)
@@ -194,6 +195,7 @@ def sanitize_input(username=None, password=None, image=None, input_check=True):
         if input_check and len(sanitized_username) > 50:
             errors.append("Username cannot be longer than 50 characters")
 
+    sanitized_password = ""
     if password is not None:
         sanitized_password = bleach.clean(password.strip())
         sanitized_password = re.sub(r"[^\w\s-]", "", sanitized_password)
@@ -318,9 +320,8 @@ def update(request):
         if status_code != 200:
             return JsonResponse({"status": "error", "message": sanitized_data})
 
-        username = sanitized_data["username"]
-        password = sanitized_data["password"]
-        image = sanitized_data["image"]
+        username = sanitized_data.get("username")
+        password = sanitized_data.get("password")
 
         if (
             username
@@ -335,10 +336,10 @@ def update(request):
                 },
             )
 
-        if not any([username, password, image]):
-            return JsonResponse(
-                {"status": "error", "message": "No field updated"}, status=400
-            )
+        # if not any([username, password, image]):
+        #     return JsonResponse(
+        #         {"status": "error", "message": "No field updated"}, status=400
+        #     )
 
         fields_to_update = {}
 
@@ -436,7 +437,7 @@ def profile(request, user_id):
         )
     participations = Participation.objects.filter(user=user)
 
-    total_wins = Tournament.objects.filter(winner=user_profile).count()    
+    total_wins = Tournament.objects.filter(winner=user_profile).count()
     total_lost = participations.count() - total_wins
     total_score = get_total_score(user_id)
 
@@ -490,10 +491,11 @@ def profile(request, user_id):
         "tournaments": tournaments,
         "avatar": user_profile.avatar.name,
     }
+    player_data["rank"] = User.rankings.get_user_ranking(user.id)
+
     if request.user.is_authenticated:
         player_data["games"] = games
         player_data["last_login"] = user.last_login
-        player_data["rank"] = User.rankings.get_user_ranking(user.id)
         player_data["total_users"] = User.objects.count()
     if request.user.is_authenticated and request.user.id == user.id:
         player_data["friends"] = friends
@@ -720,7 +722,6 @@ def get_registered_users():
 
 @login_required
 def registered_users_view(request):
-    logger.debug("Registered users view")
     if not request.user.is_authenticated:
         return JsonResponse(
             {
