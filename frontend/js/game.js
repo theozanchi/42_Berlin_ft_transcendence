@@ -390,7 +390,7 @@ export async function init() {
     renderer.domElement.addEventListener('click', () => {
         renderer.domElement.requestPointerLock();
     });
-    document.addEventListener('pointerlockchange', () => {
+/*     document.addEventListener('pointerlockchange', () => {
         if (document.pointerLockElement === renderer.domElement) {
             // Pointer is locked, add event listener for mouse movement
             document.addEventListener('mousemove', onMouseMove);
@@ -398,7 +398,7 @@ export async function init() {
             // Pointer is unlocked, remove event listener for mouse movement
             document.removeEventListener('mousemove', onMouseMove);
         }
-    });
+    }); */
     
     animate();
 

@@ -153,7 +153,11 @@ def round(request):
             game.create_rounds()
             game.save()
 
+        rounds = Round.objects.filter(game=game).order_by('round_number')
+        for round in rounds:
+            logging.debug("All rounds for %s: %s %s", game.game_id, round.round_number, round.status)
         if Round.objects.filter(game=game, status="started").exists():
+            logging.debug("Error: A round has status started so you cannot start another round.")
             return JsonResponse({"message": "A round has already started."}, status=403)
 
         round_to_play = (
@@ -168,6 +172,7 @@ def round(request):
             rounds = Round.objects.filter(game=game).order_by('round_number')
 
             serializer = RoundSerializer(rounds, many=True)
+            logging.info("Round starting: %s", serializer.data)
             return JsonResponse(
                 {"type": "round", 
                  "content": serializer.data}, 

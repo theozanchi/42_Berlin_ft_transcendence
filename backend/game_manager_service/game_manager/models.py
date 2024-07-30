@@ -187,15 +187,18 @@ class Game(models.Model):
     def update_scores_abandon(self, channel_name):
         rounds = self.rounds.all()
         for round in rounds:
-            round.player1_score = 0
-            round.player2_score = 0
-            round.status = "completed"
             if round.player1.channel_name == channel_name:
+                round.player1_score = 0
+                round.player2_score = 0
+                round.status = "completed"
                 logging.debug(
                     "Player1 abandoned round %s, set score", round.round_number
                 )
                 round.winner = round.player2
             elif round.player2.channel_name == channel_name:
+                round.player1_score = 0
+                round.player2_score = 0
+                round.status = "completed"
                 logging.debug(
                     "Player2 abandoned round %s, set score", round.round_number
                 )

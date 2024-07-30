@@ -42,6 +42,7 @@ export function openSocket() {
 
 		openPromise = new Promise((resolve) => {
 			newsocket.onopen = function(event) {
+				console.log('Connected to WebSocket server.');
 				resolve();
 			};
 		});
