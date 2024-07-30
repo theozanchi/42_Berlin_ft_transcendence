@@ -11,6 +11,12 @@ let isProgrammaticNavigation = false;
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
+	if (e.target.tagName === 'A' && e.target.href) {
+		e.preventDefault();
+		const urlPath = new URL(e.target.href).pathname;
+		urlRoute(urlPath);
+		return ;
+	}
 	if(!target.matches("nav a", "nav button")) {
 		return;
 	}
@@ -133,6 +139,10 @@ async function redirectOnLogin(locationOld){
 				location = '/';
 				inGame = false;
 				window.history.replaceState({}, "", location);
+			} else if (location === '/setup-local') {
+				location = '/';
+				inGame = false;
+				window.history.replaceState({}, "", location);
 			}
 		}
 
@@ -205,11 +215,13 @@ const urlLocationHandler = async () => {
 	document.title = doc.querySelector('title').innerText; // Update title
 
 
-	let fetchedSettingsColumnContent = doc.getElementById('settings-column').innerHTML;
+	let fetchedSettingsColumnContent = doc.getElementById('settings-column')
+	if (fetchedSettingsColumnContent)
+		fetchedSettingsColumnContent = fetchedSettingsColumnContent.innerHTML;
 	if (fetchedSettingsColumnContent)
 		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 
-	if (location === '/profile')
+	if (location.startsWith('/profile'))
 		loadProfileData();
 	if (location === '/edit-profile')
 		updateProfileData();
@@ -226,7 +238,6 @@ const urlLocationHandler = async () => {
 };
 
 export function handleGameExit(event) {
-	let location = window.location.pathname;
 	if (inGame && (newsocket && newsocket.readyState === WebSocket.OPEN)) {
 			const confirmationMessage = 'All game data will be lost if you reload this page. Continue REally?';
 			event.returnValue = confirmationMessage;
