@@ -11,6 +11,12 @@ let isProgrammaticNavigation = false;
 
 document.addEventListener("click", (e) => {
 	const {target} = e;
+	if (e.target.tagName === 'A' && e.target.href) {
+		e.preventDefault();
+		const urlPath = new URL(e.target.href).pathname;
+		urlRoute(urlPath);
+		return ;
+	}
 	if(!target.matches("nav a", "nav button")) {
 		return;
 	}
@@ -213,7 +219,7 @@ const urlLocationHandler = async () => {
 	if (fetchedSettingsColumnContent)
 		document.getElementById("settings-column").innerHTML = fetchedSettingsColumnContent;
 
-	if (location === '/profile')
+	if (location.startsWith('/profile'))
 		loadProfileData();
 	if (location === '/edit-profile')
 		updateProfileData();
