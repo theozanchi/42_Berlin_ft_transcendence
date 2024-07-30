@@ -5,15 +5,21 @@ async function adjustButtonVisibility() {
 	const loggedInState = await getLoggedInState();
 	const localGameButton = document.getElementById('localGameButton');
 	const remoteGameButton = document.getElementById('remoteGameButton');
+	const rtfmLocal = document.getElementById('rtfmLocal');
+	const rtfmRemote = document.getElementById('rtfmRemote');
 
 	if (loggedInState && loggedInState.status === 'success') {
 	// User is logged in
 	if (localGameButton) localGameButton.style.display = 'none'; // Hide local game button
 	if (remoteGameButton) remoteGameButton.style.display = 'block'; // Show remote game button
+	if (rtfmLocal) rtfmLocal.style.display = 'none'; 
+	if (rtfmRemote) rtfmRemote.style.display = 'block';
 	} else {
 	// User is not logged in or an error occurred
 	if (localGameButton) localGameButton.style.display = 'block'; // Show local game button
 	if (remoteGameButton) remoteGameButton.style.display = 'none'; // Hide remote game button
+	if (rtfmLocal) rtfmLocal.style.display = 'block'; 
+	if (rtfmRemote) rtfmRemote.style.display = 'none';
 	}
 }
 
