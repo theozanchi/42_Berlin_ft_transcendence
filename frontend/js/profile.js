@@ -98,6 +98,7 @@ export function updateProfileData() {
 			throw new Error('Non-JSON response recieved');
 		})
 		.then(data => {
+			urlRoute('/profile');
 			console.log('Success:', data);
 		})
 		.catch((error) => {

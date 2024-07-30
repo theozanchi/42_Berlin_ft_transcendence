@@ -89,6 +89,8 @@ export const gifBackground = document.createElement('div');
 export const winnerText = document.createElement('div');
 
 export function updateGameState(data) {
+    if (data.content.last_update_time <= lastGameState) return;
+    lastGameState = data.content.last_update_time;
     player1Score = data.content.player1Score;
     player2Score = data.content.player2Score;
 

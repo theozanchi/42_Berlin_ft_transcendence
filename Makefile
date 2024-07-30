@@ -24,7 +24,7 @@ GAME_MANAGER_CONTAINER :=game_manager
 
 # Targets
 
-all:			certs env up
+all:			certs up
 
 certs:			dir
 				@if [ -z "$$(ls -A $(DIR))" ]; then \
@@ -45,11 +45,7 @@ del_certs:
 				@echo "Deleting self-signed SSL certificates..."
 				@rm $(DIR) -r -f
 
-env:
-				@chmod +x ./scripts/env.sh
-				@./scripts/env.sh
-
-up:				env certs
+up:				certs
 				@docker-compose up -d --remove-orphans
 				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)$(URL)$(RESET)"
 
@@ -78,4 +74,4 @@ prune:
 clean-db:
 				docker exec -it $(GAME_MANAGER_CONTAINER) psql -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
 
-.PHONY:			all certs dir del_certs env up down restart prune auth rebuild postgres prune crebuild
+.PHONY:			all certs dir del_certs up down restart prune auth rebuild postgres prune crebuild
