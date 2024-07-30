@@ -124,6 +124,7 @@ def update_round_status(request):
         round_played.save()
 
         serializer = RoundSerializer(round_played)
+        logging.info("Round finished updated: %s", serializer.data)
         return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:

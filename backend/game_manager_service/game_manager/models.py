@@ -154,12 +154,20 @@ class Game(models.Model):
             )
             score = player1_score + player2_score
             player_wins_scores.append((player, wins, score))
+            logging.debug("Player %s: wins=%s, score=%s", player, wins, score)
 
         # Sort players first by wins in descending order, then by score in descending order
         player_wins_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
 
         # Assign ranks and create Participation objects
-        for rank, (player, wins, score) in enumerate(player_wins_scores, start=1):
+        current_rank = 1
+        for i, (player, wins, score) in enumerate(player_wins_scores):
+            if i > 0 and (wins, score) == (player_wins_scores[i-1][1], player_wins_scores[i-1][2]):
+                rank = current_rank  # Same rank as the previous player
+            else:
+                rank = i + 1
+                current_rank = rank
+
             participation = Participation.objects.create(
                 tournament=self, user=player.user, score=score, rank=rank
             )
@@ -171,8 +179,8 @@ class Game(models.Model):
             self.winner = player_wins_scores[0][0]  # First player in the sorted list
             self.save()
 
-    def __str__(self):
-        return self.pk
+        def __str__(self):
+            return self.pk
 
     def update_scores_abandon(self, channel_name):
         rounds = self.rounds.all()
