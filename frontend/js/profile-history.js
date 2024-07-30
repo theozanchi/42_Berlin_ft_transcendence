@@ -4,21 +4,25 @@ class GameHistory extends HTMLElement {
 
 	constructor() {
 		super();
+		this.urlQuery = new URLSearchParams(window.location.search);
+		this.user_id = this.urlQuery.get('user');
 		this.shadow = this.attachShadow({ mode: 'open' });
 	}
 
 	async fetchData() {
-		const userData = await getLoggedInState();
-		if (userData && userData.user_id) { 
-			this.user_id = userData.user_id
+		if (!this.user_id) {
+			const userData = await getLoggedInState();
+			if (userData && userData.user_id);
+				this.user_id = userData.user_id
 		}
 		const response = await fetch(`/api/user_mgt/profile/${this.user_id}`);
 		if (!response.ok) {
 			console.error('Failed to fetch data');
+			alert('Error while fetching history');
+			urlRoute('/');
 			return;
 		}
 		this._data = await response.json();
-		console.log(this._data);
         this.render(); 
 	}
 

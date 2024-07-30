@@ -120,6 +120,7 @@ export async function loadProfileData() {
 	const userGamesWon = document.getElementById('userGamesWon');
 	const userGamesLost = document.getElementById('userGamesLost');
 	const userFriendsList = document.getElementById('userFriendsList');
+	const showUserGameHistoryButton = document.getElementById('showUserGameHistory');
 	const urlQuery = new URLSearchParams(window.location.search);
 	const userId = urlQuery.get('user');
 
@@ -127,6 +128,20 @@ export async function loadProfileData() {
 		console.error('No user ID found in URL query');
 		return;
 	}
+
+	showUserGameHistoryButton.addEventListener('click', function(event) {
+		event.preventDefault(); // Prevent the default anchor behavior
+
+		const urlParams = new URLSearchParams(window.location.search);
+		const user = urlParams.get('user'); // Get the "user" query parameter
+
+		if (user) {
+			// If the "user" parameter exists, append it to the href of the button
+			const newHref = `/game-history?user=${user}`;
+			// window.location.href = newHref; // Redirect to the new href
+			urlRoute(newHref);
+		}
+	});
 
 	try {
 		const response = await fetch(`/api/user_mgt/profile/${userId}`,
