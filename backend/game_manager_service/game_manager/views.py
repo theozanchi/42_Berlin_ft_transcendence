@@ -203,7 +203,7 @@ def update_players(request):
     try:
         game = Game.objects.get(pk=request.data.get("game-id"))
         if game.end_date:
-            return
+            return JsonResponse({"message": "Game already ended."}, status=200)
         if request.data.get("channel_name") == game.host:
             logging.debug("Host disconnected, selecting next player as host")
             next_player = game.players.exclude(channel_name=game.host).first()
