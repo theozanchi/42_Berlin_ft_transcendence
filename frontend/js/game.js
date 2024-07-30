@@ -1238,16 +1238,10 @@ export function animate() {
         return;
     }
     if (remote == true) {
-        if (player_id === 'spectator') {
+        if (player_id === 'spectator')
             statusText.textContent = 'You are watching';
-        } else {
-            if (playerTurn && currentPlayer === player) {
-                statusText.textContent = 'Your turn';
-            }
-            else {
-                statusText.textContent = 'Opponent\'s turn';
-            }
-        }
+        else
+            statusText.textContent = 'You are playing!';
     } else {
         if (playerTurn) {
             statusText.textContent = 'Player 1\'s turn';
