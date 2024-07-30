@@ -1,7 +1,7 @@
 
 # Certificates
 SERVER_NAME		:=	$(shell echo $$SESSION_MANAGER | awk -F'/' '{print $$2}' | sed 's/:@$$//')
-DIR				:=	/tmp/certs/live/$(SERVER_NAME)
+DIR				:=	~/certs/live/$(SERVER_NAME)
 DAYS			:=	365
 KEY_NAME		:=	privkey.pem
 CERT_NAME		:=	fullchain.pem
