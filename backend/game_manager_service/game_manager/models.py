@@ -11,6 +11,7 @@ from django.db.models import F, Sum, Window
 from django.db.models.functions import Coalesce, DenseRank
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from .exceptions import InsufficientPlayersError
 
@@ -136,6 +137,7 @@ class Game(models.Model):
             round.save()
 
     def calculate_scores(self):
+        self.end_date = timezone.now()
         player_wins_scores = []
 
         for player in self.players.all():
@@ -154,12 +156,20 @@ class Game(models.Model):
             )
             score = player1_score + player2_score
             player_wins_scores.append((player, wins, score))
+            player.game = None
 
         # Sort players first by wins in descending order, then by score in descending order
         player_wins_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
 
         # Assign ranks and create Participation objects
-        for rank, (player, wins, score) in enumerate(player_wins_scores, start=1):
+        current_rank = 1
+        for i, (player, wins, score) in enumerate(player_wins_scores):
+            if i > 0 and (wins, score) == (player_wins_scores[i-1][1], player_wins_scores[i-1][2]):
+                rank = current_rank  # Same rank as the previous player
+            else:
+                rank = i + 1
+                current_rank = rank
+
             participation = Participation.objects.create(
                 tournament=self, user=player.user, score=score, rank=rank
             )
@@ -171,21 +181,24 @@ class Game(models.Model):
             self.winner = player_wins_scores[0][0]  # First player in the sorted list
             self.save()
 
-    def __str__(self):
-        return self.pk
+        def __str__(self):
+            return self.pk
 
     def update_scores_abandon(self, channel_name):
         rounds = self.rounds.all()
         for round in rounds:
-            round.player1_score = 0
-            round.player2_score = 0
-            round.status = "completed"
             if round.player1.channel_name == channel_name:
+                round.player1_score = 0
+                round.player2_score = 0
+                round.status = "completed"
                 logging.debug(
                     "Player1 abandoned round %s, set score", round.round_number
                 )
                 round.winner = round.player2
             elif round.player2.channel_name == channel_name:
+                round.player1_score = 0
+                round.player2_score = 0
+                round.status = "completed"
                 logging.debug(
                     "Player2 abandoned round %s, set score", round.round_number
                 )

@@ -712,7 +712,8 @@ def get_registered_users():
             "won_games",
             "won_rounds",
         )
-        .order_by("username")
+        .order_by("user_id", "username")  # Adjusted to comply with PostgreSQL's requirements
+        .distinct("user_id")
     )
     return registered_user_profiles
 

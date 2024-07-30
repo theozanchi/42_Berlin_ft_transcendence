@@ -122,8 +122,10 @@ def update_round_status(request):
         )
         round_played.status = "completed"
         round_played.save()
+        logging.debug("Round updated: %s, Details: %s", round_played, round_played.__dict__)
 
         serializer = RoundSerializer(round_played)
+        logging.info("Round finished updated: %s", serializer.data)
         return JsonResponse(serializer.data, status=200)
 
     except Game.DoesNotExist:
@@ -151,6 +153,13 @@ def round(request):
             game.create_rounds()
             game.save()
 
+        rounds = Round.objects.filter(game=game).order_by('round_number')
+        for round in rounds:
+            logging.debug("All rounds for %s: %s %s", game.game_id, round.round_number, round.status)
+        if Round.objects.filter(game=game, status="started").exists():
+            logging.debug("Error: A round has status started so you cannot start another round.")
+            return JsonResponse({"message": "A round has already started."}, status=403)
+
         round_to_play = (
             Round.objects.filter(game=game, status="pending")
             .order_by("round_number")
@@ -163,6 +172,7 @@ def round(request):
             rounds = Round.objects.filter(game=game).order_by('round_number')
 
             serializer = RoundSerializer(rounds, many=True)
+            logging.info("Round starting: %s", serializer.data)
             return JsonResponse(
                 {"type": "round", 
                  "content": serializer.data}, 
@@ -197,6 +207,8 @@ def update_players(request):
     logging.debug("Player disconnected, request.data: %s", request.data)
     try:
         game = Game.objects.get(pk=request.data.get("game-id"))
+        if game.end_date:
+            return JsonResponse({"message": "Game already ended."}, status=200)
         if request.data.get("channel_name") == game.host:
             logging.debug("Host disconnected, selecting next player as host")
             next_player = game.players.exclude(channel_name=game.host).first()

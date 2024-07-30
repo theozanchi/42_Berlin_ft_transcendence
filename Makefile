@@ -1,7 +1,7 @@
 
 # Certificates
 SERVER_NAME		:=	$(shell echo $$SESSION_MANAGER | awk -F'/' '{print $$2}' | sed 's/:@$$//')
-DIR				:=	/tmp/certs/live/$(SERVER_NAME)
+DIR				:=	~/certs/live/$(SERVER_NAME)
 DAYS			:=	365
 KEY_NAME		:=	privkey.pem
 CERT_NAME		:=	fullchain.pem
@@ -42,20 +42,21 @@ dir:
 				@mkdir -p $(DIR)
 
 del_certs:
+				@echo "Deleting self-signed SSL certificates..."
 				@rm $(DIR) -r -f
 
 env:
 				@chmod +x ./scripts/env.sh
 				@./scripts/env.sh
 
-up:
+up:				env certs
 				@docker-compose up -d --remove-orphans
 				@echo "$(PONG) The game is accessible at $(BLUE_UNDERLINE)$(URL)$(RESET)"
 
-down:
+down:			del_certs
 				@docker-compose down
 
-restart:		down env up
+restart:		down up
 
 auth:
 				@docker-compose up --build -d nginx authentication

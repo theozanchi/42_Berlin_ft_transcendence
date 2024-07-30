@@ -51,6 +51,55 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = "/usr/share/media"
+
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_DOMAIN = ".42berlin.de"
+
+CSRF_USE_SESSIONS = False
+
+CSRF_COOKIE_SECURE = True # Lax
+CSRF_COOKIE_DOMAIN = ".42berlin.de"
+CSRF_TRUSTED_ORIGINS = [
+    'c3a8c3.42berlin.de:8443',
+    'c3a7c3.42berlin.de:8443',
+    'c3a7c2.42berlin.de:8443',
+    'c3a7c1.42berlin.de:8443',
+    'c3a7c1.42berlin.de:8443',
+    'c3a8c1.42berlin.de:8443',
+    'c3a8c2.42berlin.de:8443',
+    'c3a8c3.42berlin.de:8443',
+    'c3a8c4.42berlin.de:8443',
+    'c3a8c5.42berlin.de:8443',
+    'c3a8c6.42berlin.de:8443',
+]
+
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'https://c3a8c3.42berlin.de:8443',
+    'https://c3a7c3.42berlin.de:8443',
+    'https://c3a7c2.42berlin.de:8443',
+    'https://c3a7c1.42berlin.de:8443',
+    'https://c3a8c1.42berlin.de:8443',
+    'https://c3a8c2.42berlin.de:8443',
+    'https://c3a8c3.42berlin.de:8443',
+    'https://c3a8c4.42berlin.de:8443',
+    'https://c3a8c5.42berlin.de:8443',
+    'https://c3a8c6.42berlin.de:8443',
+    ]
+
+
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -61,32 +110,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "oauth42.middleware.LastActivityMiddleware",
 ]
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = "/usr/share/media"
-
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
-
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-CSRF_TRUSTED_ORIGINS = [
-    os.getenv('SERVER_NAME') + ":" + os.getenv('SPORT'),
-    "localhost:8443"
-    ]
-
-SESSION_COOKIE_DOMAIN = "c3a8c3.42berlin.de"
-
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "https://" + os.getenv('SERVER_NAME') + ":" + os.getenv('SPORT'),
-    "https://localhost:8443"
-    ]
-
-CSRF_USE_SESSIONS = True
-
-CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 ROOT_URLCONF = "user_mgt.urls"
 
