@@ -54,9 +54,6 @@ down:			del_certs
 
 restart:		down up
 
-auth:
-				@docker-compose up --build -d nginx authentication
-
 rebuild:
 				docker compose down
 				docker compose build --no-cache
@@ -64,7 +61,7 @@ rebuild:
 
 crebuild:		clean-db rebuild
 
-postgres:
+postgres:		up
 				docker exec -it $(GAME_MANAGER_CONTAINER) pgcli -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME)
 
 prune:
@@ -74,4 +71,4 @@ prune:
 clean-db:
 				docker exec -it $(GAME_MANAGER_CONTAINER) psql -h $(POSTGRES_HOST) -p $(POSTGRES_PORT) -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
 
-.PHONY:			all certs dir del_certs up down restart prune auth rebuild postgres prune crebuild
+.PHONY:			all certs dir del_certs up down restart prune rebuild postgres prune crebuild clean-db
