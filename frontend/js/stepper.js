@@ -155,10 +155,7 @@ async function handleMessage(data) {
 				console.log("sending start game!!!")
 				await sendJson(JSON.stringify({ type: 'start-game' }));
 			}
-			else if (data.action == "continue-round") {
-
-			}
-			else if (data.action == "update-lobby")
+			else
 				await replacePlayerList(data.content.users);
 			break;
 
