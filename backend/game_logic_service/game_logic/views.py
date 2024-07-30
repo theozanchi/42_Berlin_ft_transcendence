@@ -56,6 +56,7 @@ def game_update(request):
                     f'Creating new game state for game {game_id}, round number {new_game_state.get("round_number")}\n'
                 )
 
+            logging.info("Received data: " + str(new_game_state.get("last_update_time")))
             if new_game_state:
                 game_state.update(new_game_state)
 
@@ -75,6 +76,7 @@ def game_update(request):
             ):
                 game_state = handle_game_over(game_state, game_id, request.headers)
 
+            logging.info("Sendig data: " + str(game_state.get("last_update_time")))
             return JsonResponse(game_state, safe=False, status=200)
 
     except Exception as e:

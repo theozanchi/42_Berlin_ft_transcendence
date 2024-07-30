@@ -140,8 +140,15 @@ class Game(models.Model):
         self.end_date = timezone.now()
         player_wins_scores = []
 
+        # Initialize a dictionary to keep track of wins for each player
+        player_wins = {player.id: 0 for player in self.players.all()}
+
+        # Iterate through all rounds of the game
+        for round in self.rounds.all():
+            if round.winner:
+                player_wins[round.winner.id] += 1
+
         for player in self.players.all():
-            wins = player.won_rounds.count()
             player1_score = (
                 player.player1_rounds.aggregate(total_score=Sum("player1_score"))[
                     "total_score"
@@ -155,11 +162,12 @@ class Game(models.Model):
                 or 0
             )
             score = player1_score + player2_score
-            player_wins_scores.append((player, wins, score))
+            player_wins_scores.append((player, player_wins[player.id], score))
             player.game = None
 
         # Sort players first by wins in descending order, then by score in descending order
         player_wins_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
+        logging.debug("Player wins scores: %s", player_wins_scores)
 
         # Assign ranks and create Participation objects
         current_rank = 1
