@@ -153,7 +153,7 @@ def round(request):
             game.save()
 
         if Round.objects.filter(game=game, status="started").exists():
-            return JsonResponse({"message": "A round ahs already started."}, status=403)
+            return JsonResponse({"message": "A round has already started."}, status=403)
 
         round_to_play = (
             Round.objects.filter(game=game, status="pending")
