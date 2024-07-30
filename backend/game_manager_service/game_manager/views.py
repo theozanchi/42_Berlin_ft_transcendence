@@ -122,6 +122,7 @@ def update_round_status(request):
         )
         round_played.status = "completed"
         round_played.save()
+        logging.debug("Round updated: %s, Details: %s", round_played, round_played.__dict__)
 
         serializer = RoundSerializer(round_played)
         return JsonResponse(serializer.data, status=200)
@@ -197,6 +198,8 @@ def update_players(request):
     logging.debug("Player disconnected, request.data: %s", request.data)
     try:
         game = Game.objects.get(pk=request.data.get("game-id"))
+        if game.end_date:
+            return
         if request.data.get("channel_name") == game.host:
             logging.debug("Host disconnected, selecting next player as host")
             next_player = game.players.exclude(channel_name=game.host).first()
