@@ -68,7 +68,7 @@ const LogInObserver = new MutationObserver(() => {
 		login42SSOButton.addEventListener('click', async function (e) {
 			console.log("LOGIN42SSO BUTTON CLICKED");
 			e.preventDefault();
-			urlRoute("/api/user_mgt/oauth/login/");
+			window.location.href = ("/api/user_mgt/oauth/login/");
 
 		});
 	};
