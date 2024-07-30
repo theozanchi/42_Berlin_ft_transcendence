@@ -1,7 +1,7 @@
 class match extends HTMLElement {
 	constructor() {
-		super();
-		this.shadow = this.attachShadow({mode: 'open'});
+	super();
+	this.shadow = this.attachShadow({mode: 'open'});
 	this.player1Name = '';
 	this.player2Name = '';
 	this.player1Score = '-';
@@ -10,7 +10,6 @@ class match extends HTMLElement {
 	this.player2Avatar = '';
 	this.player1Id = '0';
 	this.player2Id = '0';
-
 	}
 
 	static get observedAttributes() {
@@ -52,6 +51,9 @@ class match extends HTMLElement {
 		const dateFormatted = isHistory
 			? `<small class="text-center mx-2">${date.getDate()}.${date.getMonth()}.${date.getFullYear()}</small>`
 			: ""
+
+		// console.log(`MATCH RENDER IMAGETRACK: ${this.player1Avatar} ${this.player1Id}"`);
+		// console.log(`MATCH RENDER IMAGETRACK: ${this.player2Avatar} ${this.player2Id}"`);
 
 		this.shadow.innerHTML = `
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">

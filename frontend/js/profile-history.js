@@ -18,6 +18,7 @@ class GameHistory extends HTMLElement {
 			return;
 		}
 		this._data = await response.json();
+		console.log(this._data);
         this.render(); 
 	}
 
@@ -43,8 +44,10 @@ class GameHistory extends HTMLElement {
 		this._data.player_data.games.forEach(game => {
 
 			
-			const date = new Date(game.end_date);
-			let GameDate = `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} | ${date.getHours()}:${date.getMinutes()}`;
+			const date = new Date(game.start_date);
+			console.log('MY DATE:' + date);
+			// let GameDate = `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} | ${date.getHours()}:${date.getMinutes()}`;
+			let GameDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} | ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
 			gameHistoryHTML += `<div class="spacer-48"></div>
 								<h3 class="fw-bold">${GameDate}</h3>
@@ -58,7 +61,9 @@ class GameHistory extends HTMLElement {
 											player1="${round.player1.alias}" 
 											player2="${round.player2.alias}" 
 											player1Score="${round.player1.score}" 
-											player2Score="${round.player2.score}">
+											player2Score="${round.player2.score}"
+											player1Id="${round.player1.user_id}" 
+											player2Id="${round.player2.user_id}">
 										</match-component>`;
 				}
 			});

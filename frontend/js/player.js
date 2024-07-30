@@ -65,8 +65,11 @@ class MyPlayer extends HTMLElement {
 		const	user_id = this.getAttribute('user_id');
 		let		imageUrl;
 
+		// console.log(`PLAYER IMAGETRACK: ${avatar} & ${user_id}`);
+
+		// if (avatar && avatar != 'null')
 		if (avatar && avatar != 'null')
-			imageUrl = new URL(this.getAttribute('avatar'), baseUrl);
+			imageUrl = new URL(avatar, baseUrl);
 		else if (user_id)
 			imageUrl = await setProfileImage(user_id);
 
