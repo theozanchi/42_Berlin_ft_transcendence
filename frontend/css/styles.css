@@ -3,6 +3,7 @@
 /* Header styles */
 .header {
     max-height: 48px;
+	margin-top: 20px;
 }
 
 .header-logo {
